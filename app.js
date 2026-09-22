@@ -243,6 +243,36 @@ const STEP_TYPES = {
   rest:      { label: "Repos / Frigo",    icon: "fa-snowflake",    time_label: "Temps de repos (min)" }
 };
 
+// =====================================================================
+// Suggestion "intelligente" du produit obtenu par une étape — PAS une IA :
+// de simples règles (mots-clés de la description + type d'étape) qui devinent un nom
+// plausible, toujours modifiable par l'utilisateur. Honnête sur ses limites : elle ne
+// comprend pas vraiment la recette, elle reconnaît juste des motifs courants.
+// =====================================================================
+const OUTPUT_PRODUCT_RULES = [
+  { words: ['assaisonn', 'sal', 'poivr', 'epice', 'marinad', 'marin'], suffix: 'assaisonné(e)(s)' },
+  { words: ['frit', 'friture'], suffix: 'frit(e)(s)', step_types: ['fryer'] },
+  { words: ['cuit', 'cuiss', 'rot', 'gratin', 'grill'], suffix: 'cuit(e)(s)', step_types: ['oven', 'stovetop'] },
+  { words: ['coup', 'decoup', 'tranch', 'emince', 'hach', 'dic', 'eplu', 'rap'], suffix: 'coupé(e)(s)' },
+  { words: ['melang', 'fouet', 'incorpor', 'petri'], suffix: 'mélangé(e)(s)' },
+  { words: ['repos', 'frigo', 'refrig', 'congel'], suffix: 'reposé(e)(s)', step_types: ['rest'] }
+];
+
+function suggest_output_product_name(step_type, description, linked_ingredient_names) {
+  if (!linked_ingredient_names.length) return '';
+  const base = linked_ingredient_names[0];
+  const desc = normalize_for_search(description || '');
+
+  // Priorité à une règle qui correspond à la fois au type d'étape ET à un mot-clé de la
+  // description, sinon un mot-clé seul, sinon le type d'étape seul (friture/four/repos
+  // ont un suffixe assez évident même sans description détaillée).
+  let matched = OUTPUT_PRODUCT_RULES.find(r => r.step_types?.includes(step_type) && r.words.some(w => desc.includes(w)));
+  if (!matched) matched = OUTPUT_PRODUCT_RULES.find(r => r.words.some(w => desc.includes(w)));
+  if (!matched) matched = OUTPUT_PRODUCT_RULES.find(r => r.step_types?.includes(step_type));
+
+  return matched ? `${base} ${matched.suffix}` : '';
+}
+
 // Devine une unité de départ raisonnable selon la nature de l'aliment
 // (pas une vraie IA, une heuristique par mots-clés — mais ça évite de remettre "g" à la main à chaque fois)
 const LIQUID_FOOD_KEYWORDS = ['lait', 'huile', 'eau', 'vin', 'bouillon', 'jus', 'crème liquide', 'vinaigre', 'sirop', 'café', 'thé', 'cidre', 'bière', 'rhum', 'whisky'];
@@ -1208,10 +1238,27 @@ function set_step_editor_type(type, auto_suggest_tool, previous_type) {
     }
     render_step_editor_tools_list();
   }
+  refresh_output_product_suggestion();
 }
 document.querySelectorAll('.step-type-btn').forEach(btn => {
   btn.addEventListener('click', () => set_step_editor_type(btn.dataset.type, true, step_editor_current_type));
 });
+
+// Régénère la suggestion de produit obtenu quand le type d'étape, la description ou les
+// ingrédients liés changent — mais seulement si le champ contient encore la suggestion
+// précédente (pas un nom que l'utilisateur a tapé lui-même, qu'on ne veut jamais écraser).
+function refresh_output_product_suggestion() {
+  const checkbox = document.getElementById('step_editor_creates_product');
+  const input = document.getElementById('step_editor_output_product');
+  if (!checkbox || !input || !checkbox.checked) return;
+  const description = document.getElementById('step_editor_text').value;
+  const names = step_editor_linked_ingredients.map(ing => ing.name);
+  const suggestion = suggest_output_product_name(step_editor_current_type, description, names);
+  if (!input.value || input.value === input.dataset.autoSuggested) {
+    input.value = suggestion;
+    input.dataset.autoSuggested = suggestion;
+  }
+}
 
 // Copie de travail des ingrédients liés à l'étape en cours d'édition dans la popup
 let step_editor_linked_ingredients = [];
@@ -1226,6 +1273,7 @@ function render_step_editor_linked_list() {
 
   if (step_editor_linked_ingredients.length === 0) {
     container.innerHTML = `<p class="empty-hint">Aucun ingrédient ajouté à cette étape.</p>`;
+    refresh_output_product_suggestion();
     return;
   }
   container.innerHTML = step_editor_linked_ingredients.map((ing, i) => {
@@ -1291,6 +1339,8 @@ function render_step_editor_linked_list() {
       render_step_editor_linked_list();
     });
   });
+
+  refresh_output_product_suggestion();
 }
 
 // ---- Popup (niveau 2) : choix des ingrédients d'une étape + leurs quantités ----
@@ -1509,6 +1559,12 @@ document.getElementById('step_tool_picker_confirm_btn').addEventListener('click'
   document.getElementById('step_tool_picker_modal').classList.add('hidden');
 });
 
+document.getElementById('step_editor_text').addEventListener('input', refresh_output_product_suggestion);
+document.getElementById('step_editor_creates_product').addEventListener('change', (e) => {
+  document.getElementById('step_editor_output_product_wrap').classList.toggle('hidden', !e.target.checked);
+  if (e.target.checked) refresh_output_product_suggestion();
+});
+
 function open_step_editor(index) {
   step_editor_index = index;
   step_editor_image_file = null;
@@ -1524,7 +1580,14 @@ function open_step_editor(index) {
   sync_time_picker_presets('step_editor_time');
   document.getElementById('step_editor_temp').value = step.oven_temp || '';
   document.getElementById('step_editor_external_url').value = step.external_url || '';
-  document.getElementById('step_editor_output_product').value = step.output_product || '';
+  const creates_product_checkbox = document.getElementById('step_editor_creates_product');
+  const output_product_input = document.getElementById('step_editor_output_product');
+  creates_product_checkbox.checked = step.output_product !== null || !is_editing; // coché par défaut
+  document.getElementById('step_editor_output_product_wrap').classList.toggle('hidden', !creates_product_checkbox.checked);
+  output_product_input.value = step.output_product || '';
+  // Vide ici : un nom déjà enregistré est traité comme "choisi par l'utilisateur" (jamais
+  // écrasé automatiquement) ; un champ vide déclenchera une première suggestion normalement.
+  output_product_input.dataset.autoSuggested = '';
   document.getElementById('delete_step_editor_btn').classList.toggle('hidden', !is_editing);
 
   set_step_editor_type(step.type || 'prep');
@@ -1585,7 +1648,8 @@ document.getElementById('save_step_editor_btn').addEventListener('click', () => 
   const text = document.getElementById('step_editor_text').value.trim();
   if (!text) { alert('Ajoute une description pour cette étape.'); return; }
 
-  const output_product = document.getElementById('step_editor_output_product').value.trim();
+  const creates_product = document.getElementById('step_editor_creates_product').checked;
+  const output_product = creates_product ? document.getElementById('step_editor_output_product').value.trim() : '';
 
   const previous = step_editor_index !== null ? recipe_steps[step_editor_index] : {};
   const step_data = {
@@ -3558,6 +3622,13 @@ async function submit_recipe_comment(recipe_id) {
 
 function load_recipe_into_publish_form(recipe) {
   editing_recipe_id = recipe.id;
+
+  // Repart d'un formulaire vraiment vierge avant de le remplir avec la recette : sans ça,
+  // des champs laissés remplis lors d'une session précédente (fichier vidéo choisi mais pas
+  // envoyé, case à cocher, etc.) pouvaient se retrouver silencieusement appliqués à CETTE
+  // modification — d'où des "modifs" qui semblaient sorties de nulle part.
+  recipe_form.reset();
+  document.querySelectorAll('#recipe_form .chip.checked').forEach(c => c.classList.remove('checked'));
 
   document.getElementById('publish_form_title').textContent = 'Modifier la recette';
   document.querySelector('#recipe_form button[type="submit"]').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Enregistrer les modifications';

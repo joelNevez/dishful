@@ -356,9 +356,17 @@
             </div>
           </div>
 
-          <label class="field-label"><i class="fa-solid fa-wand-magic-sparkles"></i> Ce produit crée un nouvel ingrédient (optionnel)</label>
-          <p class="sub-hint">Ex : si cette étape découpe des frites, tape "Frites coupées" — il apparaîtra dans la liste des ingrédients, prêt à être utilisé dans les étapes suivantes.</p>
-          <input type="text" id="step_editor_output_product" placeholder="Ex : Frites coupées">
+          <div class="field-label-row">
+            <label class="field-label" style="margin:0;"><i class="fa-solid fa-wand-magic-sparkles"></i> Cette étape crée un nouvel ingrédient</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="step_editor_creates_product" checked>
+              <span class="toggle-switch-slider"></span>
+            </label>
+          </div>
+          <div id="step_editor_output_product_wrap">
+            <p class="sub-hint">Suggestion automatique selon l'étape, les ingrédients et les outils choisis — modifie le nom si besoin, ou décoche pour ignorer.</p>
+            <input type="text" id="step_editor_output_product" placeholder="Ex : Frites coupées">
+          </div>
         </div>
 
         <div class="step-editor-section">
