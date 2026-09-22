@@ -1643,6 +1643,15 @@ label.field-label{
 }
 .leaderboard-scope-btn.active{background:var(--basil);color:#fff;border-color:var(--basil-deep);}
 
+/* ---------- Bascule Toujours / Cette semaine ---------- */
+.leaderboard-period-toggle{display:flex;gap:6px;}
+.leaderboard-period-btn{
+  background:var(--card);border:1px solid var(--line);padding:8px 15px;border-radius:999px;
+  font-size:12.5px;font-weight:700;color:var(--ink-soft);display:inline-flex;align-items:center;gap:7px;
+}
+.leaderboard-period-btn.active{background:var(--rust);color:#fff;border-color:#9c4527;}
+@media(max-width:560px){.feed-header{flex-direction:column;align-items:flex-start;}}
+
 .comment_rating_picker{
   display:flex;align-items:center;gap:10px;background:var(--paper);border:1px solid var(--line);
   border-radius:10px;padding:9px 13px;

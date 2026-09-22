@@ -2615,11 +2615,29 @@ function switch_tab(tab_name) {
   }
 }
 
+// 'all' (classement historique) ou 'week' (uniquement les 7 derniers jours).
+let leaderboard_period = 'all';
+function week_ago_iso() {
+  return new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
+}
+// Annuaire {id -> profil} utilisé pour afficher nom/avatar sur les classements calculés
+// côté client à partir de likes/vues/recettes bruts (pas de jointure directe vers un auteur).
+async function get_profiles_lookup() {
+  const { data } = await supabase.from('profiles').select('id, username, avatar_url, first_name, last_name');
+  const map = new Map();
+  (data || []).forEach(p => map.set(p.id, p));
+  return map;
+}
 async function load_leaderboard() {
   const container = document.getElementById('leaderboard_list');
   if (!container) return;
   if (!supabase) { container.innerHTML = `<p class="empty-state">Supabase indisponible.</p>`; return; }
   container.innerHTML = dishful_loading_html('Chargement du classement...');
+
+  if (leaderboard_period === 'week') {
+    await load_weekly_chefs_ranking(container);
+    return;
+  }
 
   const { data, error } = await supabase
     .from('profiles')
@@ -2660,6 +2678,91 @@ async function load_leaderboard() {
     row.addEventListener('click', () => open_user_profile(row.dataset.userId));
   });
 }
+
+// XP gagné uniquement sur les 7 derniers jours : recettes publiées, likes et vues reçus
+// cette semaine, avec la même formule que le calcul d'XP habituel (recipes/likes/vues
+// sont horodatés, contrairement à xp_points qui est un compteur cumulatif sans historique).
+async function load_weekly_chefs_ranking(container) {
+  const since = week_ago_iso();
+  const [{ data: recipes_week }, { data: likes_week }, { data: views_week }, profiles_map] = await Promise.all([
+    supabase.from('recipes').select('author_id').gte('created_at', since),
+    supabase.from('likes').select('recipe_id, recipes(author_id)').gte('created_at', since),
+    supabase.from('recipe_views').select('recipe_id, recipes(author_id)').gte('created_at', since),
+    get_profiles_lookup()
+  ]);
+
+  const totals = new Map(); // author_id -> xp cette semaine
+  (recipes_week || []).forEach(r => {
+    if (!r.author_id) return;
+    totals.set(r.author_id, (totals.get(r.author_id) || 0) + 20);
+  });
+  (likes_week || []).forEach(l => {
+    const author_id = l.recipes?.author_id;
+    if (!author_id) return;
+    totals.set(author_id, (totals.get(author_id) || 0) + 3);
+  });
+  const views_by_author = new Map();
+  (views_week || []).forEach(v => {
+    const author_id = v.recipes?.author_id;
+    if (!author_id) return;
+    views_by_author.set(author_id, (views_by_author.get(author_id) || 0) + 1);
+  });
+  views_by_author.forEach((count, author_id) => {
+    totals.set(author_id, (totals.get(author_id) || 0) + Math.floor(count / 10));
+  });
+
+  const ranked = [...totals.entries()]
+    .map(([author_id, xp]) => ({ author_id, xp, profile: profiles_map.get(author_id) }))
+    .filter(entry => entry.profile && entry.xp > 0)
+    .sort((a, b) => b.xp - a.xp)
+    .slice(0, 50);
+
+  if (ranked.length === 0) {
+    container.innerHTML = `<p class="empty-state">Personne n'a gagné d'XP cette semaine pour l'instant.</p>`;
+    return;
+  }
+
+  container.innerHTML = ranked.map((entry, i) => {
+    const p = entry.profile;
+    const rank_class = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+    const is_me = current_user && current_user.id === entry.author_id;
+    const display_name = [p.first_name, p.last_name].filter(Boolean).join(' ') || p.username;
+    const initials = (p.first_name ? p.first_name[0] : (p.username || '?')[0]).toUpperCase();
+    const avatar_html = p.avatar_url ? `<img src="${escape_attr(p.avatar_url)}" alt="">` : initials;
+    return `
+      <div class="leaderboard-row ${rank_class} ${is_me ? 'is-me' : ''}" data-user-id="${escape_attr(entry.author_id)}">
+        <span class="leaderboard-rank">${i + 1}</span>
+        <div class="avatar leaderboard-avatar">${avatar_html}</div>
+        <div class="leaderboard-identity">
+          <span class="leaderboard-name">${escape_html(display_name)}${is_me ? ' <span class="its-me-badge"><i class="fa-solid fa-star"></i> C\'est moi</span>' : ''}</span>
+          <span class="leaderboard-username">@${escape_html(p.username || '')}</span>
+        </div>
+        <div class="leaderboard-level">
+          <span class="leaderboard-xp-text"><i class="fa-solid fa-bolt" style="color:var(--rust);"></i> +${entry.xp} XP cette semaine</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.querySelectorAll('.leaderboard-row').forEach(row => {
+    row.addEventListener('click', () => open_user_profile(row.dataset.userId));
+  });
+}
+
+document.getElementById('leaderboard_period_toggle')?.querySelectorAll('.leaderboard-period-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.leaderboard-period-btn').forEach(b => b.classList.toggle('active', b === btn));
+    leaderboard_period = btn.dataset.period;
+
+    // Recharge quoi que ce soit qui soit actuellement affiché (bon sous-onglet + bonne échelle).
+    const active_main = document.querySelector('.leaderboard-subtab-btn.active')?.dataset.lb || 'chefs';
+    if (active_main === 'chefs') { load_leaderboard(); return; }
+    const toggle = document.querySelector(`.leaderboard-scope-toggle[data-lb-scope-for="${active_main}"]`);
+    const active_scope = toggle?.querySelector('.leaderboard-scope-btn.active')?.dataset.scope || 'recipes';
+    if (active_scope === 'chefs') load_user_aggregate_ranking(active_main);
+    else load_recipe_ranking(active_main);
+  });
+});
 
 document.querySelectorAll('.leaderboard-subtab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -2706,6 +2809,11 @@ async function load_user_aggregate_ranking(kind) {
   if (!supabase) { container.innerHTML = `<p class="empty-state">Supabase indisponible.</p>`; return; }
   container.innerHTML = dishful_loading_html('Chargement...');
 
+  if (leaderboard_period === 'week') {
+    await load_weekly_user_aggregate_ranking(kind, container);
+    return;
+  }
+
   const { data, error } = await supabase
     .from('recipes')
     .select('author_id, likes_count, rating_avg, rating_count, profiles(username, avatar_url, first_name, last_name)');
@@ -2729,6 +2837,47 @@ async function load_user_aggregate_ranking(kind) {
     .sort((a, b) => kind === 'liked' ? b.hearts - a.hearts : b.stars - a.stars)
     .slice(0, 50);
 
+  render_chef_aggregate_rows(container, ranked, kind);
+}
+
+// Cœurs/étoiles cumulés par chef, uniquement sur les likes/notes des 7 derniers jours.
+async function load_weekly_user_aggregate_ranking(kind, container) {
+  const since = week_ago_iso();
+  const profiles_map = await get_profiles_lookup();
+  const totals = new Map(); // author_id -> { hearts, stars, recipe_count(set of recipe ids touchées) }
+
+  if (kind === 'liked') {
+    const { data } = await supabase.from('likes').select('recipe_id, recipes(author_id)').gte('created_at', since);
+    (data || []).forEach(l => {
+      const author_id = l.recipes?.author_id;
+      if (!author_id) return;
+      if (!totals.has(author_id)) totals.set(author_id, { hearts: 0, stars: 0, recipe_ids: new Set() });
+      const entry = totals.get(author_id);
+      entry.hearts += 1;
+      entry.recipe_ids.add(l.recipe_id);
+    });
+  } else {
+    const { data } = await supabase.from('comments').select('recipe_id, rating, recipes(author_id)').gte('created_at', since).not('rating', 'is', null);
+    (data || []).forEach(c => {
+      const author_id = c.recipes?.author_id;
+      if (!author_id) return;
+      if (!totals.has(author_id)) totals.set(author_id, { hearts: 0, stars: 0, recipe_ids: new Set() });
+      const entry = totals.get(author_id);
+      entry.stars += Number(c.rating) || 0;
+      entry.recipe_ids.add(c.recipe_id);
+    });
+  }
+
+  const ranked = [...totals.entries()]
+    .map(([author_id, entry]) => ({ author_id, hearts: entry.hearts, stars: entry.stars, recipe_count: entry.recipe_ids.size, profile: profiles_map.get(author_id) }))
+    .filter(entry => entry.profile && (kind === 'liked' ? entry.hearts > 0 : entry.stars > 0))
+    .sort((a, b) => kind === 'liked' ? b.hearts - a.hearts : b.stars - a.stars)
+    .slice(0, 50);
+
+  render_chef_aggregate_rows(container, ranked, kind, true);
+}
+
+function render_chef_aggregate_rows(container, ranked, kind, is_weekly) {
   if (ranked.length === 0) {
     container.innerHTML = `<p class="empty-state">Personne dans ce classement pour l'instant.</p>`;
     return;
@@ -2742,9 +2891,10 @@ async function load_user_aggregate_ranking(kind) {
     const initials = (p.first_name ? p.first_name[0] : (p.username || '?')[0]).toUpperCase();
     const avatar_html = p.avatar_url ? `<img src="${escape_attr(p.avatar_url)}" alt="">` : initials;
     const recipe_word = `${entry.recipe_count} recette${entry.recipe_count > 1 ? 's' : ''}`;
+    const period_word = is_weekly ? ' cette semaine' : ' cumulés';
     const stat_html = kind === 'liked'
-      ? `<span class="leaderboard-xp-text"><i class="fa-solid fa-heart" style="color:var(--rust);"></i> ${entry.hearts} cœurs cumulés sur ${recipe_word}</span>`
-      : `<span class="leaderboard-xp-text"><i class="fa-solid fa-star" style="color:#D9A62E;"></i> ${Math.round(entry.stars * 10) / 10} étoiles cumulées sur ${recipe_word}</span>`;
+      ? `<span class="leaderboard-xp-text"><i class="fa-solid fa-heart" style="color:var(--rust);"></i> ${entry.hearts} cœurs${period_word} sur ${recipe_word}</span>`
+      : `<span class="leaderboard-xp-text"><i class="fa-solid fa-star" style="color:#D9A62E;"></i> ${Math.round(entry.stars * 10) / 10} étoiles${period_word} sur ${recipe_word}</span>`;
     return `
       <div class="leaderboard-row ${rank_class} ${is_me ? 'is-me' : ''}" data-user-id="${escape_attr(entry.author_id)}">
         <span class="leaderboard-rank">${i + 1}</span>
@@ -2790,6 +2940,11 @@ async function load_recipe_ranking(kind) {
   if (!supabase) { container.innerHTML = `<p class="empty-state">Supabase indisponible.</p>`; return; }
   container.innerHTML = dishful_loading_html('Chargement...');
 
+  if (leaderboard_period === 'week') {
+    await load_weekly_recipe_ranking(kind, container);
+    return;
+  }
+
   let query = supabase.from('recipes').select('id, title, author_id, cover_image, images, likes_count, rating_avg, rating_count, profiles(username)');
   query = kind === 'liked'
     ? query.order('likes_count', { ascending: false }).limit(50)
@@ -2804,6 +2959,50 @@ async function load_recipe_ranking(kind) {
     return;
   }
   container.innerHTML = data.map((r, i) => recipe_ranking_row_html(r, i, kind)).join('');
+  container.querySelectorAll('.leaderboard-row').forEach(row => {
+    row.addEventListener('click', () => show_recipe_detail_page(row.dataset.recipeId));
+  });
+}
+
+// Classement des recettes sur les 7 derniers jours seulement : on recalcule likes_count/
+// rating_avg à partir des lignes brutes (likes/comments horodatés) au lieu des compteurs
+// cumulatifs de la recette, puis on réutilise recipe_ranking_row_html sans le dupliquer.
+async function load_weekly_recipe_ranking(kind, container) {
+  const since = week_ago_iso();
+  const weekly_stats = new Map(); // recipe_id -> count (liked) ou {sum,count} (rated)
+
+  if (kind === 'liked') {
+    const { data } = await supabase.from('likes').select('recipe_id').gte('created_at', since);
+    (data || []).forEach(l => weekly_stats.set(l.recipe_id, (weekly_stats.get(l.recipe_id) || 0) + 1));
+  } else {
+    const { data } = await supabase.from('comments').select('recipe_id, rating').gte('created_at', since).not('rating', 'is', null);
+    (data || []).forEach(c => {
+      if (!weekly_stats.has(c.recipe_id)) weekly_stats.set(c.recipe_id, { sum: 0, count: 0 });
+      const entry = weekly_stats.get(c.recipe_id);
+      entry.sum += Number(c.rating) || 0;
+      entry.count += 1;
+    });
+  }
+
+  const rows = [...weekly_stats.entries()]
+    .map(([recipe_id, val]) => {
+      const base = all_recipes.find(r => r.id === recipe_id);
+      if (!base) return null;
+      return kind === 'liked'
+        ? { ...base, likes_count: val }
+        : { ...base, rating_avg: val.sum / val.count, rating_count: val.count };
+    })
+    .filter(Boolean)
+    .sort((a, b) => kind === 'liked' ? b.likes_count - a.likes_count : b.rating_avg - a.rating_avg)
+    .slice(0, 50);
+
+  if (rows.length === 0) {
+    container.innerHTML = kind === 'liked'
+      ? `<p class="empty-state">Aucun cœur cette semaine pour l'instant.</p>`
+      : `<p class="empty-state">Aucune note cette semaine pour l'instant.</p>`;
+    return;
+  }
+  container.innerHTML = rows.map((r, i) => recipe_ranking_row_html(r, i, kind)).join('');
   container.querySelectorAll('.leaderboard-row').forEach(row => {
     row.addEventListener('click', () => show_recipe_detail_page(row.dataset.recipeId));
   });
