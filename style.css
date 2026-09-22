@@ -787,16 +787,30 @@ label.field-label{
   margin: 30px 24px 14px; padding-bottom: 8px; border-bottom: 2px solid var(--paper-deep);
   color: var(--ink);
 }
-.recipe_full_view ul.ingredients_list,
 .recipe_full_view ol.steps_list { margin: 0 24px; padding-left: 0; }
 
-.ingredients_list {
-  list-style: none; display: flex; flex-wrap: wrap; gap: 8px;
+/* ---------- Liste de produits (ingrédients / ustensiles) ----------
+   Une ligne par produit : icône, nom, quantité — beaucoup plus lisible
+   qu'un tas de chips qui se retrouvent à la queue-leu-leu. */
+.product-list{
+  display:flex;flex-direction:column;background:var(--card);
+  border:1px solid var(--line);border-radius:12px;overflow:hidden;
 }
-.ingredients_list li {
-  background: var(--paper); border: 1px solid var(--line); border-radius: 999px;
-  padding: 7px 15px; font-size: 13.5px; font-weight: 600; color: var(--ink);
+.product-list-item{
+  display:flex;align-items:center;gap:11px;padding:10px 13px;
+  border-bottom:1px solid var(--line);
 }
+.product-list-item:last-child{border-bottom:none;}
+.product-list-icon{
+  width:32px;height:32px;border-radius:8px;background:var(--paper-deep);
+  display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;
+}
+.product-list-name{flex:1;min-width:0;font-size:13.5px;font-weight:600;color:var(--ink);}
+.product-list-qty{
+  flex-shrink:0;font-size:12px;font-weight:800;color:var(--rust);
+  background:#FBEAE3;padding:4px 10px;border-radius:999px;white-space:nowrap;
+}
+.product-list-qty.unspecified{color:var(--ink-soft);background:var(--paper-deep);font-weight:600;}
 
 /* ---------- Étapes (vue normale) ---------- */
 .steps_list { list-style: none; counter-reset: recipe-step; display: flex; flex-direction: column; gap: 16px; }
@@ -1448,9 +1462,6 @@ label.field-label{
 .preview-subtab-nav{margin:20px 24px 4px;}
 .preview-subtab-panel .recipe_header{padding-top:14px;}
 
-/* ---------- Quantité en tête de chaque ingrédient (une seule liste, pas deux) ---------- */
-.ing_qty{color:var(--rust);font-weight:800;margin-right:2px;}
-
 /* ---------- Sections étiquetées "Ingrédients" / "Outils" dans une étape,
    pour ne plus avoir un tas de tags indifférenciés ---------- */
 .step_detail_block{margin-top:10px;}
@@ -1640,8 +1651,6 @@ label.field-label{
   font-size:12px;text-transform:uppercase;letter-spacing:0.03em;color:var(--ink-soft);
   margin:0 0 10px;display:flex;align-items:center;gap:7px;
 }
-.prep_column .ingredients_list{margin:0;}
-
 .steps_pagination{
   display:flex;align-items:center;justify-content:center;gap:18px;margin:20px 24px 0;
 }

@@ -997,15 +997,11 @@ function render_recipe_preview() {
           <div class="prep_before_start_columns">
             <div class="prep_column">
               <h4><i class="fa-solid fa-carrot"></i> Ingrédients</h4>
-              ${ingredient_pool.length
-                ? `<ul class="ingredients_list ingredients_list_qty">${ingredient_pool.map(i => `<li>${format_ingredient_qty_line(i, total_qty)}</li>`).join('')}</ul>`
-                : '<p class="empty-hint">Aucun ingrédient ajouté</p>'}
+              ${render_product_list_html(ingredient_pool.filter(i => total_qty.has(i.name)), total_qty, 'Aucun ingrédient utilisé dans les étapes')}
             </div>
             <div class="prep_column">
               <h4><i class="fa-solid fa-kitchen-set"></i> Ustensiles</h4>
-              ${all_tools.length
-                ? `<ul class="ingredients_list">${all_tools.map(t => `<li>${t.emoji} ${escape_html(t.name)}</li>`).join('')}</ul>`
-                : '<p class="empty-hint">Aucun outil requis</p>'}
+              ${render_product_list_html(all_tools, null, 'Aucun outil requis')}
             </div>
           </div>
         </div>
@@ -1059,11 +1055,12 @@ function compute_total_time() {
   return recipe_steps.reduce((sum, s) => sum + (Number(s.time_min) || 0), 0);
 }
 
-// Additionne, pour chaque ingrédient, les quantités utilisées à travers toutes les étapes
+// Additionne, pour chaque ingrédient, les quantités utilisées à travers une liste d'étapes
 // (regroupées par unité, puisqu'on ne peut pas additionner des grammes avec des unité(s)).
-function compute_total_ingredient_quantities() {
+// `ratio` sert à mettre à l'échelle selon le nombre de portions choisi (page recette publiée).
+function compute_steps_total_ingredient_quantities(steps, ratio) {
   const totals = new Map(); // name -> { units: Map(unit -> somme), unspecified: bool }
-  recipe_steps.forEach(step => {
+  (steps || []).forEach(step => {
     (step.ingredients || []).forEach(ing => {
       if (!ing.name) return;
       if (!totals.has(ing.name)) totals.set(ing.name, { units: new Map(), unspecified: false });
@@ -1071,23 +1068,39 @@ function compute_total_ingredient_quantities() {
       const amount = parseFloat(ing.amount);
       if (!ing.amount || isNaN(amount)) { entry.unspecified = true; return; }
       const unit = ing.unit || 'g';
-      entry.units.set(unit, (entry.units.get(unit) || 0) + amount);
+      entry.units.set(unit, (entry.units.get(unit) || 0) + amount * (ratio || 1));
     });
   });
   return totals;
 }
 
-// Une seule ligne par ingrédient : la quantité totale devant le nom, pas une liste
-// séparée des noms puis une deuxième liste des quantités (redondant, inutile pour le client).
-function format_ingredient_qty_line(ing, total_qty) {
-  const entry = total_qty.get(ing.name);
-  const parts = entry ? [...entry.units.entries()].map(([unit, sum]) => {
-    const unit_label = (UNIT_OPTIONS.find(u => u.value === unit) || {}).label || unit;
-    const formatted = Number.isInteger(sum) ? sum : Math.round(sum * 100) / 100;
-    return `${formatted} ${unit_label}`;
-  }) : [];
-  if (parts.length === 0) return `${ing.emoji} ${escape_html(ing.name)}`;
-  return `<span class="ing_qty">${escape_html(parts.join(' + '))}</span> ${escape_html(ing.name)}`;
+function compute_total_ingredient_quantities() {
+  return compute_steps_total_ingredient_quantities(recipe_steps, 1);
+}
+
+// Liste de produits propre (icône + nom + quantité), réutilisée partout où on affiche des
+// ingrédients ou des outils : aperçu de publication ET page recette publiée. `total_qty`
+// vaut null pour les outils (pas de quantité), sinon c'est la Map de compute_steps_total_ingredient_quantities.
+function render_product_list_html(items, total_qty, empty_label) {
+  if (!items.length) return `<p class="empty-hint">${escape_html(empty_label)}</p>`;
+  return `<div class="product-list">${items.map(item => {
+    const entry = total_qty ? total_qty.get(item.name) : null;
+    const parts = entry ? [...entry.units.entries()].map(([unit, sum]) => {
+      const unit_label = (UNIT_OPTIONS.find(u => u.value === unit) || {}).label || unit;
+      const formatted = Number.isInteger(sum) ? sum : Math.round(sum * 100) / 100;
+      return `${formatted} ${unit_label}`;
+    }) : [];
+    const qty_html = parts.length
+      ? `<span class="product-list-qty">${escape_html(parts.join(' + '))}</span>`
+      : (entry && entry.unspecified ? `<span class="product-list-qty unspecified">qté libre</span>` : '');
+    return `
+      <div class="product-list-item">
+        <span class="product-list-icon">${item.emoji || '🍽️'}</span>
+        <span class="product-list-name">${escape_html(item.name)}</span>
+        ${qty_html}
+      </div>
+    `;
+  }).join('')}</div>`;
 }
 
 // Regroupe les ingrédients/outils d'une étape dans des sections étiquetées séparément,
@@ -2859,13 +2872,18 @@ async function show_recipe_detail_page(recipe_id) {
   }
 
   function update_servings_ui() {
-    // Le pool d'ingrédients n'a pas de quantité globale : simple liste des aliments utilisés
-    document.getElementById("ingredients_ul").innerHTML = (recipe.ingredients || []).map((ing) => {
-      if (typeof ing === 'string') return `<li>🍽️ ${escape_html(ing)}</li>`;
-      return `<li>${ing.emoji || '🍽️'} ${escape_html(ing.name || '')}</li>`;
-    }).join("");
+    // Quantités par ingrédient, mises à l'échelle selon les portions choisies, et on
+    // n'affiche que les ingrédients réellement utilisés dans au moins une étape
+    // (ceux ajoutés au pool mais jamais liés à une étape ne servent à rien à l'affichage).
+    const ratio = current_servings / base_servings;
+    const steps_total_qty = compute_steps_total_ingredient_quantities(recipe.steps, ratio);
+    const used_ingredients = (recipe.ingredients || [])
+      .map(ing => typeof ing === 'string' ? { name: ing, emoji: '🍽️' } : ing)
+      .filter(ing => steps_total_qty.has(ing.name));
+    document.getElementById("ingredients_ul").innerHTML =
+      render_product_list_html(used_ingredients, steps_total_qty, 'Aucun ingrédient utilisé dans les étapes');
 
-    // Les quantités réelles sont par étape, mises à l'échelle selon les portions choisies
+    // La numérotation/le texte des étapes est mis à l'échelle séparément
     render_steps_page();
 
     document.getElementById("servings_count_display").innerText = current_servings;
@@ -2918,12 +2936,12 @@ async function show_recipe_detail_page(recipe_id) {
         <div class="prep_before_start_columns">
           <div class="prep_column">
             <h4><i class="fa-solid fa-carrot"></i> Ingrédients</h4>
-            <ul id="ingredients_ul" class="ingredients_list"></ul>
+            <div id="ingredients_ul"></div>
           </div>
           ${(recipe.tools && recipe.tools.length) ? `
             <div class="prep_column">
               <h4><i class="fa-solid fa-kitchen-set"></i> Ustensiles</h4>
-              <ul class="ingredients_list">${recipe.tools.map(t => `<li>${t.emoji || '🔧'} ${escape_html(t.name)}</li>`).join('')}</ul>
+              ${render_product_list_html(recipe.tools, null, 'Aucun outil requis')}
             </div>
           ` : ''}
         </div>
