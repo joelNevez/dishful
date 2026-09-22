@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dishful — recettes partagées</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;1,500&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<header class="top">
+  <button type="button" class="brand brand-btn" id="brand_home_btn">
+    <i class="fa-solid fa-utensils brand-icon"></i>
+    <span class="display">Dishful</span>
+    <span class="tagline">partage et cuisine</span>
+  </button>
+  <nav class="tabs">
+    <button data-tab="feed" class="active"><i class="fa-solid fa-fire"></i> Feed</button>
+    <button data-tab="publish"><i class="fa-solid fa-plus"></i> Publier</button>
+    <button data-tab="leaderboard"><i class="fa-solid fa-trophy"></i> Classement</button>
+  </nav>
+  <div class="user-zone" id="user_zone">
+    <button id="open_auth_btn" class="text-btn"><i class="fa-solid fa-right-to-bracket"></i> Se connecter</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- ---------------- FEED ---------------- -->
+  <section id="tab-feed">
+    <div class="feed-header">
+      <h1>Les dernières recettes</h1>
+    </div>
+
+    <div class="feed-search-bar">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" id="feed_search_input" placeholder="Rechercher un titre, un ingrédient, un auteur...">
+      <button type="button" id="toggle_feed_filters_btn" class="filter-toggle-btn"><i class="fa-solid fa-sliders"></i> Filtres <span id="active_filters_badge" class="active-filters-badge hidden">0</span></button>
+    </div>
+
+    <div class="feed-filters-panel hidden" id="feed_filters_panel">
+      <div class="filter-block">
+        <label><i class="fa-solid fa-tags"></i> Catégorie</label>
+        <div class="filter-row" id="category_filters"></div>
+      </div>
+      <div class="filter-block">
+        <label><i class="fa-solid fa-hashtag"></i> Tags</label>
+        <div class="filter-row" id="tag_filters"></div>
+      </div>
+      <div class="filter-row-split">
+        <div class="filter-block">
+          <label><i class="fa-solid fa-globe"></i> Pays</label>
+          <select id="filter_country_select"><option value="">Tous les pays</option></select>
+        </div>
+        <div class="filter-block">
+          <label><i class="fa-solid fa-gauge"></i> Difficulté</label>
+          <div class="filter-row" id="difficulty_filters"></div>
+        </div>
+      </div>
+      <div class="filter-block">
+        <label><i class="fa-solid fa-stopwatch"></i> Temps maximum</label>
+        <div class="filter-row" id="time_filters"></div>
+      </div>
+      <div class="filter-block">
+        <label><i class="fa-solid fa-arrow-down-wide-short"></i> Trier par</label>
+        <select id="feed_sort_select">
+          <option value="newest">Les plus récentes</option>
+          <option value="popular">Les plus aimées</option>
+          <option value="commented">Les plus commentées</option>
+          <option value="quickest">Les plus rapides</option>
+          <option value="best_rated">Les mieux notées</option>
+        </select>
+      </div>
+      <button type="button" id="reset_filters_btn" class="text-btn"><i class="fa-solid fa-arrow-rotate-left"></i> Réinitialiser les filtres</button>
+    </div>
+
+    <div class="feed-results-count" id="feed_results_count"></div>
+    <div class="recipe-grid" id="recipe_grid"></div>
+  </section>
+
+  <!-- Vue Page Recette Dédiée -->
+  <section id="tab-recipe-detail" class="recipe_detail_container hidden">
+    <button id="back_to_feed_btn" class="text-btn"><i class="fa-solid fa-arrow-left"></i> Retour</button>
+    <div id="single_recipe_content"></div>
+  </section>
+
+  <!-- ---------------- CLASSEMENT ---------------- -->
+  <section id="tab-leaderboard" class="hidden">
+    <div class="feed-header">
+      <h1><i class="fa-solid fa-trophy"></i> Classement</h1>
+    </div>
+
+    <div class="leaderboard-subtabs">
+      <button type="button" class="leaderboard-subtab-btn active" data-lb="chefs"><i class="fa-solid fa-fire"></i> Chefs (XP)</button>
+      <button type="button" class="leaderboard-subtab-btn" data-lb="liked"><i class="fa-solid fa-heart"></i> Recettes aimées</button>
+      <button type="button" class="leaderboard-subtab-btn" data-lb="rated"><i class="fa-solid fa-star"></i> Recettes notées</button>
+    </div>
+
+    <div id="leaderboard_chefs_panel" class="leaderboard-panel">
+      <p class="sub-hint">Les chefs les plus actifs de Dishful, classés par expérience.</p>
+      <div id="leaderboard_list" class="leaderboard-list"></div>
+    </div>
+    <div id="leaderboard_liked_panel" class="leaderboard-panel hidden">
+      <p class="sub-hint">Les recettes qui récoltent le plus de cœurs.</p>
+      <div id="leaderboard_liked_list" class="leaderboard-list"></div>
+    </div>
+    <div id="leaderboard_rated_panel" class="leaderboard-panel hidden">
+      <p class="sub-hint">Les recettes les mieux notées par la communauté.</p>
+      <div id="leaderboard_rated_list" class="leaderboard-list"></div>
+    </div>
+  </section>
+
+  <!-- ---------------- PUBLISH (WIZARD EN 4 ÉTAPES) ---------------- -->
+  <!-- PUBLISH SECTION -->
+  <section id="tab-publish" class="hidden">
+    <div class="publish-card">
+      <h1 id="publish_form_title">Publier une recette</h1>
+      <p class="sub">+20 XP à la publication, +2 XP par like reçu.</p>
+
+      <div class="wizard-steps-nav">
+        <button type="button" class="wizard-step-btn active" data-step="1"><i class="fa-solid fa-pen"></i> 1. Essentiel</button>
+        <button type="button" class="wizard-step-btn" data-step="2"><i class="fa-solid fa-sliders"></i> 2. Détails</button>
+        <button type="button" class="wizard-step-btn" data-step="3"><i class="fa-solid fa-carrot"></i> 3. Ingrédients</button>
+        <button type="button" class="wizard-step-btn" data-step="4"><i class="fa-solid fa-list-ol"></i> 4. Étapes</button>
+        <button type="button" class="wizard-step-btn" data-step="5"><i class="fa-solid fa-images"></i> 5. Photos</button>
+        <button type="button" class="wizard-step-btn" data-step="6"><i class="fa-solid fa-eye"></i> 6. Aperçu</button>
+      </div>
+
+      <form id="recipe_form">
+
+        <!-- ÉTAPE 1 : L'ESSENTIEL -->
+        <div class="wizard-step-panel" id="publish_step_1">
+          <label class="field-label"><i class="fa-solid fa-heading"></i> Titre de la recette *</label>
+          <input type="text" id="recipe_title_input" placeholder="Ex : Tarte tatin de mamie" required>
+
+          <label class="field-label"><i class="fa-solid fa-align-left"></i> Description (optionnel)</label>
+          <textarea id="recipe_description_input" rows="2" placeholder="Présentation, anecdote..."></textarea>
+
+          <label class="field-label"><i class="fa-solid fa-camera"></i> Photo de couverture *</label>
+          <p class="sub-hint">La photo qui donnera envie aux gens de cliquer sur ta recette.</p>
+          <input type="file" id="recipe_cover_input" accept="image/*" class="hidden_file_input">
+          <label for="recipe_cover_input" class="cover-photo-dropzone" id="cover_photo_dropzone">
+            <i class="fa-solid fa-camera"></i>
+            <span>Choisir une photo</span>
+          </label>
+
+          <div class="wizard-actions">
+            <div></div>
+            <button type="button" class="btn-secondary next-step-btn" data-next="2">Suivant <i class="fa-solid fa-arrow-right"></i></button>
+          </div>
+        </div>
+
+        <!-- ÉTAPE 2 : DÉTAILS -->
+        <div class="wizard-step-panel hidden" id="publish_step_2">
+          <label class="field-label"><i class="fa-solid fa-tags"></i> Catégories *</label>
+          <div class="chip-group" id="category_chips"></div>
+
+          <div class="form_row">
+            <div class="form_group">
+              <label><i class="fa-solid fa-users"></i> Portions (pers.) *</label>
+              <input type="number" id="recipe_servings_input" value="4" min="1" required />
+            </div>
+            <div class="form_group">
+              <label><i class="fa-solid fa-gauge"></i> Difficulté</label>
+              <select id="recipe_difficulty_select">
+                <option value="facile">Facile</option>
+                <option value="moyen" selected>Moyen</option>
+                <option value="difficile">Difficile</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form_group">
+            <label><i class="fa-solid fa-globe"></i> Pays d'origine *</label>
+            <select id="recipe_country_select" required>
+              <option value="">Sélectionner un pays...</option>
+            </select>
+          </div>
+
+          <label class="field-label"><i class="fa-solid fa-hashtag"></i> Tags (mode / occasion)</label>
+          <div class="chip-group" id="tag_chips"></div>
+          <input type="text" id="custom_tags_input" placeholder="Tags additionnels séparés par des virgules">
+
+          <div class="wizard-actions">
+            <button type="button" class="btn-secondary prev-step-btn" data-prev="1"><i class="fa-solid fa-arrow-left"></i> Précédent</button>
+            <button type="button" class="btn-secondary next-step-btn" data-next="3">Suivant <i class="fa-solid fa-arrow-right"></i></button>
+          </div>
+        </div>
+
+        <!-- ÉTAPE 3 : INGRÉDIENTS (pool, sans quantité) -->
+        <div class="wizard-step-panel hidden" id="publish_step_3">
+          <label class="field-label"><i class="fa-solid fa-carrot"></i> Quels ingrédients utilises-tu ? *</label>
+          <p class="sub-hint">Choisis simplement les aliments de ta recette. Les quantités se règlent étape par étape, à l'écran suivant.</p>
+
+          <div class="ingredient-pool-chips" id="ingredient_pool_chips"></div>
+          <button type="button" id="open_ingredient_picker_btn" class="add-row-btn"><i class="fa-solid fa-plus"></i> Ajouter un ingrédient</button>
+
+          <div class="wizard-actions">
+            <button type="button" class="btn-secondary prev-step-btn" data-prev="2"><i class="fa-solid fa-arrow-left"></i> Précédent</button>
+            <button type="button" class="btn-secondary next-step-btn" data-next="4">Suivant <i class="fa-solid fa-arrow-right"></i></button>
+          </div>
+        </div>
+
+        <!-- ÉTAPE 4 : ÉTAPES (liste compacte + modal d'édition) -->
+        <!-- ÉTAPE 4 : ÉTAPES (les outils se choisissent maintenant à l'intérieur de chaque étape) -->
+        <div class="wizard-step-panel hidden" id="publish_step_4">
+          <label class="field-label"><i class="fa-solid fa-list-ol"></i> Étapes de préparation *</label>
+          <p class="sub-hint">Le temps total est calculé automatiquement à partir du temps de chaque étape.</p>
+          <div class="total-time-pill"><i class="fa-solid fa-stopwatch"></i> Temps total estimé : <span id="total_time_value">0</span> min</div>
+
+          <div class="steps-compact-list" id="steps_compact_list"></div>
+          <button type="button" id="open_step_editor_btn" class="add-row-btn"><i class="fa-solid fa-plus"></i> Ajouter une étape</button>
+
+          <div class="wizard-actions">
+            <button type="button" class="btn-secondary prev-step-btn" data-prev="3"><i class="fa-solid fa-arrow-left"></i> Précédent</button>
+            <button type="button" class="btn-secondary next-step-btn" data-next="5">Suivant <i class="fa-solid fa-arrow-right"></i></button>
+          </div>
+        </div>
+
+        <!-- ÉTAPE 5 : PHOTOS SUPPLÉMENTAIRES & VIDÉO -->
+        <div class="wizard-step-panel hidden" id="publish_step_5">
+          <label class="field-label"><i class="fa-solid fa-images"></i> Photos supplémentaires (optionnel)</label>
+          <p class="sub-hint">La photo de couverture est déjà réglée. Ajoute ici d'autres photos pour donner encore plus envie.</p>
+          <div class="custom-file-upload">
+            <input type="file" id="recipe_images_input" accept="image/*" multiple class="hidden_file_input">
+            <label for="recipe_images_input" class="upload-btn"><i class="fa-solid fa-cloud-arrow-up"></i> Choisir des images</label>
+            <span id="recipe_images_preview_text" class="file-name-indicator">Aucun fichier choisi</span>
+          </div>
+          <div class="image-thumb-grid" id="image_thumb_grid"></div>
+
+          <label class="field-label"><i class="fa-solid fa-video"></i> Vidéo principale (optionnel)</label>
+          <div class="file-or-url-group">
+            <div class="custom-file-upload">
+              <input type="file" id="recipe_video_file_input" accept="video/*" class="hidden_file_input">
+              <label for="recipe_video_file_input" class="upload-btn"><i class="fa-solid fa-film"></i> Choisir vidéo</label>
+            </div>
+            <input type="url" id="recipe_video_url_input" placeholder="Ou lien (YouTube, Vimeo, MP4...)">
+          </div>
+
+          <div class="wizard-actions">
+            <button type="button" class="btn-secondary prev-step-btn" data-prev="4"><i class="fa-solid fa-arrow-left"></i> Précédent</button>
+            <button type="button" class="btn-secondary next-step-btn" data-next="6">Aperçu <i class="fa-solid fa-arrow-right"></i></button>
+          </div>
+        </div>
+
+        <!-- ÉTAPE 6 : APERÇU -->
+        <div class="wizard-step-panel hidden" id="publish_step_6">
+          <label class="field-label"><i class="fa-solid fa-eye"></i> Aperçu de ta recette</label>
+          <p class="sub-hint">Vérifie que tout est bon avant de publier.</p>
+          <div id="recipe_preview_container"></div>
+
+          <div class="wizard-actions">
+            <button type="button" class="btn-secondary prev-step-btn" data-prev="5"><i class="fa-solid fa-arrow-left"></i> Précédent</button>
+            <button type="submit" class="btn-primary"><i class="fa-solid fa-paper-plane"></i> Publier la recette</button>
+          </div>
+        </div>
+
+      </form>
+      <p class="msg" id="recipe_message_text"></p>
+    </div>
+  </section>
+
+  <!-- ---------------- POPUP : SÉLECTEUR D'INGRÉDIENT ---------------- -->
+  <div id="ingredient_picker_modal" class="modal hidden">
+    <div class="ingredient-picker-layout">
+      <div class="modal-card modal-card-wide">
+        <button id="close_ingredient_picker_btn" class="close-btn">&times;</button>
+        <h2><i class="fa-solid fa-carrot"></i> Ajouter un ingrédient</h2>
+        <input type="text" id="ingredient_search_input" placeholder="Rechercher un aliment...">
+        <div class="food-category-tabs" id="food_category_tabs"></div>
+        <div class="food-picker-grid" id="food_picker_grid"></div>
+
+        <button type="button" id="confirm_add_ingredients_btn" class="btn-primary confirm-add-btn" disabled>
+          <i class="fa-solid fa-check"></i> Ajouter <span id="confirm_add_ingredients_count" class="count-pastille">0</span>
+        </button>
+
+        <div class="custom-ingredient-zone">
+          <button type="button" id="toggle_custom_ingredient_btn" class="add-row-btn"><i class="fa-solid fa-plus"></i> Aliment pas dans la liste</button>
+          <div class="custom-ingredient-popover hidden" id="custom_ingredient_popover">
+            <input type="text" id="custom_ingredient_input" placeholder="Nom de l'aliment...">
+            <button type="button" id="create_custom_ingredient_btn" class="btn-primary"><i class="fa-solid fa-check"></i> Créer</button>
+          </div>
+        </div>
+      </div>
+
+      <aside class="ingredient-selection-cloud" id="ingredient_selection_cloud">
+        <h3><i class="fa-solid fa-basket-shopping"></i> Ta sélection</h3>
+        <div class="cloud-bubbles" id="cloud_bubbles">
+          <p class="cloud-empty-hint">Clique sur des aliments pour les voir apparaître ici.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- ---------------- POPUP : ÉDITEUR D'ÉTAPE ---------------- -->
+  <div id="step_editor_modal" class="modal hidden">
+    <div class="modal-card modal-card-xwide">
+      <button id="close_step_editor_btn" class="close-btn">&times;</button>
+      <h2 id="step_editor_title"><i class="fa-solid fa-list-ol"></i> Ajouter une étape</h2>
+
+      <label class="field-label">Type d'étape</label>
+      <div class="step-type-selector" id="step_type_selector">
+        <button type="button" class="step-type-btn active" data-type="prep"><i class="fa-solid fa-utensils"></i> Préparation</button>
+        <button type="button" class="step-type-btn" data-type="oven"><i class="fa-solid fa-fire-burner"></i> Four</button>
+        <button type="button" class="step-type-btn" data-type="stovetop"><i class="fa-solid fa-fire"></i> Cuisson (plaque)</button>
+        <button type="button" class="step-type-btn" data-type="rest"><i class="fa-solid fa-snowflake"></i> Repos / Frigo</button>
+      </div>
+
+      <div class="step-editor-grid-2col">
+        <div class="step-editor-section">
+          <label class="field-label"><i class="fa-solid fa-align-left"></i> Description de l'étape *</label>
+          <textarea id="step_editor_text" rows="5" placeholder="Décris cette étape..."></textarea>
+
+          <div class="form_row">
+            <div class="form_group">
+              <label id="step_editor_time_label">Temps (min)</label>
+              <input type="number" id="step_editor_time" min="0" placeholder="Ex : 10">
+            </div>
+            <div class="form_group hidden" id="step_editor_temp_group">
+              <label><i class="fa-solid fa-temperature-half"></i> Température (°C)</label>
+              <input type="number" id="step_editor_temp" min="0" placeholder="Ex : 180">
+            </div>
+          </div>
+        </div>
+
+        <div class="step-editor-section">
+          <label class="field-label"><i class="fa-solid fa-photo-film"></i> Média (optionnel)</label>
+          <div id="step_editor_existing_media"></div>
+          <div class="step_media_grid">
+            <div class="custom-file-upload">
+              <input type="file" id="step_editor_image_input" accept="image/*" class="hidden_file_input">
+              <label for="step_editor_image_input" class="upload-btn mini"><i class="fa-solid fa-image"></i> Photo</label>
+            </div>
+            <div class="custom-file-upload">
+              <input type="file" id="step_editor_video_input" accept="video/*" class="hidden_file_input">
+              <label for="step_editor_video_input" class="upload-btn mini"><i class="fa-solid fa-video"></i> Vidéo</label>
+            </div>
+            <input type="url" id="step_editor_external_url" placeholder="Ou lien externe">
+          </div>
+        </div>
+      </div>
+
+      <div class="step-editor-grid-2col">
+        <div class="step-editor-section">
+          <label class="field-label"><i class="fa-solid fa-carrot"></i> Ingrédients utilisés</label>
+          <p class="sub-hint hidden" id="step_editor_no_ingredients_hint">Ajoute d'abord des ingrédients à l'étape 3 du formulaire.</p>
+          <div class="step-linked-ingredients-list" id="step_editor_linked_list"></div>
+          <button type="button" id="toggle_step_ing_picker_btn" class="add-row-btn"><i class="fa-solid fa-plus"></i> Ajouter un ingrédient</button>
+        </div>
+
+        <div class="step-editor-section">
+          <label class="field-label"><i class="fa-solid fa-kitchen-set"></i> Outils nécessaires</label>
+          <p class="sub-hint">Suggéré automatiquement selon le type d'étape.</p>
+          <div class="step-linked-ingredients-list" id="step_editor_tools_list"></div>
+          <button type="button" id="toggle_step_tool_picker_btn" class="add-row-btn"><i class="fa-solid fa-plus"></i> Ajouter un outil</button>
+        </div>
+      </div>
+
+      <div class="wizard-actions">
+        <button type="button" id="delete_step_editor_btn" class="btn-secondary danger hidden"><i class="fa-solid fa-trash"></i> Supprimer</button>
+        <button type="button" id="save_step_editor_btn" class="btn-primary"><i class="fa-solid fa-check"></i> Enregistrer l'étape</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---------------- POPUP (niveau 2) : INGRÉDIENTS D'UNE ÉTAPE ---------------- -->
+  <div id="step_ingredient_picker_modal" class="modal hidden">
+    <div class="modal-card modal-card-wide">
+      <button id="close_step_ingredient_picker_btn" class="close-btn">&times;</button>
+      <h2><i class="fa-solid fa-carrot"></i> Ingrédients de l'étape</h2>
+
+      <div class="step-picker-tabs" id="step_ing_picker_tabs">
+        <span class="step-picker-tab-indicator active" data-tab="choose"><i class="fa-solid fa-magnifying-glass"></i> 1. Choisir</span>
+        <span class="step-picker-tab-indicator" data-tab="qty"><i class="fa-solid fa-scale-balanced"></i> 2. Quantités</span>
+      </div>
+
+      <div class="step-picker-tab-panel" id="step_ing_picker_panel_choose">
+        <input type="text" id="step_ing_picker_search" placeholder="Rechercher parmi les ingrédients de la recette...">
+        <div class="food-picker-grid" id="step_ing_picker_grid"></div>
+      </div>
+
+      <div class="step-picker-tab-panel hidden" id="step_ing_picker_panel_qty">
+        <p class="sub-hint">Précise la quantité de chaque ingrédient sélectionné pour cette étape.</p>
+        <div class="step-linked-ingredients-list" id="step_ing_picker_qty_list"></div>
+      </div>
+
+      <div class="step-picker-footer" id="step_ing_picker_footer_choose">
+        <button type="button" id="step_ing_picker_next_btn" class="btn-primary confirm-add-btn" disabled>
+          Suivant : préciser les quantités <span id="step_ing_picker_count" class="count-pastille">0</span> <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+      <div class="step-picker-footer hidden" id="step_ing_picker_footer_qty">
+        <button type="button" id="step_ing_picker_back_btn" class="btn-secondary"><i class="fa-solid fa-arrow-left"></i> Modifier la sélection</button>
+        <button type="button" id="step_ing_picker_confirm_btn" class="btn-primary confirm-add-btn"><i class="fa-solid fa-check"></i> Ajouter à l'étape</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---------------- POPUP (niveau 2) : OUTILS D'UNE ÉTAPE ---------------- -->
+  <div id="step_tool_picker_modal" class="modal hidden">
+    <div class="modal-card modal-card-wide">
+      <button id="close_step_tool_picker_btn" class="close-btn">&times;</button>
+      <h2><i class="fa-solid fa-kitchen-set"></i> Outils de l'étape</h2>
+      <input type="text" id="step_tool_picker_search" placeholder="Rechercher un outil...">
+      <div class="food-picker-grid" id="step_tool_picker_grid"></div>
+      <button type="button" id="step_tool_picker_confirm_btn" class="btn-primary confirm-add-btn" disabled>
+        <i class="fa-solid fa-check"></i> Ajouter à l'étape <span id="step_tool_picker_count" class="count-pastille">0</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ---------------- PROFILE ---------------- -->
+  <section id="tab-profile" class="profile_container hidden">
+    <div class="profile_header_wrapper">
+      <div class="profile_banner" id="profile_banner_preview">
+        <label for="banner_upload_input" class="banner_upload_btn">
+          <i class="fa-solid fa-camera"></i> Changer la bannière
+        </label>
+        <input type="file" id="banner_upload_input" accept="image/*" class="hidden_file_input">
+      </div>
+      
+      <div class="profile_header_content">
+        <div class="profile_avatar_box">
+          <div class="avatar_wrapper">
+            <div id="profile_avatar" class="avatar_circle">T</div>
+            <label for="avatar_upload_input" class="avatar_upload_btn">
+              <i class="fa-solid fa-camera"></i>
+            </label>
+            <input type="file" id="avatar_upload_input" accept="image/*" class="hidden_file_input">
+          </div>
+          <div class="profile_identity">
+            <h2 id="profile_display_name">Nom Prénom</h2>
+            <span id="profile_username_text">@username</span>
+            <span id="equipped_badge_display" class="badge_tag"></span>
+          </div>
+        </div>
+        <div class="profile_level_box">
+          <span id="profile_level">Niv. 1</span>
+          <div class="xp_bar"><div id="profile_xp_fill" class="xp_fill"></div></div>
+          <span id="profile_xp_text">0 / 100 XP</span>
+        </div>
+        <button id="logout_btn_profile" class="text-btn"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</button>
+      </div>
+    </div>
+
+    <div class="profile_tabs_nav">
+      <button class="tab_btn active" data-tab="tab_info">Informations</button>
+      <button class="tab_btn" data-tab="tab_badges">Badges & Succès</button>
+      <button class="tab_btn" data-tab="tab_recipes">Mes Recettes</button>
+    </div>
+
+    <div id="tab_info" class="tab_content active">
+      <form id="profile_form">
+        <h3>Réglages du profil</h3>
+        <div class="form_group">
+          <label><i class="fa-solid fa-envelope"></i> Email de connexion</label>
+          <div class="email-field-row">
+            <input type="email" id="profile_email_display" disabled />
+            <button type="button" id="change_email_btn" class="btn-secondary">Changer</button>
+          </div>
+          <div id="change_email_form" class="change-email-form hidden">
+            <input type="email" id="new_email_input" placeholder="Nouvelle adresse email">
+            <button type="button" id="confirm_email_change_btn" class="btn-primary">Confirmer</button>
+          </div>
+          <p class="msg" id="email_change_msg"></p>
+        </div>
+        <div class="form_group">
+          <label>Nom d'utilisateur</label>
+          <input type="text" id="profile_username_input" placeholder="@username" required />
+        </div>
+        <div class="form_row">
+          <div class="form_group">
+            <label>Prénom</label>
+            <input type="text" id="profile_first_name" />
+          </div>
+          <div class="form_group">
+            <label>Nom</label>
+            <input type="text" id="profile_last_name" />
+          </div>
+        </div>
+        <div class="form_group">
+          <label>Nationalité</label>
+          <select id="profile_nationality" required>
+            <option value="">Sélectionner un pays</option>
+          </select>
+        </div>
+        <div class="form_group">
+          <label>Description</label>
+          <textarea id="profile_bio" rows="3"></textarea>
+        </div>
+        <div class="form_group">
+          <label>Lien pour recevoir des dons (Stripe, Ko-fi, PayPal...)</label>
+          <input type="url" id="profile_donation_input" placeholder="https://ko-fi.com/..." />
+        </div>
+
+        <div class="form_security_section hidden">
+          <h3>Sécurité & Compte</h3>
+          <div class="form_group">
+            <label>Email</label>
+            <input type="email" id="profile_email" />
+          </div>
+          <div class="form_group">
+            <label>Nouveau mot de passe</label>
+            <input type="password" id="profile_new_password" placeholder="Remplir uniquement pour modifier" />
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary">Enregistrer</button>
+      </form>
+    </div>
+
+    <div id="tab_badges" class="tab_content">
+      <h3>Badge équipé</h3>
+      <div id="equipped_badge_box" class="badge_equipped_box">
+        <span>Aucun badge équipé</span>
+      </div>
+
+      <h3>Badges de Niveau</h3>
+      <div id="level_badges_grid" class="badges_grid"></div>
+
+      <h3>Succès de publication (Recettes)</h3>
+      <div id="recipe_badges_grid" class="badges_grid"></div>
+
+      <h3>Succès d'appréciation (Likes reçus)</h3>
+      <div id="like_badges_grid" class="badges_grid"></div>
+    </div>
+
+    <div id="tab_recipes" class="tab_content">
+      <h3>Mes recettes publiées</h3>
+      <div id="user_published_recipes" class="recipes_grid mini_grid"></div>
+
+      <h3>Mes recettes sauvegardées</h3>
+      <div class="saved_filters_row">
+        <select id="saved_filter_country">
+          <option value="">Tous les pays</option>
+        </select>
+        <select id="saved_filter_tag">
+          <option value="">Tous les tags</option>
+        </select>
+      </div>
+
+      <div id="user_saved_recipes" class="recipes_grid mini_grid"></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ---------------- AUTH MODAL ---------------- -->
+<div id="auth_modal" class="modal hidden">
+  <div class="modal-card">
+    <button id="close_auth_btn" class="close-btn">&times;</button>
+    <h2 class="display" style="color:var(--rust);font-style:italic;">Dishful</h2>
+    <p class="sub" style="margin-top:4px;">Partage tes recettes, prends du niveau.</p>
+
+    <div class="auth-tabs">
+      <button id="auth_tab_login" class="active"><i class="fa-solid fa-right-to-bracket"></i> Se connecter</button>
+      <button id="auth_tab_signup"><i class="fa-solid fa-user-plus"></i> Créer un compte</button>
+    </div>
+
+    <form id="login_form">
+      <div class="input-icon-wrap">
+        <i class="fa-solid fa-envelope"></i>
+        <input type="email" id="login_email_input" placeholder="Email" required>
+      </div>
+      <div class="input-icon-wrap">
+        <i class="fa-solid fa-lock"></i>
+        <input type="password" id="login_password_input" placeholder="Mot de passe" required>
+      </div>
+      <button type="submit" class="btn-primary"><i class="fa-solid fa-right-to-bracket"></i> Se connecter</button>
+    </form>
+
+    <form id="signup_form" class="hidden">
+      <div class="input-icon-wrap">
+        <i class="fa-solid fa-signature"></i>
+        <input type="text" id="first_name_input" placeholder="Prénom" required>
+      </div>
+      <div class="input-icon-wrap">
+        <i class="fa-solid fa-signature"></i>
+        <input type="text" id="last_name_input" placeholder="Nom" required>
+      </div>
+      <div class="input-icon-wrap">
+        <i class="fa-solid fa-earth-europe"></i>
+        <input type="text" id="nationality_input" placeholder="Nationalité">
+      </div>
+      <div class="input-icon-wrap">
+        <i class="fa-solid fa-envelope"></i>
+        <input type="email" id="email_input" placeholder="Email" required>
+      </div>
+      <div class="input-icon-wrap">
+        <i class="fa-solid fa-lock"></i>
+        <input type="password" id="password_input" placeholder="Mot de passe (min. 6 caractères)" required>
+      </div>
+      <p class="signup-hint"><i class="fa-solid fa-circle-info"></i> Ton nom d'utilisateur se choisit ensuite, dans ton profil.</p>
+      <button type="submit" class="btn-primary"><i class="fa-solid fa-user-plus"></i> Créer le compte</button>
+    </form>
+
+    <p class="msg" id="message_text"></p>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
