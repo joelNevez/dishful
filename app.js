@@ -254,13 +254,24 @@ const OUTPUT_PRODUCT_RULES = [
   { words: ['frit', 'friture'], suffix: 'frit(e)(s)', step_types: ['fryer'] },
   { words: ['cuit', 'cuiss', 'rot', 'gratin', 'grill'], suffix: 'cuit(e)(s)', step_types: ['oven', 'stovetop'] },
   { words: ['coup', 'decoup', 'tranch', 'emince', 'hach', 'dic', 'eplu', 'rap'], suffix: 'coupé(e)(s)' },
-  { words: ['melang', 'fouet', 'incorpor', 'petri'], suffix: 'mélangé(e)(s)' },
+  // Combiner (mélanger) plusieurs ingrédients différents donne un résultat qui n'est
+  // plus vraiment "l'ingrédient A" — voir generic_when_multiple ci-dessous.
+  { words: ['melang', 'fouet', 'incorpor', 'petri'], suffix: 'mélangé(e)(s)', generic_when_multiple: true, generic_name: 'Préparation mélangée' },
   { words: ['repos', 'frigo', 'refrig', 'congel'], suffix: 'reposé(e)(s)', step_types: ['rest'] }
 ];
 
+// Marqueurs indiquant qu'un ingrédient lié n'est pas un aliment brut mais déjà le
+// résultat (généré ou renommé) d'une étape précédente — signe qu'on est en train
+// d'enchaîner des mélanges (ex : une pâte déjà "mélangée" à laquelle on rajoute du
+// lait et de la farine), donc que le nom ne doit plus dépendre d'un seul aliment.
+const GENERATED_PRODUCT_MARKERS = ['mélangé', 'coupé', 'frit', 'cuit', 'assaisonné', 'reposé', 'tranché', 'haché', 'préparation'];
+function looks_like_generated_product(name) {
+  const n = normalize_for_search(name);
+  return GENERATED_PRODUCT_MARKERS.some(m => n.includes(normalize_for_search(m)));
+}
+
 function suggest_output_product_name(step_type, description, linked_ingredient_names) {
   if (!linked_ingredient_names.length) return '';
-  const base = linked_ingredient_names[0];
   const desc = normalize_for_search(description || '');
 
   // Priorité à une règle qui correspond à la fois au type d'étape ET à un mot-clé de la
@@ -269,8 +280,19 @@ function suggest_output_product_name(step_type, description, linked_ingredient_n
   let matched = OUTPUT_PRODUCT_RULES.find(r => r.step_types?.includes(step_type) && r.words.some(w => desc.includes(w)));
   if (!matched) matched = OUTPUT_PRODUCT_RULES.find(r => r.words.some(w => desc.includes(w)));
   if (!matched) matched = OUTPUT_PRODUCT_RULES.find(r => r.step_types?.includes(step_type));
+  if (!matched) return '';
 
-  return matched ? `${base} ${matched.suffix}` : '';
+  // Mélanger 3 ingrédients ou plus, ou rajouter des ingrédients à un mélange déjà
+  // préparé lors d'une étape précédente, donne un résultat trop composite pour être
+  // nommé d'après un seul d'entre eux — on utilise un nom générique à la place (ex :
+  // "Préparation mélangée" plutôt que "Oeufs mélangés" une fois qu'on y a aussi mis
+  // du lait et de la farine).
+  if (matched.generic_when_multiple && linked_ingredient_names.length > 1) {
+    const has_generated_input = linked_ingredient_names.some(looks_like_generated_product);
+    if (linked_ingredient_names.length >= 3 || has_generated_input) return matched.generic_name;
+  }
+
+  return `${linked_ingredient_names[0]} ${matched.suffix}`;
 }
 
 // Devine une unité de départ raisonnable selon la nature de l'aliment
@@ -290,6 +312,9 @@ const UNIT_OPTIONS = [
   {value:'pincée', label:'pincée'}, {value:'unité', label:'unité(s)'}, {value:'au_gout', label:'Au goût'}
 ];
 const TO_TASTE_UNIT = 'au_gout';
+function unit_label(unit) {
+  return (UNIT_OPTIONS.find(u => u.value === unit) || {}).label || unit || '';
+}
 // Une quantité doit toujours être explicite : un nombre+unité, ou "Au goût" par défaut si
 // l'utilisateur ne renseigne rien — plus jamais de quantité silencieusement non précisée.
 function normalize_ingredient_quantity(entry) {
@@ -1196,6 +1221,14 @@ function step_detail_blocks_html(ing_tags, tool_tags) {
   return html;
 }
 
+// Met en avant ce qu'une étape produit (ex : "Frites coupées") quand elle en crée un,
+// pour qu'on comprenne à quoi elle sert dans la suite de la recette — jusqu'ici ce nom
+// n'était visible que dans l'éditeur, jamais sur la page de la recette elle-même.
+function step_output_product_html(step) {
+  if (!step.output_product) return '';
+  return `<div class="step_output_product"><i class="fa-solid fa-wand-magic-sparkles"></i> Donne : <strong>${escape_html(step.output_product)}</strong></div>`;
+}
+
 function render_steps_compact_list() {
   const container = document.getElementById('steps_compact_list');
   if (recipe_steps.length === 0) {
@@ -1571,7 +1604,9 @@ document.getElementById('step_tool_picker_confirm_btn').addEventListener('click'
 
 document.getElementById('step_editor_text').addEventListener('input', refresh_output_product_suggestion);
 document.getElementById('step_editor_creates_product').addEventListener('change', (e) => {
-  document.getElementById('step_editor_output_product_wrap').classList.toggle('hidden', !e.target.checked);
+  // Le champ reste toujours affiché (juste désactivé/grisé si décoché) : la popup ne
+  // change jamais de taille selon l'état de cette case.
+  document.getElementById('step_editor_output_product').disabled = !e.target.checked;
   if (e.target.checked) refresh_output_product_suggestion();
 });
 
@@ -1587,14 +1622,13 @@ function open_step_editor(index) {
     : `<i class="fa-solid fa-list-ol"></i> Ajouter une étape`;
   document.getElementById('step_editor_text').value = step.text || '';
   document.getElementById('step_editor_time').value = step.time_min || '';
-  sync_time_picker_presets('step_editor_time');
   sync_time_clock_dial('step_editor_time');
   document.getElementById('step_editor_temp').value = step.oven_temp || '';
   document.getElementById('step_editor_external_url').value = step.external_url || '';
   const creates_product_checkbox = document.getElementById('step_editor_creates_product');
   const output_product_input = document.getElementById('step_editor_output_product');
   creates_product_checkbox.checked = step.output_product !== null || !is_editing; // coché par défaut
-  document.getElementById('step_editor_output_product_wrap').classList.toggle('hidden', !creates_product_checkbox.checked);
+  output_product_input.disabled = !creates_product_checkbox.checked;
   output_product_input.value = step.output_product || '';
   // Vide ici : un nom déjà enregistré est traité comme "choisi par l'utilisateur" (jamais
   // écrasé automatiquement) ; un champ vide déclenchera une première suggestion normalement.
@@ -1633,7 +1667,7 @@ function render_step_editor_media_preview() {
   } else if (step && step.video_url) {
     container.innerHTML = `<div class="step_existing_media"><video src="${escape_attr(step.video_url)}" controls></video><span>Vidéo actuelle — choisis-en une nouvelle pour la remplacer</span></div>`;
   } else {
-    container.innerHTML = '';
+    container.innerHTML = `<div class="step_existing_media_empty"><i class="fa-solid fa-image"></i> Aucune photo ni vidéo pour cette étape (optionnel)</div>`;
   }
 }
 
@@ -2238,18 +2272,9 @@ function show_toast(message, icon) {
   toast_hide_timeout = setTimeout(() => el.classList.remove('visible'), 2600);
 }
 
-// Sélecteur de temps interactif : boutons -/+ et raccourcis (1, 5, 10, 15...) plutôt que
-// de taper un nombre de minutes à la main. Pilote un <input type="number"> existant, donc
-// tout le code qui lit sa valeur ailleurs continue de fonctionner sans changement.
-function sync_time_picker_presets(target_id) {
-  const presets = document.querySelector(`.time-picker-presets[data-target="${target_id}"]`);
-  const input = document.getElementById(target_id);
-  if (!presets || !input) return;
-  const current = String(parseInt(input.value) || 0);
-  presets.querySelectorAll('button[data-min]').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.min === current);
-  });
-}
+// Sélecteur de temps interactif : boutons -/+ et champ tapable, plutôt que de taper
+// un nombre de minutes à la main sans repère. Pilote un <input type="number"> existant,
+// donc tout le code qui lit sa valeur ailleurs continue de fonctionner sans changement.
 function init_time_pickers() {
   document.querySelectorAll('.time-picker').forEach(picker => {
     const target_id = picker.dataset.target;
@@ -2259,33 +2284,20 @@ function init_time_pickers() {
       const current = parseInt(input.value) || 0;
       input.value = Math.max(0, current + delta);
       input.dispatchEvent(new Event('input', { bubbles: true }));
-      sync_time_picker_presets(target_id);
     };
-    picker.querySelector('.time-picker-minus')?.addEventListener('click', () => adjust(-5));
-    picker.querySelector('.time-picker-plus')?.addEventListener('click', () => adjust(5));
-  });
-  document.querySelectorAll('.time-picker-presets').forEach(presets => {
-    const target_id = presets.dataset.target;
-    const input = document.getElementById(target_id);
-    if (!input) return;
-    presets.querySelectorAll('button[data-min]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        input.value = btn.dataset.min;
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        sync_time_picker_presets(target_id);
-      });
-    });
-    input.addEventListener('input', () => sync_time_picker_presets(target_id));
+    picker.querySelector('.time-picker-minus')?.addEventListener('click', () => adjust(-1));
+    picker.querySelector('.time-picker-plus')?.addEventListener('click', () => adjust(1));
   });
 }
 init_time_pickers();
 
-// ---------- Horloge à glisser (alternative visuelle au stepper -/+) ----------
-// Un tour complet du point autour du cadran = 60 minutes. Se règle à la souris (ou
-// au doigt, via Pointer Events) et pilote le même <input type="number"> que le
-// stepper et les raccourcis : tout reste synchronisé quel que soit le sélecteur
-// utilisé. Tourner au-delà de midi/minuit (ex : glisser deux tours complets) monte
-// au-delà de 60 min, utile pour un temps de repos long.
+// ---------- Horloge à glisser (réglage principal du temps) ----------
+// Toujours affichée. Un tour complet du point autour du cadran = 60 minutes. Se
+// règle à la souris (ou au doigt, via Pointer Events) et pilote le même
+// <input type="number"> que le stepper -/+ juste en dessous : tout reste
+// synchronisé quel que soit le sélecteur utilisé. Tourner au-delà de midi/minuit
+// (ex : glisser deux tours complets) monte au-delà de 60 min, utile pour un temps
+// de repos long.
 const TIME_CLOCK_CX = 110, TIME_CLOCK_CY = 110, TIME_CLOCK_R_HAND = 74;
 
 function sync_time_clock_dial(target_id) {
@@ -2300,7 +2312,6 @@ function sync_time_clock_dial(target_id) {
   dial.querySelector('.time-clock-hand').setAttribute('y2', hy);
   dial.querySelector('.time-clock-handle').setAttribute('cx', hx);
   dial.querySelector('.time-clock-handle').setAttribute('cy', hy);
-  dial.querySelector('.time-clock-readout-num').textContent = String(min);
 }
 
 function init_time_clock_dials() {
@@ -2370,20 +2381,24 @@ function init_time_clock_dials() {
       svg.addEventListener(evt, () => { dragging = false; svg.classList.remove('dragging'); });
     });
   });
-
-  document.querySelectorAll('.time-picker-clock-toggle').forEach(btn => {
-    const target_id = btn.dataset.target;
-    const dial = document.querySelector(`.time-clock-dial[data-target="${target_id}"]`);
-    if (!dial) return;
-    btn.addEventListener('click', () => {
-      const now_hidden = dial.classList.toggle('hidden');
-      btn.classList.toggle('active', !now_hidden);
-      btn.setAttribute('aria-expanded', String(!now_hidden));
-      if (!now_hidden) sync_time_clock_dial(target_id);
-    });
-  });
 }
 init_time_clock_dials();
+
+// ---------- Bulle d'info à la demande (au lieu d'un texte toujours affiché) ----------
+// Utilisé pour déplacer des explications hors du flux normal, afin qu'elles n'agrandissent
+// jamais la popup qui les contient : elles n'apparaissent qu'au clic sur l'icône (i).
+document.querySelectorAll('.info-icon-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const tooltip = btn.closest('.info-tooltip');
+    const was_open = tooltip.classList.contains('open');
+    document.querySelectorAll('.info-tooltip.open').forEach(t => t.classList.remove('open'));
+    if (!was_open) tooltip.classList.add('open');
+  });
+});
+document.addEventListener('click', () => {
+  document.querySelectorAll('.info-tooltip.open').forEach(t => t.classList.remove('open'));
+});
 
 // =====================================================================
 // 9bis. RECADRAGE D'IMAGE (zoom + déplacement) — réutilisé partout où on
@@ -3277,9 +3292,15 @@ async function load_weekly_recipe_ranking(kind, container) {
   });
 }
 
+// Référence conservée entre deux appels pour pouvoir retirer proprement l'écouteur
+// clavier du mode cuisine si on quitte la page recette sans avoir cliqué "Terminé".
+let cooking_keydown_handler = null;
+
 async function show_recipe_detail_page(recipe_id) {
   const container = document.getElementById("single_recipe_content");
   if (!container) return;
+
+  if (cooking_keydown_handler) { document.removeEventListener('keydown', cooking_keydown_handler); cooking_keydown_handler = null; }
 
   let recipe = all_recipes.find((r) => r.id === recipe_id);
 
@@ -3352,9 +3373,16 @@ async function show_recipe_detail_page(recipe_id) {
 
   function render_cooking_progress_dots() {
     const steps = recipe.steps || [];
-    document.getElementById('cooking_progress_dots').innerHTML = steps.map((_, i) =>
-      `<span class="cooking_dot ${i === cooking_current_index ? 'active' : ''} ${i < cooking_current_index ? 'done' : ''}"></span>`
+    const dots = document.getElementById('cooking_progress_dots');
+    dots.innerHTML = steps.map((_, i) =>
+      `<button type="button" class="cooking_dot ${i === cooking_current_index ? 'active' : ''} ${i < cooking_current_index ? 'done' : ''}" data-index="${i}" aria-label="Aller à l'étape ${i + 1}"></button>`
     ).join('');
+    dots.querySelectorAll('.cooking_dot').forEach(dot => {
+      dot.addEventListener('click', () => {
+        cooking_current_index = Number(dot.dataset.index);
+        render_cooking_step();
+      });
+    });
   }
 
   function render_cooking_step() {
@@ -3372,7 +3400,7 @@ async function show_recipe_detail_page(recipe_id) {
 
     const ing_html = (step.ingredients || []).map(ing => {
       const scaled = ing.amount !== '' && ing.amount != null ? Math.round(Number(ing.amount) * ratio * 100) / 100 : '';
-      return `<span class="tag-chip">${scaled}${escape_html(ing.unit || '')} ${escape_html(ing.name || '')}</span>`;
+      return `<span class="tag-chip">${scaled}${escape_html(unit_label(ing.unit))} ${escape_html(ing.name || '')}</span>`;
     }).join('');
     const tool_html = (step.tools || []).map(t => `<span class="tag-chip tool-tag-chip">${t.emoji || '🔧'} ${escape_html(t.name)}</span>`).join('');
 
@@ -3382,10 +3410,11 @@ async function show_recipe_detail_page(recipe_id) {
       <p class="cooking_step_text">${escape_html(step.text || '')}</p>
       ${ing_html ? `<div class="cooking_step_section"><h5><i class="fa-solid fa-carrot"></i> Ingrédients</h5><div class="step_ing_tags">${ing_html}</div></div>` : ''}
       ${tool_html ? `<div class="cooking_step_section"><h5><i class="fa-solid fa-kitchen-set"></i> Outils</h5><div class="step_ing_tags">${tool_html}</div></div>` : ''}
+      ${step_output_product_html(step)}
       ${step.time_min ? `
         <div class="cooking_timer_block">
           <span class="cooking_timer_display" id="cooking_timer_display">${format_timer(step.time_min * 60)}</span>
-          <button type="button" id="cooking_timer_btn" class="btn-secondary"><i class="fa-solid fa-play"></i> Démarrer le minuteur</button>
+          <button type="button" id="cooking_timer_btn" class="btn-primary"><i class="fa-solid fa-play"></i> Démarrer le minuteur</button>
         </div>` : ''}
     `;
 
@@ -3413,7 +3442,7 @@ async function show_recipe_detail_page(recipe_id) {
           : '';
     const scaled_ings = (step.ingredients || []).map(ing => {
       const scaled_amount = ing.amount !== '' && ing.amount != null ? Math.round(Number(ing.amount) * ratio * 100) / 100 : '';
-      return `<span class="tag-chip">${scaled_amount}${escape_html(ing.unit || '')} ${escape_html(ing.name || '')}</span>`;
+      return `<span class="tag-chip">${scaled_amount}${escape_html(unit_label(ing.unit))} ${escape_html(ing.name || '')}</span>`;
     }).join('');
     const tool_chips = (step.tools || []).map(t => `<span class="tag-chip tool-tag-chip">${t.emoji || '🔧'} ${escape_html(t.name)}</span>`).join('');
     return `<li>
@@ -3421,12 +3450,34 @@ async function show_recipe_detail_page(recipe_id) {
       ${step.time_min ? `<span class="step_time_badge"><i class="fa-solid fa-stopwatch"></i> ${step.time_min} min</span>` : ''}
       <p>${escape_html(step.text || '')}</p>
       ${step_detail_blocks_html(scaled_ings, tool_chips)}
+      ${step_output_product_html(step)}
       ${step_media}
     </li>`;
   }
 
   const STEPS_PER_PAGE = 3;
   let normal_steps_page = 0;
+
+  // Rangée de pastilles numérotées pour sauter directement à une étape donnée, plutôt
+  // que de devoir cliquer plusieurs fois sur "page suivante" pour l'atteindre.
+  function render_steps_jump_nav() {
+    const steps = recipe.steps || [];
+    const nav = document.getElementById('steps_jump_nav');
+    if (!nav) return;
+    if (steps.length <= STEPS_PER_PAGE) { nav.innerHTML = ''; return; }
+    nav.innerHTML = steps.map((step, i) => {
+      const page_of_step = Math.floor(i / STEPS_PER_PAGE);
+      const type_info = STEP_TYPES[step.type] || STEP_TYPES.prep;
+      return `<button type="button" class="steps_jump_pill ${page_of_step === normal_steps_page ? 'active' : ''}" data-index="${i}" title="Étape ${i + 1} · ${type_info.label}">${i + 1}</button>`;
+    }).join('');
+    nav.querySelectorAll('.steps_jump_pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        normal_steps_page = Math.floor(Number(btn.dataset.index) / STEPS_PER_PAGE);
+        render_steps_page();
+        document.getElementById('steps_normal_view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+  }
 
   function render_steps_page() {
     const ratio = current_servings / base_servings;
@@ -3452,6 +3503,7 @@ async function show_recipe_detail_page(recipe_id) {
     } else {
       pagination.classList.add("hidden");
     }
+    render_steps_jump_nav();
   }
 
   function update_servings_ui() {
@@ -3536,6 +3588,7 @@ async function show_recipe_detail_page(recipe_id) {
       <h3>Préparation</h3>
 
       <div id="steps_normal_view">
+        <div class="steps_jump_nav" id="steps_jump_nav"></div>
         <ol id="steps_ol" class="steps_list"></ol>
         <div id="steps_pagination" class="steps_pagination hidden">
           <button id="steps_page_prev_btn" class="btn-secondary" type="button"><i class="fa-solid fa-arrow-left"></i></button>
@@ -3550,7 +3603,7 @@ async function show_recipe_detail_page(recipe_id) {
         <div class="cooking_nav">
           <button id="cooking_prev_btn" class="btn-secondary"><i class="fa-solid fa-arrow-left"></i> Précédent</button>
           <span id="cooking_step_counter" class="cooking_step_counter"></span>
-          <button id="cooking_next_btn" class="btn-secondary">Suivant <i class="fa-solid fa-arrow-right"></i></button>
+          <button id="cooking_next_btn" class="btn-primary cooking_next_btn">Suivant <i class="fa-solid fa-arrow-right"></i></button>
         </div>
       </div>
 
@@ -3558,6 +3611,7 @@ async function show_recipe_detail_page(recipe_id) {
         <button id="like_recipe_btn" class="action-btn like-btn ${liked_recipe_ids.has(recipe.id) ? 'liked' : ''}">
           <i class="fa-solid fa-heart"></i> ${recipe.likes_count || 0} Likes
         </button>
+        <p class="recipe_footer_actions_hint">Cette recette t'a plu ? Laisse un like et un commentaire ci-dessous.</p>
       </div>
 
       <section class="comments_section">
@@ -3608,8 +3662,18 @@ async function show_recipe_detail_page(recipe_id) {
       cooking_current_index = 0;
       render_cooking_step();
       document.getElementById('steps_cooking_view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Navigation au clavier (flèches ← →), pratique quand on a les mains occupées/sales
+      // en cuisinant et qu'on préfère éviter de toucher l'écran/la souris précisément.
+      if (cooking_keydown_handler) document.removeEventListener('keydown', cooking_keydown_handler);
+      cooking_keydown_handler = (e) => {
+        if (e.target.matches('input, textarea')) return;
+        if (e.key === 'ArrowRight') document.getElementById('cooking_next_btn')?.click();
+        else if (e.key === 'ArrowLeft') document.getElementById('cooking_prev_btn')?.click();
+      };
+      document.addEventListener('keydown', cooking_keydown_handler);
     } else {
       stop_cooking_timer();
+      if (cooking_keydown_handler) { document.removeEventListener('keydown', cooking_keydown_handler); cooking_keydown_handler = null; }
     }
   };
 

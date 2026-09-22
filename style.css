@@ -340,6 +340,17 @@ label.field-label{
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+/* Une photo de profil (souvent bien plus grande que 64px) doit remplir le rond sans
+   déborder ni l'écraser — sans cette règle, une balise <img> insérée dedans s'affiche
+   à sa taille naturelle et casse toute la mise en page du profil. */
+.avatar_circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .profile_identity h2 {
@@ -830,40 +841,61 @@ label.field-label{
 }
 .product-list-qty.unspecified{color:var(--ink-soft);background:var(--paper-deep);font-weight:600;}
 
-/* ---------- Étapes (vue normale) ---------- */
-.steps_list { list-style: none; counter-reset: recipe-step; display: flex; flex-direction: column; gap: 16px; }
+/* ---------- Rangée de pastilles pour sauter directement à une étape ---------- */
+.steps_jump_nav{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 18px;}
+.steps_jump_pill{
+  width:32px;height:32px;border-radius:50%;background:var(--paper);border:1px solid var(--line);
+  color:var(--ink-soft);font-weight:800;font-size:12.5px;display:flex;align-items:center;justify-content:center;
+  transition:background .15s ease,border-color .15s ease,color .15s ease;
+}
+.steps_jump_pill:hover{border-color:var(--saffron);color:var(--ink);}
+.steps_jump_pill.active{background:var(--rust);color:#fff;border-color:var(--rust);}
+
+/* ---------- Étapes (vue normale) : grandes cartes bien séparées, une par étape ---------- */
+.steps_list { list-style: none; counter-reset: recipe-step; display: flex; flex-direction: column; gap: 22px; }
 .steps_list > li {
   counter-increment: recipe-step; position: relative; background: var(--paper);
-  border: 1px solid var(--line); border-radius: 14px; padding: 18px 18px 18px 56px;
+  border: 1px solid var(--line); border-radius: 16px; padding: 26px 26px 26px 78px;
+  box-shadow: 0 4px 16px rgba(43,36,28,0.05);
 }
 .steps_list > li::before {
-  content: counter(recipe-step); position: absolute; left: 16px; top: 18px;
-  width: 28px; height: 28px; border-radius: 50%; background: var(--rust); color: #fff;
-  font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center;
+  content: counter(recipe-step); position: absolute; left: 20px; top: 26px;
+  width: 40px; height: 40px; border-radius: 50%; background: var(--rust); color: #fff;
+  font-weight: 800; font-size: 17px; font-family:'Fraunces',serif; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 10px rgba(184,75,34,0.3);
 }
-.steps_list > li p { margin: 8px 0 0; font-size: 15px; line-height: 1.55; color: var(--ink); }
+.steps_list > li p { margin: 10px 0 0; font-size: 16.5px; line-height: 1.6; color: var(--ink); }
 .steps_list .step_media_preview {
-  max-width: 100%; max-height: 260px; border-radius: 12px; margin-top: 12px; display: block;
+  max-width: 100%; max-height: 300px; border-radius: 12px; margin-top: 14px; display: block;
   object-fit: cover;
 }
 .steps_list .step_external_link {
   display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 13px;
   font-weight: 700; color: var(--basil-deep);
 }
+@media (max-width:600px){
+  .steps_list > li{padding:22px 18px 22px 66px;}
+  .steps_list > li::before{left:14px;top:22px;width:34px;height:34px;font-size:15px;}
+}
 
 /* ---------- Actions / likes ---------- */
 .recipe_footer_actions {
-  display: flex; justify-content: center; padding: 24px; margin: 30px 24px 0;
-  border-top: 1px dashed var(--line);
+  display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 28px 24px;
+  margin: 34px 24px 0; border-top: 1px dashed var(--line);
 }
+.recipe_footer_actions_hint { font-size: 12.5px; color: var(--ink-soft); margin: 0; }
 .recipe_footer_actions .like-btn {
   font-size: 15px; padding: 10px 24px; border-radius: 999px; border: 1px solid var(--line);
   background: var(--card);
 }
 .recipe_footer_actions .like-btn.liked { background: #FBEAE3; border-color: var(--rust); color: var(--rust); }
 
-/* ---------- Commentaires ---------- */
-.comments_section { margin: 10px 24px 0; padding-top: 10px; }
+/* ---------- Commentaires : bloc bien distinct pour clore la page ---------- */
+.comments_section {
+  margin: 24px 24px 0; padding: 22px 22px 6px; background: var(--paper);
+  border: 1px solid var(--line); border-radius: 16px;
+}
+.comments_section h3 { margin: 0 0 16px !important; }
 .comment_form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
 .comment_form textarea {
   width: 100%; min-height: 70px; padding: 12px; border-radius: 12px; border: 1px solid var(--line);
@@ -1175,13 +1207,18 @@ label.field-label{
   display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--basil-deep);font-weight:600;margin-top:6px;
 }
 
-.step_existing_media{
+/* Taille fixe (empty ou remplie) pour que choisir une photo/vidéo ne redimensionne
+   jamais la popup de l'étape : la case garde toujours la même hauteur. */
+.step_existing_media, .step_existing_media_empty{
   display:flex;align-items:center;gap:10px;background:var(--paper);border:1px dashed var(--line);
   border-radius:9px;padding:8px 12px;margin-bottom:8px;font-size:12px;color:var(--ink-soft);
+  height:74px;box-sizing:border-box;
 }
 .step_existing_media img, .step_existing_media video{
-  width:50px;height:50px;object-fit:cover;border-radius:7px;flex-shrink:0;
+  width:56px;height:56px;object-fit:cover;border-radius:7px;flex-shrink:0;
 }
+.step_existing_media_empty{justify-content:center;font-style:italic;text-align:center;}
+.step_existing_media_empty i{margin-right:2px;}
 
 /* ==========================================================
    Ajouts : wizard repensé, sélecteur d'ingrédients, éditeur d'étapes
@@ -1206,8 +1243,8 @@ label.field-label{
 
 /* ---------- Modale extra-large (éditeur d'étape) : large et ergonomique, pas juste haute ---------- */
 .modal-card-xwide{
-  width:min(1040px, 96vw);
-  max-height:92vh;
+  width:min(1180px, 97vw);
+  max-height:95vh;
   overflow-y:auto;
 }
 .modal-card-xwide h2{font-size:22px;display:flex;align-items:center;gap:9px;margin-bottom:18px;}
@@ -1256,7 +1293,6 @@ label.field-label{
    "Ajouter..." reste collé en bas des deux cases. */
 .step-editor-grid-2col.align-stretch{align-items:stretch;}
 .step-editor-grid-2col.align-stretch .step-editor-section{height:100%;}
-.step-editor-grid-2col.align-stretch .step-linked-ingredients-list{flex:1;}
 
 /* ---------- Pool d'ingrédients (étape 2) ---------- */
 .ingredient-pool-chips{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;min-height:20px;}
@@ -1376,14 +1412,15 @@ label.field-label{
 .step-editor-section .field-label{margin-top:0;}
 .step-editor-section .sub-hint{margin:-6px 0 0;}
 
-/* Hauteur fixe pour les listes ingrédients/outils de l'éditeur d'étape : au-delà
-   d'un certain nombre d'éléments, la liste défile sur elle-même au lieu de faire
-   grandir toute la popup (qui devenait illisible avec beaucoup d'ingrédients).
-   Disposées en 2 colonnes pour ne pas gâcher de place avec une seule ligne
-   par aliment/outil ; une ligne en cours d'édition (qté + unité) reprend
+/* Hauteur FIXE (pas max-height) pour les listes ingrédients/outils de l'éditeur
+   d'étape : la case garde toujours la même taille, qu'il y ait 1 ou 20 éléments —
+   au-delà elle défile sur elle-même au lieu de faire grandir toute la popup, et
+   en dessous elle ne se rétrécit pas non plus (case vide bien spacieuse dès le
+   départ). Disposées en 2 colonnes pour ne pas gâcher de place avec une seule
+   ligne par aliment/outil ; une ligne en cours d'édition (qté + unité) reprend
    toute la largeur pour rester lisible. */
 #step_editor_linked_list, #step_editor_tools_list{
-  max-height:220px;overflow-y:auto;padding-right:4px;
+  height:320px;overflow-y:auto;padding-right:4px;
   display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;align-content:start;
 }
 #step_editor_linked_list .step-linked-ing-row.editing,
@@ -1538,9 +1575,11 @@ label.field-label{
 .steps_cooking_view{
   background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:20px;
 }
-.cooking_progress_dots{display:flex;justify-content:center;gap:6px;margin-bottom:16px;}
-.cooking_dot{width:8px;height:8px;border-radius:50%;background:var(--line);}
+.cooking_progress_dots{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;margin-bottom:16px;}
+.cooking_dot{width:8px;height:8px;border-radius:50%;background:var(--line);border:none;padding:0;cursor:pointer;transition:width .15s ease;}
+.cooking_dot:hover{background:var(--saffron);}
 .cooking_dot.active{background:var(--rust);width:20px;border-radius:999px;}
+.cooking_dot.active:hover{background:var(--rust);}
 .cooking_dot.done{background:var(--basil);}
 
 .cooking_step_type{
@@ -1548,9 +1587,18 @@ label.field-label{
   font-size:13px;font-weight:700;padding:5px 14px;border-radius:999px;margin-bottom:14px;
 }
 .cooking_step_media{width:100%;max-height:280px;object-fit:cover;border-radius:12px;margin-bottom:16px;display:block;}
-.cooking_step_text{font-size:19px;line-height:1.5;color:var(--ink);margin-bottom:16px;font-family:'Fraunces',serif;}
+.cooking_step_text{font-size:21px;line-height:1.55;color:var(--ink);margin-bottom:18px;font-family:'Fraunces',serif;}
 .cooking_step_section{margin-bottom:14px;}
 .cooking_step_section h5{font-size:11px;text-transform:uppercase;letter-spacing:0.03em;color:var(--ink-soft);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+
+/* Ce que produit l'étape (ex : "Frites coupées"), utilisable dans une étape suivante —
+   mis en avant en jaune pour bien le distinguer d'un simple ingrédient de départ. */
+.step_output_product{
+  display:flex;align-items:center;gap:8px;background:#FFF6E0;border:1px solid var(--saffron);
+  color:#8a5a00;border-radius:10px;padding:9px 13px;font-size:13.5px;margin:6px 0 14px;
+}
+.step_output_product i{color:var(--saffron-deep);}
+.step_output_product strong{color:#6b4400;}
 
 .cooking_timer_block{
   display:flex;align-items:center;justify-content:center;gap:16px;background:var(--paper);
@@ -1562,6 +1610,7 @@ label.field-label{
 .cooking_nav{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:20px;}
 .cooking_step_counter{font-size:13px;font-weight:700;color:var(--ink-soft);}
 .cooking_nav .btn-secondary:disabled{opacity:0.4;}
+.cooking_nav .cooking_next_btn{margin-top:0;padding:12px 22px;}
 
 /* ==========================================================
    Ajouts : loader Dishful, classement XP, logo cliquable, email
@@ -1740,6 +1789,24 @@ label.field-label{
 .toggle-switch input:checked + .toggle-switch-slider::before{transform:translateX(18px);}
 .toggle-switch input:focus-visible + .toggle-switch-slider{outline:2px solid var(--saffron);outline-offset:2px;}
 
+/* ---------- Bulle d'info à la demande (icône (i) + popover) ----------
+   Remplace un texte explicatif toujours affiché : n'apparaît qu'au clic, en
+   position absolue, donc n'agrandit jamais la popup qui la contient. */
+.info-tooltip{position:relative;display:inline-flex;}
+.info-icon-btn{
+  background:none;border:none;color:var(--ink-soft);font-size:13px;padding:0;
+  width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;
+}
+.info-icon-btn:hover{color:var(--saffron-deep);}
+.info-tooltip-bubble{
+  display:none;position:absolute;top:calc(100% + 8px);left:0;z-index:8;width:240px;
+  background:var(--ink);color:var(--paper);font-size:12.5px;font-weight:500;line-height:1.5;
+  padding:10px 12px;border-radius:10px;box-shadow:0 10px 30px rgba(43,36,28,0.25);
+}
+.info-tooltip.open .info-tooltip-bubble{display:block;}
+
+#step_editor_output_product:disabled{opacity:0.45;background:var(--paper-deep);cursor:not-allowed;}
+
 /* ---------- Sélecteur de temps interactif (étapes) ---------- */
 .time-picker{display:flex;align-items:stretch;gap:8px;}
 .time-picker-btn{
@@ -1760,31 +1827,18 @@ label.field-label{
 .time-picker-display input::-webkit-outer-spin-button,
 .time-picker-display input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 .time-picker-unit{font-size:12.5px;font-weight:600;color:var(--ink-soft);flex-shrink:0;}
-.time-picker-presets{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
-.time-picker-presets button{
-  background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:5px 12px;
-  font-size:12px;font-weight:700;color:var(--ink-soft);
-}
-.time-picker-presets button:hover{border-color:var(--saffron);color:var(--ink);}
-.time-picker-presets button.active{background:var(--saffron);color:#fff;border-color:var(--saffron-deep);}
 
-.time-picker-clock-toggle{
-  width:40px;flex-shrink:0;background:var(--paper);border:1px solid var(--line);border-radius:9px;
-  color:var(--ink-soft);font-size:14px;display:flex;align-items:center;justify-content:center;
-  transition:background .15s ease, border-color .15s ease, color .15s ease;
-}
-.time-picker-clock-toggle:hover{border-color:var(--saffron);color:var(--ink);}
-.time-picker-clock-toggle.active{background:var(--basil);color:#fff;border-color:var(--basil-deep);}
-
-/* ---------- Horloge à glisser (alternative visuelle au stepper -/+) ----------
-   Un tour complet du point autour du cadran = 60 minutes. On glisse avec la souris
-   (ou le doigt, via Pointer Events) ; l'aiguille suit en direct et met à jour le
-   même <input type="number"> que le stepper, donc tout reste synchronisé. */
+/* ---------- Horloge à glisser (réglage principal du temps) ----------
+   Toujours affichée (pas de bouton pour la révéler) : un tour complet du point
+   autour du cadran = 60 minutes. On glisse avec la souris (ou le doigt, via
+   Pointer Events) ; l'aiguille suit en direct et met à jour le même
+   <input type="number"> que le stepper -/+ juste en dessous, donc tout reste
+   synchronisé quel que soit le sélecteur utilisé. */
 .time-clock-dial{
-  margin-top:12px;padding:16px;background:var(--paper);border:1px solid var(--line);border-radius:14px;
-  display:flex;flex-direction:column;align-items:center;gap:10px;
+  margin-bottom:10px;padding:14px;background:var(--paper);border:1px solid var(--line);border-radius:14px;
+  display:flex;flex-direction:column;align-items:center;
 }
-.time-clock-dial-svg{width:180px;height:180px;touch-action:none;cursor:grab;user-select:none;}
+.time-clock-dial-svg{width:170px;height:170px;touch-action:none;cursor:grab;user-select:none;}
 .time-clock-dial-svg.dragging{cursor:grabbing;}
 .time-clock-face{fill:var(--card);stroke:var(--line);stroke-width:2;}
 .time-clock-ticks line{stroke:var(--ink-soft);opacity:0.35;stroke-width:2;}
@@ -1792,8 +1846,6 @@ label.field-label{
 .time-clock-hand{stroke:var(--rust);stroke-width:4;stroke-linecap:round;}
 .time-clock-handle{fill:var(--rust);stroke:#fff;stroke-width:3;filter:drop-shadow(0 2px 4px rgba(43,36,28,0.3));}
 .time-clock-center-dot{fill:var(--ink);}
-.time-clock-readout{font-size:13px;color:var(--ink-soft);margin:0;text-align:center;}
-.time-clock-readout-num{font-size:16px;font-weight:800;color:var(--ink);}
 
 /* ---------- Notification flottante ---------- */
 .dishful-toast{

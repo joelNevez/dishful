@@ -331,26 +331,7 @@
           <div class="form_row">
             <div class="form_group">
               <label id="step_editor_time_label">Temps (min)</label>
-              <div class="time-picker" data-target="step_editor_time">
-                <button type="button" class="time-picker-btn time-picker-minus" aria-label="Moins 5 min"><i class="fa-solid fa-minus"></i></button>
-                <div class="time-picker-display">
-                  <input type="number" id="step_editor_time" min="0" placeholder="0">
-                  <span class="time-picker-unit">min</span>
-                </div>
-                <button type="button" class="time-picker-btn time-picker-plus" aria-label="Plus 5 min"><i class="fa-solid fa-plus"></i></button>
-                <button type="button" class="time-picker-clock-toggle" data-target="step_editor_time" aria-expanded="false" aria-label="Régler avec une horloge"><i class="fa-solid fa-clock"></i></button>
-              </div>
-              <div class="time-picker-presets" data-target="step_editor_time">
-                <button type="button" data-min="1">1</button>
-                <button type="button" data-min="5">5</button>
-                <button type="button" data-min="10">10</button>
-                <button type="button" data-min="15">15</button>
-                <button type="button" data-min="20">20</button>
-                <button type="button" data-min="30">30</button>
-                <button type="button" data-min="45">45</button>
-                <button type="button" data-min="60">60</button>
-              </div>
-              <div class="time-clock-dial hidden" data-target="step_editor_time">
+              <div class="time-clock-dial" data-target="step_editor_time">
                 <svg class="time-clock-dial-svg" viewBox="0 0 220 220" data-target="step_editor_time">
                   <circle class="time-clock-face" cx="110" cy="110" r="98"></circle>
                   <g class="time-clock-ticks"></g>
@@ -358,7 +339,14 @@
                   <circle class="time-clock-handle" cx="110" cy="24" r="13"></circle>
                   <circle class="time-clock-center-dot" cx="110" cy="110" r="4"></circle>
                 </svg>
-                <p class="time-clock-readout"><span class="time-clock-readout-num">0</span> min <span class="sub-hint" style="display:inline;margin:0;">— glisse le point avec la souris (un tour = 60 min)</span></p>
+              </div>
+              <div class="time-picker" data-target="step_editor_time">
+                <button type="button" class="time-picker-btn time-picker-minus" aria-label="Moins 1 min"><i class="fa-solid fa-minus"></i></button>
+                <div class="time-picker-display">
+                  <input type="number" id="step_editor_time" min="0" placeholder="0">
+                  <span class="time-picker-unit">min</span>
+                </div>
+                <button type="button" class="time-picker-btn time-picker-plus" aria-label="Plus 1 min"><i class="fa-solid fa-plus"></i></button>
               </div>
             </div>
             <div class="form_group hidden" id="step_editor_temp_group">
@@ -368,14 +356,19 @@
           </div>
 
           <div class="field-label-row">
-            <label class="field-label" style="margin:0;"><i class="fa-solid fa-wand-magic-sparkles"></i> Cette étape crée un nouvel ingrédient</label>
+            <label class="field-label" style="margin:0;">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> Cette étape crée un nouvel ingrédient
+              <span class="info-tooltip">
+                <button type="button" class="info-icon-btn" id="step_editor_output_info_btn" aria-label="En savoir plus"><i class="fa-solid fa-circle-info"></i></button>
+                <span class="info-tooltip-bubble">Suggestion automatique selon l'étape, les ingrédients et les outils choisis — modifie le nom si besoin, ou décoche pour ignorer.</span>
+              </span>
+            </label>
             <label class="toggle-switch">
               <input type="checkbox" id="step_editor_creates_product" checked>
               <span class="toggle-switch-slider"></span>
             </label>
           </div>
           <div id="step_editor_output_product_wrap">
-            <p class="sub-hint">Suggestion automatique selon l'étape, les ingrédients et les outils choisis — modifie le nom si besoin, ou décoche pour ignorer.</p>
             <input type="text" id="step_editor_output_product" placeholder="Ex : Frites coupées">
           </div>
         </div>
