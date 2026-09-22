@@ -833,11 +833,17 @@ function render_food_category_tabs() {
 }
 
 let food_picker_selected = new Set(); // noms sélectionnés dans la grille, pas encore confirmés
+// Aliments créés à la volée (pas dans COMMON_FOODS) : ils rejoignent la grille comme les autres
+// au lieu d'être ajoutés directement à la recette, pour suivre le même circuit sélection -> confirmation.
+let custom_food_entries = [];
+function find_food_by_name(name) {
+  return COMMON_FOODS.find(f => f.name === name) || custom_food_entries.find(f => f.name === name);
+}
 
 function render_food_picker_grid() {
   const search = document.getElementById('ingredient_search_input').value.trim().toLowerCase();
   const grid = document.getElementById('food_picker_grid');
-  let list = COMMON_FOODS;
+  let list = [...COMMON_FOODS, ...custom_food_entries];
   if (active_food_category) list = list.filter(f => f.cat === active_food_category);
   if (search) list = list.filter(f => normalize_for_search(f.name).includes(normalize_for_search(search)));
 
@@ -902,14 +908,16 @@ function render_ingredient_selection_cloud() {
 
 document.getElementById('confirm_add_ingredients_btn').addEventListener('click', () => {
   if (food_picker_selected.size === 0) return;
+  const added_names = [...food_picker_selected];
   food_picker_selected.forEach(name => {
-    const found = COMMON_FOODS.find(f => f.name === name);
+    const found = find_food_by_name(name);
     add_ingredient_to_pool(name, found ? found.emoji : '🍽️');
   });
   food_picker_selected.clear();
   render_food_picker_grid();
   // Clic sur "Ajouter" -> les aliments sont ajoutés ET la popup se ferme, comme on s'y attend.
   ingredient_picker_modal.classList.add('hidden');
+  show_toast(added_names.length > 1 ? `${added_names.length} ingrédients ajoutés` : `"${added_names[0]}" ajouté à la recette`);
 });
 
 document.getElementById('open_ingredient_picker_btn').addEventListener('click', () => {
@@ -936,9 +944,20 @@ document.getElementById('create_custom_ingredient_btn').addEventListener('click'
   const input = document.getElementById('custom_ingredient_input');
   const name = input.value.trim();
   if (!name) return;
-  add_ingredient_to_pool(name, '🍽️');
+
+  // Aucun aliment de ce nom nulle part -> on le crée et il rejoint la grille comme les autres.
+  if (!find_food_by_name(name)) {
+    custom_food_entries.push({ name, emoji: '🍽️' });
+  }
+  // Pré-sélectionné, mais pas encore ajouté à la recette : il faut toujours confirmer avec "Ajouter",
+  // exactement comme pour un aliment choisi dans la liste — pas de raccourci qui l'ajoute directement.
+  food_picker_selected.add(name);
   input.value = '';
   custom_ingredient_popover.classList.add('hidden');
+  active_food_category = null; // le nouvel aliment n'a pas de catégorie : on revient sur "Tout" pour le voir
+  render_food_category_tabs();
+  render_food_picker_grid();
+  show_toast(`"${name}" ajouté à la liste — clique sur "Ajouter" pour le confirmer.`, 'fa-circle-plus');
 });
 document.getElementById('custom_ingredient_input').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') { e.preventDefault(); document.getElementById('create_custom_ingredient_btn').click(); }
@@ -1911,7 +1930,7 @@ async function load_recipes() {
   if (grid_el) grid_el.innerHTML = dishful_loading_html('Chargement des recettes...');
   const { data, error } = await supabase
     .from('recipes')
-    .select('*, profiles ( username, donation_link )')
+    .select('*, profiles ( username, donation_link, avatar_url )')
     .order('created_at', { ascending: false });
   if (error) {
     document.getElementById('recipe_grid').innerHTML = `<p class="empty-state">Erreur de chargement : ${escape_html(error.message)}</p>`;
@@ -1967,11 +1986,15 @@ function render_recipes() {
     const card = document.querySelector(`[data-recipe-id="${r.id}"]`);
     card.addEventListener("click", (e) => {
       // Éviter de déclencher la navigation si on clique sur un bouton d'action de la carte
-      if (e.target.closest(".like-btn, .donate-btn, .translate-btn")) return;
+      if (e.target.closest(".like-btn, .donate-btn, .translate-btn, .recipe-card-author")) return;
       show_recipe_detail_page(r.id);
     });
     card.querySelector(".like-btn")?.addEventListener("click", () => toggle_like(r.id));
     card.querySelector(".translate-btn")?.addEventListener("click", () => show_translate_stub());
+    card.querySelector(".recipe-card-author")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (r.author_id) open_user_profile(r.author_id);
+    });
   });
 }
 
@@ -1983,6 +2006,8 @@ function recipe_card_html(r) {
   const primary_cat = (r.categories && r.categories[0]) || 'Plat';
   const author_name = r.profiles ? r.profiles.username : 'Anonyme';
   const donation_link = r.profiles ? r.profiles.donation_link : null;
+  const author_avatar_url = r.profiles ? r.profiles.avatar_url : null;
+  const author_initial = (author_name || '?')[0].toUpperCase();
   const is_liked = liked_recipe_ids.has(r.id);
   const tag_chips = [...(r.categories||[]), ...(r.tags||[])]
     .map(t => `<span class="tag-chip">${escape_html(t)}</span>`).join('');
@@ -1993,19 +2018,30 @@ function recipe_card_html(r) {
 
   return `
   <article class="recipe-card" data-recipe-id="${r.id}">
+    <div class="recipe-card-header">
+      <button type="button" class="recipe-card-author" data-author-id="${escape_attr(r.author_id)}">
+        <span class="avatar recipe-card-avatar">${author_avatar_url ? `<img src="${escape_attr(author_avatar_url)}" alt="">` : author_initial}</span>
+        <span class="recipe-card-author-info">
+          <span class="recipe-card-author-name">${escape_html(author_name)}</span>
+          <span class="recipe-card-author-sub">${r.country ? flag_html + ' ' + escape_html(r.country) + ' · ' : ''}${format_relative_date(r.created_at)}</span>
+        </span>
+      </button>
+      <span class="stripe-badge cat-${escape_html(primary_cat)}">${escape_html(primary_cat)}</span>
+    </div>
+
     <div class="recipe-card-media">
       ${cover_image
         ? `<img class="recipe-cover" src="${escape_attr(cover_image)}" alt="">`
         : `<div class="recipe-cover recipe-cover-placeholder"><i class="fa-solid fa-utensils"></i></div>`}
       <div class="recipe-card-media-scrim"></div>
-      <div class="recipe-card-media-top">
-        <span class="stripe-badge cat-${escape_html(primary_cat)}">${escape_html(primary_cat)}</span>
-        ${r.rating_count ? `<span class="recipe-card-rating-badge"><i class="fa-solid fa-star"></i> ${Number(r.rating_avg).toFixed(1)}</span>` : ''}
-      </div>
+      ${r.rating_count ? `
+        <div class="recipe-card-media-top">
+          <span class="recipe-card-rating-badge"><i class="fa-solid fa-star"></i> ${Number(r.rating_avg).toFixed(1)} <em>(${r.rating_count})</em></span>
+        </div>
+      ` : ''}
       <h2 class="recipe-card-media-title">${escape_html(r.title)}</h2>
     </div>
     <div class="recipe-body">
-      <div class="recipe-meta">par <b>${escape_html(author_name)}</b>${r.country ? ' · ' + flag_html + ' ' + escape_html(r.country) : ''}</div>
       <div class="recipe-card-stats-row">
         ${total_time ? `<span class="recipe-card-stat"><i class="fa-solid fa-stopwatch"></i> ${total_time} min</span>` : ''}
         <span class="recipe-card-stat"><i class="fa-solid fa-gauge"></i> ${escape_html(difficulty_label)}</span>
@@ -2044,6 +2080,38 @@ function escape_html(str) {
   return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 }
 function escape_attr(str) { return escape_html(str); }
+
+// Date relative façon fil d'actualité ("il y a 2 j") plutôt qu'une date brute.
+function format_relative_date(iso) {
+  if (!iso) return '';
+  const diff_ms = Date.now() - new Date(iso).getTime();
+  const min = Math.floor(diff_ms / 60000);
+  if (min < 1) return "à l'instant";
+  if (min < 60) return `il y a ${min} min`;
+  const hours = Math.floor(min / 60);
+  if (hours < 24) return `il y a ${hours} h`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `il y a ${days} j`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return `il y a ${weeks} sem.`;
+  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+// Petite notification flottante réutilisable (confirmation d'ajout, etc.)
+let toast_hide_timeout = null;
+function show_toast(message, icon) {
+  let el = document.getElementById('dishful_toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'dishful_toast';
+    el.className = 'dishful-toast';
+    document.body.appendChild(el);
+  }
+  el.innerHTML = `<i class="fa-solid ${icon || 'fa-circle-check'}"></i> ${escape_html(message)}`;
+  el.classList.add('visible');
+  clearTimeout(toast_hide_timeout);
+  toast_hide_timeout = setTimeout(() => el.classList.remove('visible'), 2600);
+}
 
 // =====================================================================
 // 9bis. RECADRAGE D'IMAGE (zoom + déplacement) — réutilisé partout où on
@@ -2748,7 +2816,7 @@ async function show_recipe_detail_page(recipe_id) {
     if (!supabase) { container.innerHTML = `<p class="empty-state">Supabase indisponible.</p>`; return; }
     const { data, error } = await supabase
       .from('recipes')
-      .select('*, profiles ( username, donation_link )')
+      .select('*, profiles ( username, donation_link, avatar_url )')
       .eq('id', recipe_id)
       .single();
     if (error || !data) { container.innerHTML = `<p class="empty-state">Recette introuvable.</p>`; return; }

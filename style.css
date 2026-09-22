@@ -178,22 +178,36 @@ label.field-label{
 }
 .filter-chip.active{background:var(--saffron);color:#fff;border-color:var(--saffron-deep);}
 
-.recipe-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
-@media(max-width:680px){.recipe-grid{grid-template-columns:1fr;}}
+/* Un vrai fil : une colonne, centrée, plutôt qu'une grille de vignettes. */
+.recipe-grid{display:flex;flex-direction:column;gap:26px;max-width:560px;margin:0 auto;}
 
 .recipe-card{
   background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
   overflow:hidden;position:relative;cursor:pointer;
   transition:transform 0.18s ease, box-shadow 0.18s ease;
+  box-shadow:0 3px 14px rgba(43,36,28,0.05);
 }
 .recipe-card:hover{
-  transform:translateY(-4px);
-  box-shadow:0 16px 32px rgba(43,36,28,0.14);
+  transform:translateY(-3px);
+  box-shadow:0 18px 36px rgba(43,36,28,0.13);
   border-color:var(--saffron);
 }
 
+/* ---------- En-tête auteur, façon post de fil d'actualité ---------- */
+.recipe-card-header{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 16px;
+}
+.recipe-card-author{
+  background:none;border:none;padding:0;display:flex;align-items:center;gap:10px;cursor:pointer;min-width:0;
+}
+.recipe-card-avatar{width:38px;height:38px;font-size:14px;flex-shrink:0;}
+.recipe-card-author-info{display:flex;flex-direction:column;gap:1px;align-items:flex-start;min-width:0;}
+.recipe-card-author-name{font-size:13.5px;font-weight:700;color:var(--ink);}
+.recipe-card-author:hover .recipe-card-author-name{color:var(--rust);}
+.recipe-card-author-sub{font-size:11.5px;color:var(--ink-soft);}
+
 /* ---------- Média avec titre en surimpression ---------- */
-.recipe-card-media{position:relative;height:210px;overflow:hidden;background:var(--paper-deep);}
+.recipe-card-media{position:relative;height:340px;overflow:hidden;background:var(--paper-deep);}
 .recipe-cover{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.35s ease;}
 .recipe-card:hover .recipe-cover{transform:scale(1.06);}
 .recipe-cover-placeholder{
@@ -206,11 +220,12 @@ label.field-label{
   pointer-events:none;
 }
 .recipe-card-media-top{
-  position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;
+  position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:flex-end;align-items:flex-start;gap:8px;
 }
 .stripe-badge{
   font-size:11px;font-weight:800;color:#fff;padding:5px 12px;border-radius:999px;
   text-transform:uppercase;letter-spacing:0.02em;background:var(--basil);box-shadow:0 2px 8px rgba(0,0,0,0.2);
+  flex-shrink:0;
 }
 .stripe-badge.cat-Dessert{background:#C77DAE;}
 .stripe-badge.cat-Entrée{background:var(--saffron);}
@@ -218,19 +233,22 @@ label.field-label{
 .stripe-badge.cat-Boisson{background:#4E7FA0;}
 .stripe-badge.cat-Snack{background:var(--basil);}
 .stripe-badge.cat-Petit-déjeuner{background:#C99A3E;}
+
+/* Étoiles plus soignées : dégradé doré, meilleure lisibilité sur la photo. */
 .recipe-card-rating-badge{
-  font-size:11.5px;font-weight:800;color:#2B241C;background:#F5D77A;padding:5px 11px;border-radius:999px;
-  display:inline-flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,0.2);
+  font-size:12.5px;font-weight:800;color:#4A3200;
+  background:linear-gradient(135deg, #FFE9A8, #F0C24B);
+  padding:6px 12px;border-radius:999px;
+  display:inline-flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(0,0,0,0.22);
 }
+.recipe-card-rating-badge i{color:#B8790C;font-size:12px;}
+.recipe-card-rating-badge em{font-style:normal;font-weight:600;opacity:0.75;}
 .recipe-card-media-title{
-  position:absolute;left:14px;right:14px;bottom:12px;color:#fff;font-size:20px;line-height:1.2;
+  position:absolute;left:16px;right:16px;bottom:14px;color:#fff;font-size:22px;line-height:1.2;
   margin:0;text-shadow:0 2px 8px rgba(0,0,0,0.4);
 }
 
 .recipe-body{padding:16px 18px 18px;}
-.recipe-meta{font-size:12px;color:var(--ink-soft);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
-.recipe-meta img.flag-preview{width:18px;height:13px;}
-.recipe-meta b{color:var(--ink);}
 .chips-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
 .tag-chip{font-size:11px;padding:3px 10px;border-radius:999px;background:var(--paper-deep);color:var(--ink-soft);font-weight:600;}
 .recipe-actions{display:flex;align-items:center;gap:14px;border-top:1px solid var(--line);padding-top:12px;margin-top:4px;flex-wrap:wrap;}
@@ -1691,6 +1709,17 @@ label.field-label{
 .share-btn-whatsapp:hover{background:#1fb857;}
 .share-btn-copy{background:var(--ink-soft);}
 .share-btn-copy:hover{background:var(--ink);}
+
+/* ---------- Notification flottante ---------- */
+.dishful-toast{
+  position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:var(--paper);padding:12px 20px;border-radius:999px;
+  font-size:13.5px;font-weight:700;box-shadow:0 12px 30px rgba(43,36,28,0.3);
+  display:flex;align-items:center;gap:9px;z-index:200;opacity:0;pointer-events:none;
+  transition:opacity 0.2s ease, transform 0.2s ease;
+}
+.dishful-toast i{color:var(--saffron);}
+.dishful-toast.visible{opacity:1;transform:translateX(-50%) translateY(0);}
 
 /* ==========================================================
    Popup de recadrage de photo (zoom + déplacement) — réutilisée pour
