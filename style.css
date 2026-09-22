@@ -29,6 +29,13 @@ h1,h2,h3,.display{
   letter-spacing:-0.01em;
   margin:0;
 }
+/* Taille par défaut de chaque niveau de titre, pour que même les pages qui n'ont pas
+   reçu de règle dédiée (badges, réglages du profil, etc.) restent cohérentes avec le
+   reste de l'appli plutôt que de dépendre de la taille par défaut du navigateur. Les
+   règles plus spécifiques (ex : .recipe_full_view h2) continuent de prendre le dessus. */
+h1{font-size:1.8rem;line-height:1.2;}
+h2{font-size:1.4rem;line-height:1.25;}
+h3{font-size:1.15rem;line-height:1.3;}
 a{color:inherit;}
 button{font-family:inherit;cursor:pointer;}
 .hidden{display:none !important;}
@@ -314,10 +321,11 @@ label.field-label{
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #ffffff;
+  background-color: var(--card);
+  border: 1px solid var(--line);
   padding: 20px 24px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-radius: var(--radius);
+  box-shadow: 0 2px 8px rgba(43, 36, 28, 0.06);
   margin-bottom: 24px;
 }
 
@@ -327,14 +335,12 @@ label.field-label{
   gap: 16px;
 }
 
-
-
 .avatar_circle {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background-color: #d97706;
-  color: #ffffff;
+  background-color: var(--saffron);
+  color: #fff;
   font-size: 24px;
   font-weight: bold;
   display: flex;
@@ -359,7 +365,7 @@ label.field-label{
 }
 
 #profile_username_text {
-  color: #6b7280;
+  color: var(--ink-soft);
   font-size: 0.9rem;
 }
 
@@ -367,8 +373,8 @@ label.field-label{
   display: inline-block;
   margin-left: 8px;
   padding: 2px 8px;
-  background-color: #feefe8;
-  color: #d97706;
+  background-color: #FFF6E0;
+  color: var(--saffron-deep);
   border-radius: 12px;
   font-size: 0.8rem;
   font-weight: 600;
@@ -382,7 +388,7 @@ label.field-label{
 .xp_bar {
   width: 100%;
   height: 8px;
-  background-color: #e5e7eb;
+  background-color: var(--paper-deep);
   border-radius: 4px;
   overflow: hidden;
   margin: 6px 0;
@@ -391,7 +397,7 @@ label.field-label{
 .xp_fill {
   height: 100%;
   width: 0%;
-  background-color: #d97706;
+  background-color: var(--saffron);
   transition: width 0.3s ease;
 }
 
@@ -399,7 +405,7 @@ label.field-label{
 .profile_tabs_nav {
   display: flex;
   gap: 8px;
-  border-bottom: 2px solid #e5e7eb;
+  border-bottom: 2px solid var(--line);
   margin-bottom: 24px;
 }
 
@@ -409,7 +415,7 @@ label.field-label{
   padding: 12px 24px;
   font-size: 1rem;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--ink-soft);
   cursor: pointer;
   border-bottom: 3px solid transparent;
   margin-bottom: -2px;
@@ -417,21 +423,22 @@ label.field-label{
 }
 
 .tab_btn:hover {
-  color: #111827;
+  color: var(--ink);
 }
 
 .tab_btn.active {
-  color: #d97706;
-  border-bottom-color: #d97706;
+  color: var(--rust);
+  border-bottom-color: var(--rust);
 }
 
 /* Contenu des onglets */
 .tab_content {
   display: none;
-  background-color: #ffffff;
+  background-color: var(--card);
+  border: 1px solid var(--line);
   padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-radius: var(--radius);
+  box-shadow: 0 2px 8px rgba(43, 36, 28, 0.06);
 }
 
 .tab_content.active {
@@ -451,23 +458,18 @@ label.field-label{
   margin-bottom: 6px;
 }
 
-.form_group input,
-.form_group select,
-.form_group textarea {
-  width: 100%;
-  padding: 10px 14px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  box-sizing: border-box;
-  font-size: 0.95rem;
-  background-color: #fff;
-}
-
 .form_row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
+
+.form_security_section {
+  border-top: 1px dashed var(--line);
+  margin-top: 20px;
+  padding-top: 16px;
+}
+.form_security_section h3 { margin-bottom: 10px; }
 
 /* Grilles pour les badges et les recettes */
 .badges_grid,
@@ -478,25 +480,18 @@ label.field-label{
   margin-bottom: 32px;
 }
 
-.badge_equipped_box {
-  padding: 16px;
-  background-color: #f9fafb;
-  border: 1px dashed #d1d5db;
-  border-radius: 8px;
-  margin-bottom: 24px;
-}
-
 .profile_header_wrapper {
-  background-color: #ffffff;
-  border-radius: 12px;
+  background-color: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(43, 36, 28, 0.06);
   margin-bottom: 24px;
 }
 
 .profile_banner {
   height: 140px;
-  background-color: #e5e7eb;
+  background-color: var(--paper-deep);
   background-size: cover;
   background-position: center;
   position: relative;
@@ -506,16 +501,12 @@ label.field-label{
   position: absolute;
   right: 12px;
   bottom: 12px;
-  background: rgba(0, 0, 0, 0.6);
-  color: #ffffff;
+  background: rgba(43, 36, 28, 0.6);
+  color: #fff;
   padding: 6px 12px;
   border-radius: 20px;
   font-size: 0.8rem;
   cursor: pointer;
-}
-
-.hidden_file_input {
-  display: none;
 }
 
 .avatar_wrapper {
@@ -526,8 +517,8 @@ label.field-label{
   position: absolute;
   bottom: 0;
   right: 0;
-  background: #d97706;
-  color: #ffffff;
+  background: var(--saffron);
+  color: #fff;
   width: 26px;
   height: 26px;
   border-radius: 50%;
@@ -536,7 +527,7 @@ label.field-label{
   justify-content: center;
   font-size: 0.75rem;
   cursor: pointer;
-  border: 2px solid #ffffff;
+  border: 2px solid var(--card);
 }
 
 .profile_header_content {
@@ -568,24 +559,17 @@ label.field-label{
 /*--------------------------------*/
 
 .badge_equipped_box {
-  background: var(--bg-soft, #f9fafb);
-  border: 2px dashed #d1d5db;
+  background: var(--paper);
+  border: 2px dashed var(--line);
   border-radius: 10px;
   padding: 16px;
   text-align: center;
   margin-bottom: 24px;
 }
 
-.badges_grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 16px;
-  margin-bottom: 28px;
-}
-
 .badge_card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--card);
+  border: 1px solid var(--line);
   border-radius: 12px;
   padding: 16px;
   text-align: center;
@@ -602,18 +586,18 @@ label.field-label{
 }
 
 .badge_card.unlocked {
-  border-color: #f59e0b;
+  border-color: var(--saffron);
   cursor: pointer;
 }
 
 .badge_card.unlocked:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(43, 36, 28, 0.1);
 }
 
 .badge_card.equipped {
-  border: 2px solid #d97706;
-  background: #fffbe6;
+  border: 2px solid var(--saffron-deep);
+  background: #FFF6E0;
 }
 
 .badge_icon {
@@ -623,12 +607,12 @@ label.field-label{
 .badge_name {
   font-weight: 600;
   font-size: 0.95rem;
-  color: var(--ink, #1f2937);
+  color: var(--ink);
 }
 
 .badge_desc {
   font-size: 0.8rem;
-  color: #6b7280;
+  color: var(--ink-soft);
 }
 
 .badge_status_btn {
@@ -637,18 +621,18 @@ label.field-label{
   padding: 4px 10px;
   border-radius: 12px;
   border: none;
-  background: #e5e7eb;
+  background: var(--paper-deep);
   cursor: pointer;
 }
 
 .badge_card.unlocked .badge_status_btn {
-  background: #d97706;
-  color: #ffffff;
+  background: var(--saffron);
+  color: #fff;
 }
 
 .badge_card.equipped .badge_status_btn {
-  background: #059669;
-  color: #ffffff;
+  background: var(--basil);
+  color: #fff;
 }
 
 /**--------------------------------*/
@@ -663,8 +647,8 @@ label.field-label{
 }
 
 .mini_recipe_card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--card);
+  border: 1px solid var(--line);
   border-radius: 10px;
   overflow: hidden;
   cursor: pointer;
@@ -673,14 +657,14 @@ label.field-label{
 
 .mini_recipe_card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(43, 36, 28, 0.1);
 }
 
 .mini_card_img {
   height: 100px;
   background-size: cover;
   background-position: center;
-  background-color: #f3f4f6;
+  background-color: var(--paper-deep);
 }
 
 .mini_card_info {
@@ -697,7 +681,7 @@ label.field-label{
 
 .mini_card_meta {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--ink-soft);
 }
 
 .saved_filters_row {
@@ -709,7 +693,7 @@ label.field-label{
 .saved_filters_row select {
   padding: 6px 12px;
   border-radius: 8px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--line);
   font-size: 0.85rem;
 }
 
@@ -926,7 +910,7 @@ label.field-label{
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1.5rem;
-  border-bottom: 2px solid #eee;
+  border-bottom: 2px solid var(--line);
   padding-bottom: 0.5rem;
   overflow-x: auto;
 }
@@ -936,7 +920,7 @@ label.field-label{
   border: none;
   padding: 0.6rem 1rem;
   font-weight: 600;
-  color: #777;
+  color: var(--ink-soft);
   cursor: pointer;
   border-bottom: 3px solid transparent;
   transition: all 0.2s ease;
@@ -944,8 +928,8 @@ label.field-label{
 }
 
 .wizard-step-btn.active {
-  color: var(--rust, #c85a32);
-  border-bottom-color: var(--rust, #c85a32);
+  color: var(--rust);
+  border-bottom-color: var(--rust);
 }
 
 .wizard-actions {
@@ -954,107 +938,7 @@ label.field-label{
   align-items: center;
   margin-top: 1.5rem;
   padding-top: 1rem;
-  border-top: 1px solid #eee;
-}
-
-.sub-hint {
-  font-size: 0.85rem;
-  color: #666;
-  margin-bottom: 1rem;
-}
-
-/* Lignes Ingrédients Structurés */
-.structured-ingredients-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.ingredient_row {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.ing_amount_input {
-  width: 90px;
-  flex-shrink: 0;
-}
-
-.ing_unit_select {
-  width: 120px;
-  flex-shrink: 0;
-}
-
-.ing_name_input {
-  flex: 1;
-}
-
-/* Lignes Étapes */
-.structured-steps-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.step_row {
-  display: flex;
-  gap: 0.75rem;
-  align-items: flex-start;
-  background: #fdfbf7;
-  border: 1px solid #eae3d9;
-  padding: 0.85rem;
-  border-radius: 8px;
-}
-
-.step_number_badge {
-  background: var(--rust, #c85a32);
-  color: #fff;
-  font-weight: bold;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  margin-top: 4px;
-}
-
-.step_inputs_wrapper {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.step_media_inputs {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.step_media_inputs input {
-  flex: 1;
-  min-width: 180px;
-  font-size: 0.85rem;
-}
-
-/* Boutons d'action */
-.btn_delete_row {
-  background: transparent;
-  border: none;
-  color: #dc3545;
-  cursor: pointer;
-  padding: 0.5rem;
-  font-size: 1rem;
-  transition: color 0.2s;
-}
-
-.btn_delete_row:hover {
-  color: #a71d2a;
+  border-top: 1px solid var(--line);
 }
 
 /* Container plus large */
@@ -1077,9 +961,9 @@ label.field-label{
 }
 
 .upload-btn {
-  background: #f3efe6;
-  border: 1px dashed var(--rust, #c85a32);
-  color: var(--rust, #c85a32);
+  background: var(--paper);
+  border: 1px dashed var(--rust);
+  color: var(--rust);
   padding: 0.6rem 1rem;
   border-radius: 8px;
   cursor: pointer;
@@ -1089,7 +973,7 @@ label.field-label{
 }
 
 .upload-btn:hover {
-  background: #e8dfd1;
+  background: var(--paper-deep);
 }
 
 .upload-btn.mini {
@@ -1108,67 +992,6 @@ label.field-label{
   flex: 1;
 }
 
-/* Style des cartes d'étape */
-.step_card_row {
-  background: #fff;
-  border: 1px solid #e2dacd;
-  border-radius: 10px;
-  padding: 1rem;
-  margin-bottom: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-}
-
-.step_header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.step_time_wrapper {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: #666;
-}
-
-.step_time_input {
-  width: 110px !important;
-  padding: 0.3rem 0.5rem !important;
-}
-
-.step_section_title {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #555;
-  margin-top: 0.25rem;
-}
-
-/* Choix des ingrédients par étape */
-.step_ingredients_picker {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  background: #fdfbf7;
-  padding: 0.6rem;
-  border-radius: 6px;
-  border: 1px solid #efe8dc;
-}
-
-.step-ing-chip {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  background: #fff;
-  border: 1px solid #ddd;
-  padding: 0.25rem 0.5rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  cursor: pointer;
-}
-
 .step_media_grid {
   display: flex;
   gap: 0.5rem;
@@ -1178,7 +1001,7 @@ label.field-label{
 
 .empty-hint {
   font-size: 0.8rem;
-  color: #999;
+  color: var(--ink-soft);
   font-style: italic;
 }
 /* ---------- Additions : galerie recette, actions auteur, étapes enrichies ---------- */

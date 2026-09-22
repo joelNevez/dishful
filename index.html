@@ -543,15 +543,19 @@
           <input type="url" id="profile_donation_input" placeholder="https://ko-fi.com/..." />
         </div>
 
-        <div class="form_security_section hidden">
-          <h3>Sécurité & Compte</h3>
+        <div class="form_security_section">
+          <h3>Sécurité</h3>
           <div class="form_group">
-            <label>Email</label>
-            <input type="email" id="profile_email" />
-          </div>
-          <div class="form_group">
-            <label>Nouveau mot de passe</label>
-            <input type="password" id="profile_new_password" placeholder="Remplir uniquement pour modifier" />
+            <label><i class="fa-solid fa-lock"></i> Mot de passe</label>
+            <div class="email-field-row">
+              <input type="password" id="profile_password_display" value="••••••••" disabled />
+              <button type="button" id="change_password_btn" class="btn-secondary">Changer</button>
+            </div>
+            <div id="change_password_form" class="change-email-form hidden">
+              <input type="password" id="new_password_input" placeholder="Nouveau mot de passe (6 caractères min.)">
+              <button type="button" id="confirm_password_change_btn" class="btn-primary">Confirmer</button>
+            </div>
+            <p class="msg" id="password_change_msg"></p>
           </div>
         </div>
 

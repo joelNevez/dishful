@@ -422,6 +422,30 @@ document.addEventListener("DOMContentLoaded", () => {
     msg.textContent = "Un email de confirmation a été envoyé à l'ancienne ET à la nouvelle adresse. Clique sur les deux liens pour valider le changement.";
     document.getElementById("change_email_form").classList.add("hidden");
   });
+
+  document.getElementById("change_password_btn")?.addEventListener("click", () => {
+    document.getElementById("change_password_form").classList.toggle("hidden");
+    document.getElementById("new_password_input").value = "";
+    document.getElementById("password_change_msg").textContent = "";
+  });
+
+  document.getElementById("confirm_password_change_btn")?.addEventListener("click", async () => {
+    const msg = document.getElementById("password_change_msg");
+    const new_password = document.getElementById("new_password_input").value;
+    if (new_password.length < 6) { msg.className = "msg error"; msg.textContent = "Le mot de passe doit faire au moins 6 caractères."; return; }
+    if (!supabase) { msg.className = "msg error"; msg.textContent = "Supabase indisponible."; return; }
+    msg.className = "msg";
+    msg.textContent = "Mise à jour...";
+    const { error } = await supabase.auth.updateUser({ password: new_password });
+    if (error) {
+      msg.className = "msg error";
+      msg.textContent = "Erreur : " + error.message;
+      return;
+    }
+    msg.className = "msg";
+    msg.textContent = "Mot de passe mis à jour !";
+    document.getElementById("change_password_form").classList.add("hidden");
+  });
 });
 
 // =====================================================================
