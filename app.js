@@ -304,8 +304,11 @@ function populate_nationality_select() {
 
 // 2. Gestion des 3 sous-onglets du profil
 function init_profile_subtabs() {
-  const tab_buttons = document.querySelectorAll(".profile_tabs_nav .tab_btn");
-  const tab_contents = document.querySelectorAll(".profile_container .tab_content");
+  // Scopé à #tab-profile : sinon ce sélecteur global attrape aussi les onglets du
+  // profil PUBLIC (#tab-public-profile), qui partagent les mêmes classes .profile_tabs_nav/.tab_btn
+  // mais utilisent data-ptab au lieu de data-tab -> les deux handlers se marchaient dessus.
+  const tab_buttons = document.querySelectorAll("#tab-profile .profile_tabs_nav .tab_btn");
+  const tab_contents = document.querySelectorAll("#tab-profile .tab_content");
 
   tab_buttons.forEach((button) => {
     button.addEventListener("click", () => {
@@ -2447,12 +2450,14 @@ async function render_badges_tab() {
     document.getElementById("equipped_badge_display").textContent = "";
   }
 
-  render_badge_grid("recipe_badges_grid", recipe_badge_list, total_published, equipped_badge_id, "recettes");
-  render_badge_grid("like_badges_grid", like_badge_list, total_likes, equipped_badge_id, "likes");
-  render_badge_grid("level_badges_grid", level_badge_list, user_level, equipped_badge_id, "niveaux");
+  render_badge_grid("recipe_badges_grid", recipe_badge_list, total_published, equipped_badge_id, "recettes", true);
+  render_badge_grid("like_badges_grid", like_badge_list, total_likes, equipped_badge_id, "likes", true);
+  render_badge_grid("level_badges_grid", level_badge_list, user_level, equipped_badge_id, "niveaux", true);
 }
 
-function render_badge_grid(container_id, badges, current_count, equipped_id, label) {
+// `interactive` doit rester à false sur un profil PUBLIC (celui de quelqu'un d'autre) :
+// on ne doit jamais pouvoir équiper un badge qui n'est pas le sien.
+function render_badge_grid(container_id, badges, current_count, equipped_id, label, interactive) {
   const container = document.getElementById(container_id);
   if (!container) return;
 
@@ -2467,7 +2472,7 @@ function render_badge_grid(container_id, badges, current_count, equipped_id, lab
 
     let btn_label = "Verrouillé";
     if (is_equipped) btn_label = "Équipé";
-    else if (is_unlocked) btn_label = "Équiper";
+    else if (is_unlocked) btn_label = interactive ? "Équiper" : "Débloqué";
 
     return `
       <div class="${card_class}" data-badge-id="${badge.id}" data-unlocked="${is_unlocked}">
@@ -2479,10 +2484,11 @@ function render_badge_grid(container_id, badges, current_count, equipped_id, lab
     `;
   }).join("");
 
-  // Écouteurs pour équiper le badge
-  container.querySelectorAll(".badge_card.unlocked").forEach((card) => {
-    card.addEventListener("click", () => equip_badge(card.dataset.badgeId));
-  });
+  if (interactive) {
+    container.querySelectorAll(".badge_card.unlocked").forEach((card) => {
+      card.addEventListener("click", () => equip_badge(card.dataset.badgeId));
+    });
+  }
 }
 
 async function equip_badge(badge_id) {
@@ -2526,7 +2532,7 @@ function render_mini_recipes_grid(container_id, recipes) {
   }
 
   container.innerHTML = recipes.map((r) => {
-    const cover_image = (r.images && r.images[0]) || "";
+    const cover_image = r.cover_image || (r.images && r.images[0]) || "";
     return `
       <div class="mini_recipe_card" data-recipe-id="${r.id}">
         <div class="mini_card_img" style="background-image: url('${escape_attr(cover_image)}')"></div>
@@ -2582,7 +2588,7 @@ function switch_tab(tab_name) {
     btn.classList.toggle("active", btn.dataset.tab === tab_name);
   });
 
-  ["feed", "publish", "profile", "recipe-detail", "leaderboard"].forEach((tab_id) => {
+  ["feed", "publish", "profile", "recipe-detail", "leaderboard", "public-profile"].forEach((tab_id) => {
     const page_element = document.getElementById("tab-" + tab_id);
     if (page_element) {
       page_element.classList.toggle("hidden", tab_id !== tab_name);
@@ -3330,9 +3336,89 @@ function open_user_profile(user_id) {
   if (current_user && user_id === current_user.id) {
     switch_tab("profile");
   } else {
-    // Si c'est un autre utilisateur, tu peux charger son profil ici
-    alert("Profil de l'utilisateur : " + user_id);
+    show_public_profile_page(user_id);
   }
+}
+
+// =====================================================================
+// 12. PROFIL PUBLIC (consultation du profil d'un autre utilisateur)
+// =====================================================================
+document.querySelectorAll('#tab-public-profile .profile_tabs_nav .tab_btn').forEach((button) => {
+  button.addEventListener('click', () => {
+    document.querySelectorAll('#tab-public-profile .profile_tabs_nav .tab_btn').forEach((b) => b.classList.remove('active'));
+    document.querySelectorAll('#tab-public-profile .tab_content').forEach((c) => c.classList.remove('active'));
+    button.classList.add('active');
+    document.getElementById(button.dataset.ptab)?.classList.add('active');
+  });
+});
+document.getElementById('back_to_feed_from_profile_btn')?.addEventListener('click', () => switch_tab('feed'));
+
+async function show_public_profile_page(user_id) {
+  if (!supabase) return;
+  switch_tab('public-profile');
+
+  document.getElementById('public_profile_display_name').textContent = 'Chargement...';
+  document.getElementById('public_profile_username_text').textContent = '';
+  document.getElementById('public_profile_bio').textContent = '';
+  document.getElementById('public_profile_avatar').textContent = '';
+  document.getElementById('public_profile_banner_preview').style.backgroundImage = '';
+  document.getElementById('public_published_recipes').innerHTML = dishful_loading_html('Chargement du profil...');
+
+  const [{ data: profile, error }, { data: user_recipes }] = await Promise.all([
+    supabase.from('profiles').select('*').eq('id', user_id).single(),
+    supabase.from('recipes').select('*, profiles ( username, donation_link, avatar_url )').eq('author_id', user_id).order('created_at', { ascending: false })
+  ]);
+
+  if (error || !profile) {
+    document.getElementById('public_profile_display_name').textContent = 'Utilisateur introuvable';
+    document.getElementById('public_published_recipes').innerHTML = '';
+    return;
+  }
+
+  const recipes = user_recipes || [];
+  const total_published = recipes.length;
+  const total_likes = recipes.reduce((acc, r) => acc + (r.likes_count || 0), 0);
+
+  const display_name = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || profile.username || 'Utilisateur';
+  document.getElementById('public_profile_display_name').textContent = display_name;
+  document.getElementById('public_profile_username_text').textContent = profile.username ? `@${profile.username}` : '';
+  const bio_el = document.getElementById('public_profile_bio');
+  bio_el.textContent = profile.bio || 'Pas de description.';
+  bio_el.classList.toggle('empty-hint', !profile.bio);
+
+  const avatar_el = document.getElementById('public_profile_avatar');
+  avatar_el.innerHTML = profile.avatar_url
+    ? `<img src="${escape_attr(profile.avatar_url)}" alt="">`
+    : (profile.first_name ? profile.first_name[0] : (profile.username || 'U')[0]).toUpperCase();
+
+  document.getElementById('public_profile_banner_preview').style.backgroundImage = profile.banner_url ? `url('${profile.banner_url}')` : '';
+
+  const user_level = profile.user_level || 1;
+  const xp_points = profile.xp_points || 0;
+  const xp_for_current_level = (user_level - 1) * 100;
+  const xp_in_current_level = xp_points - xp_for_current_level;
+  const xp_percentage = Math.min(Math.max((xp_in_current_level / 100) * 100, 0), 100);
+  document.getElementById('public_profile_level').textContent = `Niv. ${user_level}`;
+  document.getElementById('public_profile_xp_text').textContent = `${xp_in_current_level} / 100 XP · ${xp_points} XP au total`;
+  document.getElementById('public_profile_xp_fill').style.width = `${xp_percentage}%`;
+
+  const equipped_badge_id = profile.equipped_badge || null;
+  const all_badges = [...recipe_badge_list, ...like_badge_list, ...level_badge_list];
+  const active_badge = all_badges.find((b) => b.id === equipped_badge_id);
+  const equipped_box = document.getElementById('public_equipped_badge_box');
+  if (active_badge) {
+    equipped_box.innerHTML = `<div class="badge_icon">${active_badge.icon}</div><div class="badge_name">${active_badge.name}</div>`;
+    document.getElementById('public_profile_equipped_badge_display').textContent = `${active_badge.icon} ${active_badge.name}`;
+  } else {
+    equipped_box.innerHTML = `<span>Aucun badge équipé</span>`;
+    document.getElementById('public_profile_equipped_badge_display').textContent = '';
+  }
+
+  render_badge_grid('public_recipe_badges_grid', recipe_badge_list, total_published, equipped_badge_id, 'recettes', false);
+  render_badge_grid('public_like_badges_grid', like_badge_list, total_likes, equipped_badge_id, 'likes', false);
+  render_badge_grid('public_level_badges_grid', level_badge_list, user_level, equipped_badge_id, 'niveaux', false);
+
+  render_mini_recipes_grid('public_published_recipes', recipes);
 }
 
 // Variable de l'étape courante
