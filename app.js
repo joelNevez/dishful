@@ -227,6 +227,7 @@ const COMMON_TOOLS = [
 const STEP_TYPE_DEFAULT_TOOL = {
   oven: "Four",
   stovetop: "Plaque de cuisson",
+  fryer: "Friteuse",
   rest: "Réfrigérateur"
 };
 function find_tool_by_name(name) {
@@ -238,6 +239,7 @@ const STEP_TYPES = {
   prep:      { label: "Préparation",      icon: "fa-utensils",     time_label: "Temps (min)" },
   oven:      { label: "Four",             icon: "fa-fire-burner",  time_label: "Temps au four (min)" },
   stovetop:  { label: "Cuisson (plaque)", icon: "fa-fire",         time_label: "Temps de cuisson (min)" },
+  fryer:     { label: "Friture",          icon: "fa-oil-can",      time_label: "Temps de friture (min)" },
   rest:      { label: "Repos / Frigo",    icon: "fa-snowflake",    time_label: "Temps de repos (min)" }
 };
 
@@ -255,8 +257,9 @@ function guess_default_unit(food_name) {
 const UNIT_OPTIONS = [
   {value:'g', label:'g'}, {value:'kg', label:'kg'}, {value:'ml', label:'ml'}, {value:'cl', label:'cl'},
   {value:'l', label:'L'}, {value:'cas', label:'c. à soupe'}, {value:'cac', label:'c. à café'},
-  {value:'pincée', label:'pincée'}, {value:'unité', label:'unité(s)'}
+  {value:'pincée', label:'pincée'}, {value:'unité', label:'unité(s)'}, {value:'au_gout', label:'Au goût'}
 ];
+const TO_TASTE_UNIT = 'au_gout';
 
 const recipe_badge_list = [
   { id: "rec_5", name: "Apprenti Cuisinier", icon: "🍳", count: 5 },
@@ -393,6 +396,21 @@ let all_recipes = [];
 let liked_recipe_ids = new Set();
 let active_category_filter = null;
 
+// Identifiant anonyme stable (stocké en local) pour dédupliquer les vues des visiteurs
+// non connectés — une vue ne doit compter qu'une fois par visiteur différent, pas à chaque chargement.
+function get_anon_viewer_id() {
+  let id = null;
+  try { id = localStorage.getItem('dishful_anon_id'); } catch (e) {}
+  if (!id) {
+    id = 'anon_' + (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '_' + Math.random().toString(36).slice(2));
+    try { localStorage.setItem('dishful_anon_id', id); } catch (e) {}
+  }
+  return id;
+}
+function get_viewer_key() {
+  return current_user ? current_user.id : get_anon_viewer_id();
+}
+
 // état des champs dynamiques du formulaire de publication
 let pending_images = []; // [{ file, previewUrl }] — nouvelles photos pas encore envoyées
 let existing_gallery_urls = []; // URLs déjà en ligne (mode édition uniquement)
@@ -527,16 +545,19 @@ async function refresh_session() {
     // 1. Récupération des recettes de l'utilisateur pour calculer son XP réel
     const { data: user_recipes } = await supabase
       .from("recipes")
-      .select("id, likes_count")
+      .select("id, likes_count, views_count")
       .eq("author_id", user.id);
 
     const total_published = user_recipes ? user_recipes.length : 0;
     const total_likes_received = user_recipes
       ? user_recipes.reduce((acc, r) => acc + (r.likes_count || 0), 0)
       : 0;
+    const total_views_received = user_recipes
+      ? user_recipes.reduce((acc, r) => acc + (r.views_count || 0), 0)
+      : 0;
 
-    // Calcul direct : 20 XP par recette + 3 XP par like reçu
-    const computed_xp = (total_published * 20) + (total_likes_received * 3);
+    // Calcul direct : 20 XP par recette + 3 XP par like reçu + 1 XP par tranche de 10 vues
+    const computed_xp = (total_published * 20) + (total_likes_received * 3) + Math.floor(total_views_received / 10);
     const computed_level = Math.floor(computed_xp / 100) + 1;
 
     // 2. Mise à jour automatique des valeurs en base de données
@@ -1059,12 +1080,13 @@ function compute_total_time() {
 // (regroupées par unité, puisqu'on ne peut pas additionner des grammes avec des unité(s)).
 // `ratio` sert à mettre à l'échelle selon le nombre de portions choisi (page recette publiée).
 function compute_steps_total_ingredient_quantities(steps, ratio) {
-  const totals = new Map(); // name -> { units: Map(unit -> somme), unspecified: bool }
+  const totals = new Map(); // name -> { units: Map(unit -> somme), unspecified: bool, to_taste: bool }
   (steps || []).forEach(step => {
     (step.ingredients || []).forEach(ing => {
       if (!ing.name) return;
-      if (!totals.has(ing.name)) totals.set(ing.name, { units: new Map(), unspecified: false });
+      if (!totals.has(ing.name)) totals.set(ing.name, { units: new Map(), unspecified: false, to_taste: false });
       const entry = totals.get(ing.name);
+      if (ing.unit === TO_TASTE_UNIT) { entry.to_taste = true; return; }
       const amount = parseFloat(ing.amount);
       if (!ing.amount || isNaN(amount)) { entry.unspecified = true; return; }
       const unit = ing.unit || 'g';
@@ -1090,6 +1112,7 @@ function render_product_list_html(items, total_qty, empty_label) {
       const formatted = Number.isInteger(sum) ? sum : Math.round(sum * 100) / 100;
       return `${formatted} ${unit_label}`;
     }) : [];
+    if (entry && entry.to_taste) parts.push('Au goût');
     const qty_html = parts.length
       ? `<span class="product-list-qty">${escape_html(parts.join(' + '))}</span>`
       : (entry && entry.unspecified ? `<span class="product-list-qty unspecified">qté libre</span>` : '');
@@ -1191,7 +1214,7 @@ function render_step_editor_linked_list() {
       return `
         <div class="step-linked-ing-row editing" data-index="${i}">
           <span class="step-linked-ing-label">${emoji} ${escape_html(ing.name)}</span>
-          <input type="number" class="step_linked_ing_amount" data-index="${i}" placeholder="Qté" step="any" min="0" value="${escape_attr(ing.amount)}">
+          <input type="number" class="step_linked_ing_amount" data-index="${i}" placeholder="Qté" step="any" min="0" value="${escape_attr(ing.amount)}" ${ing.unit === TO_TASTE_UNIT ? 'disabled' : ''}>
           <select class="step_linked_ing_unit" data-index="${i}">
             ${UNIT_OPTIONS.map(u => `<option value="${u.value}" ${ing.unit === u.value ? 'selected' : ''}>${u.label}</option>`).join('')}
           </select>
@@ -1201,7 +1224,9 @@ function render_step_editor_linked_list() {
       `;
     }
     const unit_label = (UNIT_OPTIONS.find(u => u.value === ing.unit) || {}).label || ing.unit || '';
-    const qty_display = ing.amount ? `${escape_html(String(ing.amount))} ${escape_html(unit_label)}` : `<em>Qté non précisée</em>`;
+    const qty_display = ing.unit === TO_TASTE_UNIT
+      ? 'Au goût'
+      : (ing.amount ? `${escape_html(String(ing.amount))} ${escape_html(unit_label)}` : `<em>Qté non précisée</em>`);
     return `
       <div class="step-linked-ing-row compact" data-index="${i}">
         <span class="step-linked-ing-label">${emoji} ${escape_html(ing.name)}</span>
@@ -1216,7 +1241,12 @@ function render_step_editor_linked_list() {
     inp.addEventListener('input', () => { step_editor_linked_ingredients[Number(inp.dataset.index)].amount = inp.value; });
   });
   container.querySelectorAll('.step_linked_ing_unit').forEach(sel => {
-    sel.addEventListener('change', () => { step_editor_linked_ingredients[Number(sel.dataset.index)].unit = sel.value; });
+    sel.addEventListener('change', () => {
+      const ing = step_editor_linked_ingredients[Number(sel.dataset.index)];
+      ing.unit = sel.value;
+      if (ing.unit === TO_TASTE_UNIT) ing.amount = '';
+      render_step_editor_linked_list();
+    });
   });
   container.querySelectorAll('.step-linked-ing-edit').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1295,7 +1325,7 @@ function render_step_ing_picker_qty_list() {
     return `
       <div class="step-linked-ing-row" data-name="${escape_attr(name)}">
         <span class="step-linked-ing-label">${emoji} ${escape_html(name)}</span>
-        <input type="number" class="step_linked_ing_amount" data-name="${escape_attr(name)}" placeholder="Qté" step="any" min="0" value="${escape_attr(data.amount)}">
+        <input type="number" class="step_linked_ing_amount" data-name="${escape_attr(name)}" placeholder="Qté" step="any" min="0" value="${escape_attr(data.amount)}" ${data.unit === TO_TASTE_UNIT ? 'disabled' : ''}>
         <select class="step_linked_ing_unit" data-name="${escape_attr(name)}">
           ${UNIT_OPTIONS.map(u => `<option value="${u.value}" ${data.unit === u.value ? 'selected' : ''}>${u.label}</option>`).join('')}
         </select>
@@ -1307,7 +1337,12 @@ function render_step_ing_picker_qty_list() {
     inp.addEventListener('input', () => { step_ing_modal_selected.get(inp.dataset.name).amount = inp.value; });
   });
   container.querySelectorAll('.step_linked_ing_unit').forEach(sel => {
-    sel.addEventListener('change', () => { step_ing_modal_selected.get(sel.dataset.name).unit = sel.value; });
+    sel.addEventListener('change', () => {
+      const data = step_ing_modal_selected.get(sel.dataset.name);
+      data.unit = sel.value;
+      if (data.unit === TO_TASTE_UNIT) data.amount = '';
+      render_step_ing_picker_qty_list();
+    });
   });
   container.querySelectorAll('.step-linked-ing-remove').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -2726,10 +2761,16 @@ async function show_recipe_detail_page(recipe_id) {
 
   // Vue comptée à chaque ouverture de la page recette (best-effort, ne bloque pas l'affichage).
   if (supabase) {
-    supabase.rpc('increment_recipe_views', { recipe_id: recipe.id }).then(({ error: rpc_error }) => {
-      if (rpc_error) console.error('[Dishful] Échec incrément vues :', rpc_error.message);
-    });
-    recipe.views_count = (recipe.views_count || 0) + 1;
+    supabase.rpc('increment_recipe_views', { p_recipe_id: recipe.id, p_viewer_key: get_viewer_key() })
+      .then(({ data: counted_as_new_view, error: rpc_error }) => {
+        if (rpc_error) { console.error('[Dishful] Échec incrément vues :', rpc_error.message); return; }
+        // Ne met à jour l'affichage que si c'était une vue réellement nouvelle (dédupliquée par visiteur).
+        if (counted_as_new_view) {
+          recipe.views_count = (recipe.views_count || 0) + 1;
+          const views_el = document.getElementById('recipe_views_count_text');
+          if (views_el) views_el.textContent = `${recipe.views_count} vue${recipe.views_count > 1 ? 's' : ''}`;
+        }
+      });
   }
 
   let current_servings = recipe.servings || 4;
@@ -2918,7 +2959,7 @@ async function show_recipe_detail_page(recipe_id) {
 
         <div class="recipe_meta_bar">
           ${recipe.rating_count ? `<div><i class="fa-solid fa-star" style="color:#D9A62E;"></i> ${Number(recipe.rating_avg).toFixed(1)} (${recipe.rating_count} avis)</div>` : ''}
-          <div><i class="fa-solid fa-eye"></i> ${recipe.views_count || 0} vue${(recipe.views_count || 0) > 1 ? 's' : ''}</div>
+          <div><i class="fa-solid fa-eye"></i> <span id="recipe_views_count_text">${recipe.views_count || 0} vue${(recipe.views_count || 0) > 1 ? 's' : ''}</span></div>
           <div><i class="fa-regular fa-clock"></i> Temps total : ${(recipe.steps || []).reduce((sum, s) => sum + (typeof s === 'object' ? (Number(s.time_min) || 0) : 0), 0)} min</div>
           <div><i class="fa-solid fa-gauge"></i> ${escape_html((recipe.difficulty || 'moyen').charAt(0).toUpperCase() + (recipe.difficulty || 'moyen').slice(1))}</div>
           <div class="servings_calculator">

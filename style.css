@@ -1391,6 +1391,7 @@ label.field-label{
 .step-linked-ing-label{flex:1;min-width:0;font-size:13.5px;font-weight:600;}
 .step-linked-ing-row .step_linked_ing_amount{width:70px;flex-shrink:0;}
 .step-linked-ing-row .step_linked_ing_unit{width:110px;flex-shrink:0;}
+.step-linked-ing-row .step_linked_ing_amount:disabled{opacity:0.4;background:var(--paper-deep);cursor:not-allowed;}
 .step-linked-ing-remove{
   flex-shrink:0;background:none;border:1px solid var(--line);color:var(--rust);
   width:28px;height:28px;border-radius:7px;font-size:11px;
