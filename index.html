@@ -602,6 +602,30 @@
   </div>
 </div>
 
+<!-- ---------------- POPUP : RECETTE PUBLIÉE (partage) ---------------- -->
+<div id="publish_success_modal" class="modal hidden">
+  <div class="modal-card publish-success-card">
+    <button id="close_publish_success_btn" class="close-btn">&times;</button>
+    <div class="publish-success-icon"><i class="fa-solid fa-circle-check"></i></div>
+    <h2 class="display" style="color:var(--basil-deep);">Recette publiée !</h2>
+    <p class="sub">+20 XP gagnés. Partage-la pour donner envie à d'autres de cuisiner et publier leurs recettes.</p>
+
+    <div class="publish-success-recipe-card" id="publish_success_recipe_card"></div>
+
+    <div class="share-buttons-grid">
+      <button type="button" class="share-btn share-btn-x" id="share_x_btn"><i class="fa-brands fa-x-twitter"></i> X</button>
+      <button type="button" class="share-btn share-btn-facebook" id="share_facebook_btn"><i class="fa-brands fa-facebook"></i> Facebook</button>
+      <button type="button" class="share-btn share-btn-whatsapp" id="share_whatsapp_btn"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
+      <button type="button" class="share-btn share-btn-copy" id="share_copy_btn"><i class="fa-solid fa-link"></i> Copier le lien</button>
+    </div>
+
+    <div class="wizard-actions" style="margin-top:18px;">
+      <button type="button" class="btn-secondary" id="publish_success_close_btn">Fermer</button>
+      <button type="button" class="btn-primary" id="publish_success_view_btn">Voir ma recette <i class="fa-solid fa-arrow-right"></i></button>
+    </div>
+  </div>
+</div>
+
 <script src="app.js"></script>
 </body>
 </html>

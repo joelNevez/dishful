@@ -942,87 +942,136 @@ function render_recipe_preview() {
   const total_time = compute_total_time();
   const cover_url = cover_image_preview_url || existing_cover_image_url;
   const gallery_urls = [...existing_gallery_urls, ...pending_images.map(p => p.previewUrl)];
+  const all_tools = compute_all_tools(recipe_steps);
+  const total_qty = compute_total_ingredient_quantities();
+
+  // Média d'une étape : priorité au fichier local pas encore envoyé, sinon à l'URL déjà en ligne (mode édition)
+  function step_preview_media(step) {
+    if (step._image_file) return { type: 'image', url: URL.createObjectURL(step._image_file) };
+    if (step._video_file) return { type: 'video', url: URL.createObjectURL(step._video_file) };
+    if (step.image_url) return { type: 'image', url: step.image_url };
+    if (step.video_url) return { type: 'video', url: step.video_url };
+    return null;
+  }
 
   container.innerHTML = `
-    <div class="preview-card">
-      ${cover_url
-        ? `<img class="preview-cover" src="${escape_attr(cover_url)}" alt="">`
-        : `<div class="preview-cover preview-cover-empty"><i class="fa-solid fa-image"></i> Pas encore de photo de couverture</div>`}
-      <div class="preview-body">
-        <h2>${escape_html(title)}</h2>
-        ${description ? `<p class="recipe_description">${escape_html(description)}</p>` : ''}
-        <div class="preview-meta-row">
-          ${country_display ? `<span class="preview-meta-item">🌍 ${escape_html(country_display)}</span>` : '<span class="preview-meta-item preview-meta-missing">Pays manquant</span>'}
-          <span class="preview-meta-item"><i class="fa-solid fa-users"></i> ${escape_html(String(servings))} pers.</span>
-          <span class="preview-meta-item"><i class="fa-solid fa-gauge"></i> ${escape_html(difficulty)}</span>
-          <span class="preview-meta-item"><i class="fa-solid fa-stopwatch"></i> ${total_time} min</span>
-        </div>
-        <div class="chips-row">
-          ${[...categories, ...tags, ...custom_tags].map(t => `<span class="tag-chip">${escape_html(t)}</span>`).join('') || '<span class="empty-hint">Aucune catégorie/tag</span>'}
-        </div>
-
-        <h4><i class="fa-solid fa-carrot"></i> Ingrédients</h4>
-        <div class="preview-ingredient-pool">
-          ${ingredient_pool.length
-            ? ingredient_pool.map(i => `<span class="pool-chip"><span class="pool-chip-emoji">${i.emoji}</span> ${escape_html(i.name)}</span>`).join('')
-            : '<p class="empty-hint">Aucun ingrédient</p>'}
-        </div>
-
-        ${(() => {
-          const totals = compute_total_ingredient_quantities();
-          if (totals.size === 0) return '';
-          const rows = [...totals.entries()].map(([name, data]) => {
-            const pool_match = ingredient_pool.find(p => p.name === name);
-            const emoji = pool_match ? pool_match.emoji : '🍽️';
-            const parts = [...data.units.entries()].map(([unit, sum]) => {
-              const unit_label = (UNIT_OPTIONS.find(u => u.value === unit) || {}).label || unit;
-              const formatted = Number.isInteger(sum) ? sum : Math.round(sum * 100) / 100;
-              return `${formatted} ${unit_label}`;
-            });
-            if (data.unspecified) parts.push('qté non précisée quelque part');
-            return `
-              <div class="preview-total-qty-row">
-                <span class="preview-total-qty-emoji">${emoji}</span>
-                <span class="preview-total-qty-name">${escape_html(name)}</span>
-                <span class="preview-total-qty-amount">${parts.join(' + ') || '—'}</span>
-              </div>
-            `;
-          }).join('');
-          return `
-            <h4><i class="fa-solid fa-calculator"></i> Quantités totales nécessaires</h4>
-            <p class="sub-hint">Calculées à partir des quantités renseignées étape par étape.</p>
-            <div class="preview-total-qty-list">${rows}</div>
-          `;
-        })()}
-
-        ${(() => { const all_tools = compute_all_tools(recipe_steps); return all_tools.length ? `
-          <h4><i class="fa-solid fa-kitchen-set"></i> Outils nécessaires</h4>
-          <div class="preview-ingredient-pool">
-            ${all_tools.map(t => `<span class="pool-chip"><span class="pool-chip-emoji">${t.emoji}</span> ${escape_html(t.name)}</span>`).join('')}
-          </div>
-        ` : ''; })()}
-
-        <h4><i class="fa-solid fa-list-ol"></i> Étapes</h4>
-        <ol class="preview-steps-list">
-          ${recipe_steps.length ? recipe_steps.map((s) => {
-            const type_info = STEP_TYPES[s.type] || STEP_TYPES.prep;
-            const ing_tags = (s.ingredients || []).map(ing => `<span class="tag-chip">${ing.amount || ''}${escape_html(ing.unit || '')} ${escape_html(ing.name)}</span>`).join('');
-            return `<li>
-              <span class="step_type_badge"><i class="fa-solid ${type_info.icon}"></i> ${type_info.label}${s.oven_temp ? ' · ' + s.oven_temp + '°C' : ''}</span>
-              ${s.time_min ? `<span class="step_time_badge"><i class="fa-solid fa-stopwatch"></i> ${s.time_min} min</span>` : ''}
-              <p>${escape_html(s.text || '')}</p>
-              ${ing_tags ? `<div class="step_ing_tags">${ing_tags}</div>` : ''}
-            </li>`;
-          }).join('') : '<p class="empty-hint">Aucune étape</p>'}
-        </ol>
-
-        ${gallery_urls.length ? `
-          <h4><i class="fa-solid fa-images"></i> Galerie</h4>
-          <div class="recipe_gallery">${gallery_urls.map(u => `<img src="${escape_attr(u)}" alt="">`).join('')}</div>
-        ` : ''}
+    <article class="preview-card recipe_full_view">
+      <div class="media_wrapper">
+        ${cover_url
+          ? `<img src="${escape_attr(cover_url)}" alt="">`
+          : `<div class="preview-cover-empty"><i class="fa-solid fa-image"></i> Pas encore de photo de couverture</div>`}
       </div>
-    </div>
+      ${gallery_urls.length ? `<div class="recipe_gallery">${gallery_urls.map(u => `<img src="${escape_attr(u)}" alt="">`).join('')}</div>` : ''}
+
+      <div class="leaderboard-subtabs preview-subtab-nav">
+        <button type="button" class="leaderboard-subtab-btn preview-subtab-btn active" data-ptab="info"><i class="fa-solid fa-circle-info"></i> Infos</button>
+        <button type="button" class="leaderboard-subtab-btn preview-subtab-btn" data-ptab="ingredients"><i class="fa-solid fa-carrot"></i> Ingrédients & Ustensiles</button>
+        <button type="button" class="leaderboard-subtab-btn preview-subtab-btn" data-ptab="steps"><i class="fa-solid fa-list-ol"></i> Étapes${recipe_steps.length ? ` (${recipe_steps.length})` : ''}</button>
+      </div>
+
+      <div class="preview-subtab-panel" data-ptab-panel="info">
+        <div class="recipe_header">
+          <div class="title_row">
+            <h2>${escape_html(title)}</h2>
+            ${country_display
+              ? `<span class="country_badge">${country_flag_from_code(country_code_val) || '🌍'} ${escape_html(country_display)}</span>`
+              : `<span class="country_badge preview-meta-missing"><i class="fa-solid fa-triangle-exclamation"></i> Pays manquant</span>`}
+          </div>
+          ${description ? `<p class="recipe_description">${escape_html(description)}</p>` : '<p class="empty-hint">Pas de description</p>'}
+
+          <div class="recipe_meta_bar">
+            <div><i class="fa-solid fa-users"></i> ${escape_html(String(servings))} pers.</div>
+            <div><i class="fa-solid fa-gauge"></i> ${escape_html(difficulty.charAt(0).toUpperCase() + difficulty.slice(1))}</div>
+            <div><i class="fa-regular fa-clock"></i> Temps total : ${total_time} min</div>
+          </div>
+
+          <div class="chips-row" style="margin-top:14px;">
+            ${[...categories, ...tags, ...custom_tags].map(t => `<span class="tag-chip">${escape_html(t)}</span>`).join('') || '<span class="empty-hint">Aucune catégorie/tag choisi</span>'}
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-subtab-panel hidden" data-ptab-panel="ingredients">
+        <div class="prep_before_start">
+          <h3 class="prep_before_start_title"><i class="fa-solid fa-list-check"></i> Ce qu'il faut rassembler</h3>
+          <div class="prep_before_start_columns">
+            <div class="prep_column">
+              <h4><i class="fa-solid fa-carrot"></i> Ingrédients</h4>
+              ${ingredient_pool.length
+                ? `<ul class="ingredients_list">${ingredient_pool.map(i => `<li>${i.emoji} ${escape_html(i.name)}</li>`).join('')}</ul>`
+                : '<p class="empty-hint">Aucun ingrédient ajouté</p>'}
+            </div>
+            <div class="prep_column">
+              <h4><i class="fa-solid fa-kitchen-set"></i> Ustensiles</h4>
+              ${all_tools.length
+                ? `<ul class="ingredients_list">${all_tools.map(t => `<li>${t.emoji} ${escape_html(t.name)}</li>`).join('')}</ul>`
+                : '<p class="empty-hint">Aucun outil requis</p>'}
+            </div>
+          </div>
+
+          ${total_qty.size ? `
+            <h4 style="margin-top:20px;"><i class="fa-solid fa-calculator"></i> Quantités totales nécessaires</h4>
+            <p class="sub-hint">Calculées à partir des quantités renseignées étape par étape.</p>
+            <div class="preview-total-qty-list">
+              ${[...total_qty.entries()].map(([name, data]) => {
+                const pool_match = ingredient_pool.find(p => p.name === name);
+                const emoji = pool_match ? pool_match.emoji : '🍽️';
+                const parts = [...data.units.entries()].map(([unit, sum]) => {
+                  const unit_label = (UNIT_OPTIONS.find(u => u.value === unit) || {}).label || unit;
+                  const formatted = Number.isInteger(sum) ? sum : Math.round(sum * 100) / 100;
+                  return `${formatted} ${unit_label}`;
+                });
+                if (data.unspecified) parts.push('qté non précisée quelque part');
+                return `
+                  <div class="preview-total-qty-row">
+                    <span class="preview-total-qty-emoji">${emoji}</span>
+                    <span class="preview-total-qty-name">${escape_html(name)}</span>
+                    <span class="preview-total-qty-amount">${parts.join(' + ') || '—'}</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          ` : ''}
+        </div>
+      </div>
+
+      <div class="preview-subtab-panel hidden" data-ptab-panel="steps">
+        <h3><i class="fa-solid fa-list-ol"></i> Préparation</h3>
+        ${recipe_steps.length ? `
+          <ol class="steps_list">
+            ${recipe_steps.map((s) => {
+              const type_info = STEP_TYPES[s.type] || STEP_TYPES.prep;
+              const ing_tags = (s.ingredients || []).map(ing => `<span class="tag-chip">${ing.amount || ''}${escape_html(ing.unit || '')} ${escape_html(ing.name)}</span>`).join('');
+              const tool_tags = (s.tools || []).map(t => `<span class="tag-chip tool-tag-chip">${t.emoji || '🔧'} ${escape_html(t.name)}</span>`).join('');
+              const media = step_preview_media(s);
+              const media_html = media
+                ? (media.type === 'image'
+                    ? `<img class="step_media_preview" src="${escape_attr(media.url)}" alt="">`
+                    : `<video class="step_media_preview" src="${escape_attr(media.url)}" controls></video>`)
+                : (s.external_url ? `<a href="${escape_attr(s.external_url)}" target="_blank" rel="noopener" class="step_external_link"><i class="fa-solid fa-link"></i> Média externe</a>` : '');
+              return `<li>
+                <span class="step_type_badge"><i class="fa-solid ${type_info.icon}"></i> ${type_info.label}${s.oven_temp ? ' · ' + s.oven_temp + '°C' : ''}</span>
+                ${s.time_min ? `<span class="step_time_badge"><i class="fa-solid fa-stopwatch"></i> ${s.time_min} min</span>` : ''}
+                <p>${escape_html(s.text || '')}</p>
+                ${(ing_tags || tool_tags) ? `<div class="step_ing_tags">${ing_tags}${tool_tags}</div>` : ''}
+                ${media_html}
+              </li>`;
+            }).join('')}
+          </ol>
+        ` : '<p class="empty-hint" style="margin:0 24px;">Aucune étape ajoutée</p>'}
+      </div>
+    </article>
   `;
+
+  container.querySelectorAll('.preview-subtab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.ptab;
+      container.querySelectorAll('.preview-subtab-btn').forEach(b => b.classList.toggle('active', b === btn));
+      container.querySelectorAll('.preview-subtab-panel').forEach(panel => {
+        panel.classList.toggle('hidden', panel.dataset.ptabPanel !== target);
+      });
+    });
+  });
 }
 
 // =====================================================================
@@ -1683,9 +1732,10 @@ recipe_form.addEventListener('submit', async (e) => {
   payload.images = [...existing_gallery_urls, ...image_urls];
   payload.cover_image = final_cover_url;
 
-  const { error } = editing_recipe_id
-    ? await supabase.from('recipes').update(payload).eq('id', editing_recipe_id)
-    : await supabase.from('recipes').insert([payload]);
+  const was_editing = !!editing_recipe_id;
+  const { data: saved_recipe, error } = was_editing
+    ? await supabase.from('recipes').update(payload).eq('id', editing_recipe_id).select().single()
+    : await supabase.from('recipes').insert([payload]).select().single();
 
   if (error) {
     recipe_message_text.className = 'msg error';
@@ -1694,7 +1744,7 @@ recipe_form.addEventListener('submit', async (e) => {
   }
 
   recipe_message_text.className = 'msg';
-  recipe_message_text.textContent = editing_recipe_id
+  recipe_message_text.textContent = was_editing
     ? 'Recette mise à jour !'
     : 'Recette publiée ! +20 XP gagnés.';
   reset_publish_form();
@@ -1704,12 +1754,66 @@ recipe_form.addEventListener('submit', async (e) => {
 
   await refresh_session();
   await load_recipes();
-  if (target_recipe_id) {
+  if (was_editing) {
     show_recipe_detail_page(target_recipe_id);
+  } else if (saved_recipe) {
+    switch_tab('feed');
+    open_publish_success_modal(saved_recipe);
   } else {
     switch_tab('feed');
   }
 });
+
+// =====================================================================
+// 6quinquies. POPUP DE PUBLICATION RÉUSSIE + PARTAGE
+// =====================================================================
+const publish_success_modal = document.getElementById('publish_success_modal');
+
+function recipe_share_url(recipe_id) {
+  return `${location.origin}${location.pathname}?recipe=${recipe_id}`;
+}
+
+function open_publish_success_modal(recipe) {
+  if (!publish_success_modal) return;
+  const share_url = recipe_share_url(recipe.id);
+  const share_text = `J'ai publié "${recipe.title}" sur Dishful 🍽️ Viens voir et partage tes propres recettes !`;
+
+  document.getElementById('publish_success_recipe_card').innerHTML = `
+    ${recipe.cover_image
+      ? `<img src="${escape_attr(recipe.cover_image)}" alt="">`
+      : `<div class="publish-success-recipe-thumb-empty"><i class="fa-solid fa-utensils"></i></div>`}
+    <span>${escape_html(recipe.title)}</span>
+  `;
+
+  document.getElementById('share_x_btn').onclick = () => {
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(share_text)}&url=${encodeURIComponent(share_url)}`, '_blank', 'noopener');
+  };
+  document.getElementById('share_facebook_btn').onclick = () => {
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(share_url)}`, '_blank', 'noopener');
+  };
+  document.getElementById('share_whatsapp_btn').onclick = () => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(share_text + ' ' + share_url)}`, '_blank', 'noopener');
+  };
+  document.getElementById('share_copy_btn').onclick = async () => {
+    const btn = document.getElementById('share_copy_btn');
+    try {
+      await navigator.clipboard.writeText(share_url);
+      btn.innerHTML = '<i class="fa-solid fa-check"></i> Copié !';
+      setTimeout(() => { btn.innerHTML = '<i class="fa-solid fa-link"></i> Copier le lien'; }, 1800);
+    } catch {
+      window.prompt('Copie ce lien :', share_url);
+    }
+  };
+  document.getElementById('publish_success_view_btn').onclick = () => {
+    publish_success_modal.classList.add('hidden');
+    show_recipe_detail_page(recipe.id);
+  };
+
+  publish_success_modal.classList.remove('hidden');
+}
+
+document.getElementById('close_publish_success_btn')?.addEventListener('click', () => publish_success_modal.classList.add('hidden'));
+document.getElementById('publish_success_close_btn')?.addEventListener('click', () => publish_success_modal.classList.add('hidden'));
 
 function reset_publish_form() {
   recipe_form.reset();
@@ -2223,6 +2327,11 @@ function switch_tab(tab_name) {
   if (tab_name === "leaderboard" && typeof load_leaderboard === "function") {
     load_leaderboard();
   }
+
+  // Le lien direct vers une recette (?recipe=...) n'a de sens que sur cet onglet précis.
+  if (tab_name !== "recipe-detail" && location.search) {
+    history.replaceState(null, '', location.pathname);
+  }
 }
 
 async function load_leaderboard() {
@@ -2351,6 +2460,7 @@ async function show_recipe_detail_page(recipe_id) {
   }
 
   switch_tab("recipe-detail");
+  history.replaceState(null, '', '?recipe=' + recipe.id);
 
   let current_servings = recipe.servings || 4;
   const base_servings = recipe.servings || 4;
@@ -2931,6 +3041,9 @@ document.querySelector('[data-tab="publish"]').addEventListener("click", () => {
   try {
     await refresh_session();
     await load_recipes();
+    // Lien direct partagé (?recipe=...) : ouvre directement la recette concernée.
+    const shared_recipe_id = new URLSearchParams(location.search).get('recipe');
+    if (shared_recipe_id) show_recipe_detail_page(shared_recipe_id);
   } catch (err) {
     console.error('[Dishful] Erreur au démarrage :', err);
   }
