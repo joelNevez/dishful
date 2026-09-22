@@ -64,6 +64,11 @@ nav.tabs button.active{background:var(--ink);color:var(--paper);}
   font-size:13px;font-weight:600;color:var(--ink-soft);
   display:inline-flex;align-items:center;gap:7px;
 }
+.avatar{
+  border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;
+  background:var(--saffron);color:#fff;font-weight:700;flex-shrink:0;
+}
+.avatar img{width:100%;height:100%;object-fit:cover;display:block;}
 .avatar-header{
   border:none;padding:0;background:var(--saffron);
   width:38px;height:38px;font-size:15px;
@@ -1335,9 +1340,24 @@ label.field-label{
 
 /* Hauteur fixe pour les listes ingrédients/outils de l'éditeur d'étape : au-delà
    d'un certain nombre d'éléments, la liste défile sur elle-même au lieu de faire
-   grandir toute la popup (qui devenait illisible avec beaucoup d'ingrédients). */
+   grandir toute la popup (qui devenait illisible avec beaucoup d'ingrédients).
+   Disposées en 2 colonnes pour ne pas gâcher de place avec une seule ligne
+   par aliment/outil ; une ligne en cours d'édition (qté + unité) reprend
+   toute la largeur pour rester lisible. */
 #step_editor_linked_list, #step_editor_tools_list{
-  max-height:190px;overflow-y:auto;padding-right:4px;
+  max-height:220px;overflow-y:auto;padding-right:4px;
+  display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;align-content:start;
+}
+#step_editor_linked_list .step-linked-ing-row.editing,
+#step_editor_tools_list .step-linked-ing-row.editing{
+  grid-column:1 / -1;
+}
+#step_editor_linked_list .step-linked-ing-label,
+#step_editor_tools_list .step-linked-ing-label{
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+@media(max-width:520px){
+  #step_editor_linked_list, #step_editor_tools_list{grid-template-columns:1fr;}
 }
 
 .step-type-selector{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
@@ -1428,27 +1448,15 @@ label.field-label{
 .preview-subtab-nav{margin:20px 24px 4px;}
 .preview-subtab-panel .recipe_header{padding-top:14px;}
 
-/* ---------- Quantités totales nécessaires (somme sur toutes les étapes) ---------- */
-.preview-total-qty-list{display:flex;flex-direction:column;gap:6px;}
-.preview-total-qty-row{
-  display:flex;align-items:center;gap:10px;background:var(--paper);border:1px solid var(--line);
-  border-radius:9px;padding:8px 12px;
-}
-.preview-total-qty-emoji{font-size:16px;flex-shrink:0;}
-.preview-total-qty-name{flex:1;min-width:0;font-size:13.5px;font-weight:600;color:var(--ink);}
-.preview-total-qty-amount{
-  flex-shrink:0;font-size:12.5px;font-weight:700;color:var(--basil-deep);
-  background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 11px;
-}
-.preview-steps-list{margin:0;padding-left:0;list-style:none;counter-reset:preview-step-counter;}
-.preview-steps-list li{
-  counter-increment:preview-step-counter;margin-bottom:12px;padding:12px 14px 12px 38px;position:relative;
-  background:var(--paper);border-radius:10px;
-}
-.preview-steps-list li::before{
-  content:counter(preview-step-counter);position:absolute;left:12px;top:12px;
-  width:20px;height:20px;border-radius:50%;background:var(--basil);color:#fff;
-  font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;
+/* ---------- Quantité en tête de chaque ingrédient (une seule liste, pas deux) ---------- */
+.ing_qty{color:var(--rust);font-weight:800;margin-right:2px;}
+
+/* ---------- Sections étiquetées "Ingrédients" / "Outils" dans une étape,
+   pour ne plus avoir un tas de tags indifférenciés ---------- */
+.step_detail_block{margin-top:10px;}
+.step_detail_label{
+  display:flex;align-items:center;gap:6px;font-size:10.5px;text-transform:uppercase;
+  letter-spacing:0.03em;color:var(--ink-soft);font-weight:700;margin-bottom:5px;
 }
 
 /* ==========================================================
@@ -1566,6 +1574,12 @@ label.field-label{
 .leaderboard-avatar{width:44px;height:44px;font-size:16px;flex-shrink:0;}
 .leaderboard-identity{display:flex;flex-direction:column;gap:1px;min-width:120px;flex-shrink:0;}
 .leaderboard-name{font-weight:700;font-size:14px;color:var(--ink);}
+
+.its-me-badge{
+  display:inline-flex;align-items:center;gap:4px;background:var(--rust);color:#fff;
+  font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.02em;
+  padding:3px 8px;border-radius:999px;line-height:1;vertical-align:middle;
+}
 .leaderboard-username{font-size:12px;color:var(--ink-soft);}
 
 .leaderboard-level{flex:1;min-width:120px;}
@@ -1590,6 +1604,14 @@ label.field-label{
   font-size:13px;font-weight:700;color:var(--ink-soft);display:inline-flex;align-items:center;gap:7px;
 }
 .leaderboard-subtab-btn.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+
+/* ---------- Bascule Recettes / Chefs (classements cœurs & étoiles) ---------- */
+.leaderboard-scope-toggle{display:flex;gap:6px;margin-bottom:12px;}
+.leaderboard-scope-btn{
+  background:var(--paper);border:1px solid var(--line);padding:5px 13px;border-radius:999px;
+  font-size:11.5px;font-weight:700;color:var(--ink-soft);
+}
+.leaderboard-scope-btn.active{background:var(--basil);color:#fff;border-color:var(--basil-deep);}
 
 .comment_rating_picker{
   display:flex;align-items:center;gap:10px;background:var(--paper);border:1px solid var(--line);
@@ -1659,3 +1681,22 @@ label.field-label{
 .share-btn-whatsapp:hover{background:#1fb857;}
 .share-btn-copy{background:var(--ink-soft);}
 .share-btn-copy:hover{background:var(--ink);}
+
+/* ==========================================================
+   Popup de recadrage de photo (zoom + déplacement) — réutilisée pour
+   l'avatar, la bannière, la couverture de recette et les photos d'étape.
+   ========================================================== */
+.crop-modal-card{width:min(480px, 92vw);}
+.crop-modal-card h2{font-size:19px;display:flex;align-items:center;gap:9px;}
+.crop-viewport{
+  position:relative;width:100%;aspect-ratio:var(--crop-aspect, 1 / 1);
+  overflow:hidden;border-radius:12px;border:1px solid var(--line);
+  background:var(--paper-deep);cursor:grab;touch-action:none;margin:16px 0 12px;
+}
+.crop-viewport.dragging{cursor:grabbing;}
+.crop-viewport img{
+  position:absolute;top:0;left:0;max-width:none;max-height:none;
+  transform-origin:0 0;pointer-events:none;user-select:none;
+}
+.crop-zoom-row{display:flex;align-items:center;gap:12px;color:var(--ink-soft);font-size:14px;}
+.crop-zoom-row input[type=range]{flex:1;accent-color:var(--rust);}

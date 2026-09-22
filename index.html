@@ -105,11 +105,19 @@
       <div id="leaderboard_list" class="leaderboard-list"></div>
     </div>
     <div id="leaderboard_liked_panel" class="leaderboard-panel hidden">
-      <p class="sub-hint">Les recettes qui récoltent le plus de cœurs.</p>
+      <div class="leaderboard-scope-toggle" data-lb-scope-for="liked">
+        <button type="button" class="leaderboard-scope-btn active" data-scope="recipes">Recettes</button>
+        <button type="button" class="leaderboard-scope-btn" data-scope="chefs">Chefs</button>
+      </div>
+      <p class="sub-hint" id="leaderboard_liked_hint">Les recettes qui récoltent le plus de cœurs.</p>
       <div id="leaderboard_liked_list" class="leaderboard-list"></div>
     </div>
     <div id="leaderboard_rated_panel" class="leaderboard-panel hidden">
-      <p class="sub-hint">Les recettes les mieux notées par la communauté.</p>
+      <div class="leaderboard-scope-toggle" data-lb-scope-for="rated">
+        <button type="button" class="leaderboard-scope-btn active" data-scope="recipes">Recettes</button>
+        <button type="button" class="leaderboard-scope-btn" data-scope="chefs">Chefs</button>
+      </div>
+      <p class="sub-hint" id="leaderboard_rated_hint">Les recettes les mieux notées par la communauté.</p>
       <div id="leaderboard_rated_list" class="leaderboard-list"></div>
     </div>
   </section>
@@ -548,6 +556,27 @@
   </section>
 
 </main>
+
+<!-- ---------------- POPUP : RECADRAGE DE PHOTO (zoom + déplacement) ---------------- -->
+<div id="image_crop_modal" class="modal hidden">
+  <div class="modal-card crop-modal-card">
+    <button id="close_crop_modal_btn" type="button" class="close-btn">&times;</button>
+    <h2><i class="fa-solid fa-crop-simple"></i> Ajuster la photo</h2>
+    <div class="crop-viewport" id="crop_viewport">
+      <img id="crop_image" src="" alt="" draggable="false">
+    </div>
+    <div class="crop-zoom-row">
+      <i class="fa-solid fa-magnifying-glass-minus"></i>
+      <input type="range" id="crop_zoom_range" min="100" max="300" value="100" step="1">
+      <i class="fa-solid fa-magnifying-glass-plus"></i>
+    </div>
+    <p class="sub-hint" style="text-align:center;">Fais glisser l'image pour la repositionner.</p>
+    <div class="wizard-actions">
+      <button type="button" class="btn-secondary" id="crop_cancel_btn">Annuler</button>
+      <button type="button" class="btn-primary" id="crop_confirm_btn"><i class="fa-solid fa-check"></i> Valider</button>
+    </div>
+  </div>
+</div>
 
 <!-- ---------------- AUTH MODAL ---------------- -->
 <div id="auth_modal" class="modal hidden">

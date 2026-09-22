@@ -998,7 +998,7 @@ function render_recipe_preview() {
             <div class="prep_column">
               <h4><i class="fa-solid fa-carrot"></i> Ingrédients</h4>
               ${ingredient_pool.length
-                ? `<ul class="ingredients_list">${ingredient_pool.map(i => `<li>${i.emoji} ${escape_html(i.name)}</li>`).join('')}</ul>`
+                ? `<ul class="ingredients_list ingredients_list_qty">${ingredient_pool.map(i => `<li>${format_ingredient_qty_line(i, total_qty)}</li>`).join('')}</ul>`
                 : '<p class="empty-hint">Aucun ingrédient ajouté</p>'}
             </div>
             <div class="prep_column">
@@ -1008,30 +1008,6 @@ function render_recipe_preview() {
                 : '<p class="empty-hint">Aucun outil requis</p>'}
             </div>
           </div>
-
-          ${total_qty.size ? `
-            <h4 style="margin-top:20px;"><i class="fa-solid fa-calculator"></i> Quantités totales nécessaires</h4>
-            <p class="sub-hint">Calculées à partir des quantités renseignées étape par étape.</p>
-            <div class="preview-total-qty-list">
-              ${[...total_qty.entries()].map(([name, data]) => {
-                const pool_match = ingredient_pool.find(p => p.name === name);
-                const emoji = pool_match ? pool_match.emoji : '🍽️';
-                const parts = [...data.units.entries()].map(([unit, sum]) => {
-                  const unit_label = (UNIT_OPTIONS.find(u => u.value === unit) || {}).label || unit;
-                  const formatted = Number.isInteger(sum) ? sum : Math.round(sum * 100) / 100;
-                  return `${formatted} ${unit_label}`;
-                });
-                if (data.unspecified) parts.push('qté non précisée quelque part');
-                return `
-                  <div class="preview-total-qty-row">
-                    <span class="preview-total-qty-emoji">${emoji}</span>
-                    <span class="preview-total-qty-name">${escape_html(name)}</span>
-                    <span class="preview-total-qty-amount">${parts.join(' + ') || '—'}</span>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          ` : ''}
         </div>
       </div>
 
@@ -1053,7 +1029,7 @@ function render_recipe_preview() {
                 <span class="step_type_badge"><i class="fa-solid ${type_info.icon}"></i> ${type_info.label}${s.oven_temp ? ' · ' + s.oven_temp + '°C' : ''}</span>
                 ${s.time_min ? `<span class="step_time_badge"><i class="fa-solid fa-stopwatch"></i> ${s.time_min} min</span>` : ''}
                 <p>${escape_html(s.text || '')}</p>
-                ${(ing_tags || tool_tags) ? `<div class="step_ing_tags">${ing_tags}${tool_tags}</div>` : ''}
+                ${step_detail_blocks_html(ing_tags, tool_tags)}
                 ${media_html}
               </li>`;
             }).join('')}
@@ -1099,6 +1075,29 @@ function compute_total_ingredient_quantities() {
     });
   });
   return totals;
+}
+
+// Une seule ligne par ingrédient : la quantité totale devant le nom, pas une liste
+// séparée des noms puis une deuxième liste des quantités (redondant, inutile pour le client).
+function format_ingredient_qty_line(ing, total_qty) {
+  const entry = total_qty.get(ing.name);
+  const parts = entry ? [...entry.units.entries()].map(([unit, sum]) => {
+    const unit_label = (UNIT_OPTIONS.find(u => u.value === unit) || {}).label || unit;
+    const formatted = Number.isInteger(sum) ? sum : Math.round(sum * 100) / 100;
+    return `${formatted} ${unit_label}`;
+  }) : [];
+  if (parts.length === 0) return `${ing.emoji} ${escape_html(ing.name)}`;
+  return `<span class="ing_qty">${escape_html(parts.join(' + '))}</span> ${escape_html(ing.name)}`;
+}
+
+// Regroupe les ingrédients/outils d'une étape dans des sections étiquetées séparément,
+// plutôt qu'un seul tas de tags mélangés où on ne distingue plus ce qui est un aliment
+// de ce qui est un outil.
+function step_detail_blocks_html(ing_tags, tool_tags) {
+  let html = '';
+  if (ing_tags) html += `<div class="step_detail_block"><span class="step_detail_label"><i class="fa-solid fa-carrot"></i> Ingrédients</span><div class="step_ing_tags">${ing_tags}</div></div>`;
+  if (tool_tags) html += `<div class="step_detail_block"><span class="step_detail_label"><i class="fa-solid fa-kitchen-set"></i> Outils</span><div class="step_ing_tags">${tool_tags}</div></div>`;
+  return html;
 }
 
 function render_steps_compact_list() {
@@ -1494,9 +1493,14 @@ function render_step_editor_media_preview() {
 
 document.getElementById('open_step_editor_btn').addEventListener('click', () => open_step_editor(null));
 document.getElementById('close_step_editor_btn').addEventListener('click', () => step_editor_modal.classList.add('hidden'));
-document.getElementById('step_editor_image_input').addEventListener('change', (e) => {
-  step_editor_image_file = e.target.files[0] || null;
-  if (step_editor_image_file) step_editor_video_file = null; // une étape n'a qu'un seul média à la fois
+document.getElementById('step_editor_image_input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  e.target.value = '';
+  if (!file) return;
+  const cropped = await open_image_cropper(file, 16, 9);
+  if (!cropped) return;
+  step_editor_image_file = cropped;
+  step_editor_video_file = null; // une étape n'a qu'un seul média à la fois
   render_step_editor_media_preview();
 });
 document.getElementById('step_editor_video_input').addEventListener('change', (e) => {
@@ -1555,11 +1559,14 @@ function render_cover_photo_preview() {
     dropzone.classList.remove('has-image');
   }
 }
-document.getElementById('recipe_cover_input').addEventListener('change', (e) => {
+document.getElementById('recipe_cover_input').addEventListener('change', async (e) => {
   const file = e.target.files[0];
+  e.target.value = '';
   if (!file) return;
-  cover_image_file = file;
-  cover_image_preview_url = URL.createObjectURL(file);
+  const cropped = await open_image_cropper(file, 4, 3);
+  if (!cropped) return;
+  cover_image_file = cropped;
+  cover_image_preview_url = URL.createObjectURL(cropped);
   render_cover_photo_preview();
 });
 
@@ -1955,6 +1962,7 @@ function recipe_card_html(r) {
         ${total_time ? `<span class="recipe-card-stat"><i class="fa-solid fa-stopwatch"></i> ${total_time} min</span>` : ''}
         <span class="recipe-card-stat"><i class="fa-solid fa-gauge"></i> ${escape_html(difficulty_label)}</span>
         ${r.servings ? `<span class="recipe-card-stat"><i class="fa-solid fa-users"></i> ${r.servings} pers.</span>` : ''}
+        ${r.views_count ? `<span class="recipe-card-stat"><i class="fa-solid fa-eye"></i> ${r.views_count}</span>` : ''}
       </div>
       <div class="chips-row">${tag_chips}</div>
       <div class="recipe-actions">
@@ -1988,6 +1996,151 @@ function escape_html(str) {
   return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 }
 function escape_attr(str) { return escape_html(str); }
+
+// =====================================================================
+// 9bis. RECADRAGE D'IMAGE (zoom + déplacement) — réutilisé partout où on
+// choisit une photo : avatar, bannière, couverture de recette, photo d'étape.
+// =====================================================================
+const image_crop_modal = document.getElementById('image_crop_modal');
+const crop_viewport = document.getElementById('crop_viewport');
+const crop_image_el = document.getElementById('crop_image');
+const crop_zoom_range = document.getElementById('crop_zoom_range');
+
+// { natural_w, natural_h, base_scale, scale, offset_x, offset_y, object_url, resolve }
+let crop_state = null;
+
+function crop_clamp_offset() {
+  const rect = crop_viewport.getBoundingClientRect();
+  const scaled_w = crop_state.natural_w * crop_state.scale;
+  const scaled_h = crop_state.natural_h * crop_state.scale;
+  const min_x = Math.min(0, rect.width - scaled_w);
+  const min_y = Math.min(0, rect.height - scaled_h);
+  crop_state.offset_x = Math.min(0, Math.max(crop_state.offset_x, min_x));
+  crop_state.offset_y = Math.min(0, Math.max(crop_state.offset_y, min_y));
+}
+
+function crop_apply_transform() {
+  crop_image_el.style.width = `${crop_state.natural_w * crop_state.scale}px`;
+  crop_image_el.style.height = `${crop_state.natural_h * crop_state.scale}px`;
+  crop_image_el.style.transform = `translate(${crop_state.offset_x}px, ${crop_state.offset_y}px)`;
+}
+
+function crop_set_zoom(new_scale, focal_x, focal_y) {
+  const rect = crop_viewport.getBoundingClientRect();
+  const fx = focal_x ?? rect.width / 2;
+  const fy = focal_y ?? rect.height / 2;
+  const min_scale = crop_state.base_scale;
+  const max_scale = crop_state.base_scale * 3;
+  new_scale = Math.min(Math.max(new_scale, min_scale), max_scale);
+
+  // garde le point sous le curseur (ou le centre) fixe pendant le zoom
+  const ratio = new_scale / crop_state.scale;
+  crop_state.offset_x = fx - (fx - crop_state.offset_x) * ratio;
+  crop_state.offset_y = fy - (fy - crop_state.offset_y) * ratio;
+  crop_state.scale = new_scale;
+  crop_clamp_offset();
+  crop_apply_transform();
+  crop_zoom_range.value = Math.round((crop_state.scale / crop_state.base_scale) * 100);
+}
+
+// Ouvre la popup de recadrage pour `file`, avec le ratio largeur/hauteur voulu
+// (1,1 pour un avatar carré ; 3,1 pour une bannière large ; etc). Résout avec le
+// fichier recadré (File, JPEG) ou `null` si l'utilisateur annule.
+function open_image_cropper(file, aspect_w, aspect_h) {
+  return new Promise((resolve) => {
+    const object_url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      crop_viewport.style.setProperty('--crop-aspect', `${aspect_w} / ${aspect_h}`);
+      crop_image_el.src = object_url;
+      image_crop_modal.classList.remove('hidden');
+
+      // attend que la viewport ait ses vraies dimensions (aspect-ratio tout juste appliqué)
+      requestAnimationFrame(() => {
+        const rect = crop_viewport.getBoundingClientRect();
+        const base_scale = Math.max(rect.width / img.naturalWidth, rect.height / img.naturalHeight);
+        crop_state = {
+          natural_w: img.naturalWidth, natural_h: img.naturalHeight,
+          base_scale, scale: base_scale,
+          offset_x: (rect.width - img.naturalWidth * base_scale) / 2,
+          offset_y: (rect.height - img.naturalHeight * base_scale) / 2,
+          object_url, resolve
+        };
+        crop_zoom_range.value = 100;
+        crop_apply_transform();
+      });
+    };
+    img.src = object_url;
+  });
+}
+
+function crop_close(result) {
+  if (crop_state) {
+    URL.revokeObjectURL(crop_state.object_url);
+    crop_state.resolve(result);
+    crop_state = null;
+  }
+  image_crop_modal.classList.add('hidden');
+}
+
+// Glisser pour repositionner (souris + tactile, via Pointer Events)
+let crop_drag = null;
+crop_viewport.addEventListener('pointerdown', (e) => {
+  if (!crop_state) return;
+  crop_drag = { start_x: e.clientX, start_y: e.clientY, offset_x: crop_state.offset_x, offset_y: crop_state.offset_y };
+  crop_viewport.classList.add('dragging');
+  crop_viewport.setPointerCapture(e.pointerId);
+});
+crop_viewport.addEventListener('pointermove', (e) => {
+  if (!crop_drag || !crop_state) return;
+  crop_state.offset_x = crop_drag.offset_x + (e.clientX - crop_drag.start_x);
+  crop_state.offset_y = crop_drag.offset_y + (e.clientY - crop_drag.start_y);
+  crop_clamp_offset();
+  crop_apply_transform();
+});
+['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => {
+  crop_viewport.addEventListener(evt, () => { crop_drag = null; crop_viewport.classList.remove('dragging'); });
+});
+crop_viewport.addEventListener('wheel', (e) => {
+  if (!crop_state) return;
+  e.preventDefault();
+  const rect = crop_viewport.getBoundingClientRect();
+  const factor = e.deltaY < 0 ? 1.08 : 0.92;
+  crop_set_zoom(crop_state.scale * factor, e.clientX - rect.left, e.clientY - rect.top);
+}, { passive: false });
+
+crop_zoom_range.addEventListener('input', () => {
+  if (!crop_state) return;
+  crop_set_zoom(crop_state.base_scale * (Number(crop_zoom_range.value) / 100));
+});
+
+document.getElementById('crop_cancel_btn').addEventListener('click', () => crop_close(null));
+document.getElementById('close_crop_modal_btn').addEventListener('click', () => crop_close(null));
+
+document.getElementById('crop_confirm_btn').addEventListener('click', () => {
+  if (!crop_state) return crop_close(null);
+  const rect = crop_viewport.getBoundingClientRect();
+  // Région visible, exprimée en pixels de l'image d'origine (espace "naturel").
+  const src_x = -crop_state.offset_x / crop_state.scale;
+  const src_y = -crop_state.offset_y / crop_state.scale;
+  const src_w = rect.width / crop_state.scale;
+  const src_h = rect.height / crop_state.scale;
+
+  const OUTPUT_MAX = 1400;
+  const output_w = rect.width >= rect.height ? OUTPUT_MAX : Math.round(OUTPUT_MAX * (rect.width / rect.height));
+  const output_h = rect.width >= rect.height ? Math.round(OUTPUT_MAX * (rect.height / rect.width)) : OUTPUT_MAX;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = output_w;
+  canvas.height = output_h;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(crop_image_el, src_x, src_y, src_w, src_h, 0, 0, output_w, output_h);
+
+  canvas.toBlob((blob) => {
+    if (!blob) return crop_close(null);
+    crop_close(new File([blob], 'crop.jpg', { type: 'image/jpeg' }));
+  }, 'image/jpeg', 0.9);
+});
 
 // =====================================================================
 // 10. PROFILE TAB
@@ -2121,8 +2274,11 @@ async function upload_profile_image(file, image_type) {
 // Événements d'upload
 document.getElementById("avatar_upload_input")?.addEventListener("change", async (e) => {
   const file = e.target.files[0];
+  e.target.value = '';
   if (!file) return;
-  const url = await upload_profile_image(file, "avatar");
+  const cropped = await open_image_cropper(file, 1, 1);
+  if (!cropped) return;
+  const url = await upload_profile_image(cropped, "avatar");
   if (url) {
     current_avatar_url = url;
     const avatar_el = document.getElementById("profile_avatar");
@@ -2134,8 +2290,11 @@ document.getElementById("avatar_upload_input")?.addEventListener("change", async
 
 document.getElementById("banner_upload_input")?.addEventListener("change", async (e) => {
   const file = e.target.files[0];
+  e.target.value = '';
   if (!file) return;
-  const url = await upload_profile_image(file, "banner");
+  const cropped = await open_image_cropper(file, 3, 1);
+  if (!cropped) return;
+  const url = await upload_profile_image(cropped, "banner");
   if (url) {
     current_banner_url = url;
     document.getElementById("profile_banner_preview").style.backgroundImage = `url('${url}')`;
@@ -2361,7 +2520,7 @@ async function load_leaderboard() {
         <span class="leaderboard-rank">${i + 1}</span>
         <div class="avatar leaderboard-avatar">${avatar_html}</div>
         <div class="leaderboard-identity">
-          <span class="leaderboard-name">${escape_html(display_name)}${is_me ? ' <span class="its-me-badge">C\'est moi</span>' : ''}</span>
+          <span class="leaderboard-name">${escape_html(display_name)}${is_me ? ' <span class="its-me-badge"><i class="fa-solid fa-star"></i> C\'est moi</span>' : ''}</span>
           <span class="leaderboard-username">@${escape_html(p.username || '')}</span>
         </div>
         <div class="leaderboard-level">
@@ -2387,10 +2546,100 @@ document.querySelectorAll('.leaderboard-subtab-btn').forEach(btn => {
     document.getElementById('leaderboard_chefs_panel').classList.toggle('hidden', which !== 'chefs');
     document.getElementById('leaderboard_liked_panel').classList.toggle('hidden', which !== 'liked');
     document.getElementById('leaderboard_rated_panel').classList.toggle('hidden', which !== 'rated');
+    // On revient toujours sur la vue "Recettes" par défaut en changeant d'onglet principal.
+    document.querySelectorAll('.leaderboard-scope-toggle').forEach(toggle => {
+      toggle.querySelectorAll('.leaderboard-scope-btn').forEach(b => b.classList.toggle('active', b.dataset.scope === 'recipes'));
+    });
     if (which === 'liked') load_recipe_ranking('liked');
     if (which === 'rated') load_recipe_ranking('rated');
   });
 });
+
+document.querySelectorAll('.leaderboard-scope-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const toggle = btn.closest('.leaderboard-scope-toggle');
+    const kind = toggle.dataset.lbScopeFor; // 'liked' ou 'rated'
+    toggle.querySelectorAll('.leaderboard-scope-btn').forEach(b => b.classList.toggle('active', b === btn));
+    const scope = btn.dataset.scope;
+    const hint = document.getElementById(`leaderboard_${kind}_hint`);
+    if (scope === 'chefs') {
+      if (hint) hint.textContent = kind === 'liked'
+        ? "Les chefs qui cumulent le plus de cœurs sur l'ensemble de leurs recettes."
+        : "Les chefs qui cumulent le plus d'étoiles sur l'ensemble de leurs recettes.";
+      load_user_aggregate_ranking(kind);
+    } else {
+      if (hint) hint.textContent = kind === 'liked'
+        ? 'Les recettes qui récoltent le plus de cœurs.'
+        : 'Les recettes les mieux notées par la communauté.';
+      load_recipe_ranking(kind);
+    }
+  });
+});
+
+// Classement par CHEF (utilisateur) : cumule les cœurs (ou les étoiles) sur toutes ses recettes,
+// en plus du classement par recette existant (ex : 2 recettes notées 5 étoiles = 10 étoiles cumulées).
+async function load_user_aggregate_ranking(kind) {
+  const container = document.getElementById(kind === 'liked' ? 'leaderboard_liked_list' : 'leaderboard_rated_list');
+  if (!container) return;
+  if (!supabase) { container.innerHTML = `<p class="empty-state">Supabase indisponible.</p>`; return; }
+  container.innerHTML = dishful_loading_html('Chargement...');
+
+  const { data, error } = await supabase
+    .from('recipes')
+    .select('author_id, likes_count, rating_avg, rating_count, profiles(username, avatar_url, first_name, last_name)');
+
+  if (error) { container.innerHTML = `<p class="empty-state">Erreur : ${escape_html(error.message)}</p>`; return; }
+  if (!data || data.length === 0) { container.innerHTML = `<p class="empty-state">Aucune donnée pour l'instant.</p>`; return; }
+
+  const totals = new Map(); // author_id -> { profile, hearts, stars, recipe_count }
+  data.forEach(r => {
+    if (!r.author_id) return;
+    if (!totals.has(r.author_id)) totals.set(r.author_id, { profile: r.profiles, hearts: 0, stars: 0, recipe_count: 0 });
+    const entry = totals.get(r.author_id);
+    entry.hearts += r.likes_count || 0;
+    if (r.rating_count) entry.stars += Number(r.rating_avg) || 0;
+    entry.recipe_count += 1;
+  });
+
+  const ranked = [...totals.entries()]
+    .map(([author_id, entry]) => ({ author_id, ...entry }))
+    .filter(entry => kind === 'liked' ? entry.hearts > 0 : entry.stars > 0)
+    .sort((a, b) => kind === 'liked' ? b.hearts - a.hearts : b.stars - a.stars)
+    .slice(0, 50);
+
+  if (ranked.length === 0) {
+    container.innerHTML = `<p class="empty-state">Personne dans ce classement pour l'instant.</p>`;
+    return;
+  }
+
+  container.innerHTML = ranked.map((entry, i) => {
+    const p = entry.profile || {};
+    const rank_class = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+    const is_me = current_user && current_user.id === entry.author_id;
+    const display_name = [p.first_name, p.last_name].filter(Boolean).join(' ') || p.username || 'Utilisateur';
+    const initials = (p.first_name ? p.first_name[0] : (p.username || '?')[0]).toUpperCase();
+    const avatar_html = p.avatar_url ? `<img src="${escape_attr(p.avatar_url)}" alt="">` : initials;
+    const recipe_word = `${entry.recipe_count} recette${entry.recipe_count > 1 ? 's' : ''}`;
+    const stat_html = kind === 'liked'
+      ? `<span class="leaderboard-xp-text"><i class="fa-solid fa-heart" style="color:var(--rust);"></i> ${entry.hearts} cœurs cumulés sur ${recipe_word}</span>`
+      : `<span class="leaderboard-xp-text"><i class="fa-solid fa-star" style="color:#D9A62E;"></i> ${Math.round(entry.stars * 10) / 10} étoiles cumulées sur ${recipe_word}</span>`;
+    return `
+      <div class="leaderboard-row ${rank_class} ${is_me ? 'is-me' : ''}" data-user-id="${escape_attr(entry.author_id)}">
+        <span class="leaderboard-rank">${i + 1}</span>
+        <div class="avatar leaderboard-avatar">${avatar_html}</div>
+        <div class="leaderboard-identity">
+          <span class="leaderboard-name">${escape_html(display_name)}${is_me ? ' <span class="its-me-badge"><i class="fa-solid fa-star"></i> C\'est moi</span>' : ''}</span>
+          <span class="leaderboard-username">@${escape_html(p.username || '')}</span>
+        </div>
+        <div class="leaderboard-level">${stat_html}</div>
+      </div>
+    `;
+  }).join('');
+
+  container.querySelectorAll('.leaderboard-row').forEach(row => {
+    row.addEventListener('click', () => open_user_profile(row.dataset.userId));
+  });
+}
 
 function recipe_ranking_row_html(r, rank, kind) {
   const cover = r.cover_image || (r.images && r.images[0]) || null;
@@ -2406,7 +2655,7 @@ function recipe_ranking_row_html(r, rank, kind) {
       ${cover ? `<img class="leaderboard-avatar" style="border-radius:10px;object-fit:cover;" src="${escape_attr(cover)}" alt="">` : `<div class="avatar leaderboard-avatar">🍽️</div>`}
       <div class="leaderboard-identity" style="min-width:160px;">
         <span class="leaderboard-name">${escape_html(r.title)}</span>
-        <span class="leaderboard-username">par @${escape_html(author)}${is_me ? ' <span class="its-me-badge">C\'est moi</span>' : ''}</span>
+        <span class="leaderboard-username">par @${escape_html(author)}${is_me ? ' <span class="its-me-badge"><i class="fa-solid fa-star"></i> C\'est moi</span>' : ''}</span>
       </div>
       <div class="leaderboard-level">${stat_html}</div>
     </div>
@@ -2461,6 +2710,14 @@ async function show_recipe_detail_page(recipe_id) {
 
   switch_tab("recipe-detail");
   history.replaceState(null, '', '?recipe=' + recipe.id);
+
+  // Vue comptée à chaque ouverture de la page recette (best-effort, ne bloque pas l'affichage).
+  if (supabase) {
+    supabase.rpc('increment_recipe_views', { recipe_id: recipe.id }).then(({ error: rpc_error }) => {
+      if (rpc_error) console.error('[Dishful] Échec incrément vues :', rpc_error.message);
+    });
+    recipe.views_count = (recipe.views_count || 0) + 1;
+  }
 
   let current_servings = recipe.servings || 4;
   const base_servings = recipe.servings || 4;
@@ -2567,7 +2824,7 @@ async function show_recipe_detail_page(recipe_id) {
       <span class="step_type_badge"><i class="fa-solid ${type_info.icon}"></i> ${type_info.label}${step.oven_temp ? ' · ' + step.oven_temp + '°C' : ''}</span>
       ${step.time_min ? `<span class="step_time_badge"><i class="fa-solid fa-stopwatch"></i> ${step.time_min} min</span>` : ''}
       <p>${escape_html(step.text || '')}</p>
-      ${scaled_ings ? `<div class="step_ing_tags">${scaled_ings}${tool_chips}</div>` : (tool_chips ? `<div class="step_ing_tags">${tool_chips}</div>` : '')}
+      ${step_detail_blocks_html(scaled_ings, tool_chips)}
       ${step_media}
     </li>`;
   }
@@ -2643,6 +2900,7 @@ async function show_recipe_detail_page(recipe_id) {
 
         <div class="recipe_meta_bar">
           ${recipe.rating_count ? `<div><i class="fa-solid fa-star" style="color:#D9A62E;"></i> ${Number(recipe.rating_avg).toFixed(1)} (${recipe.rating_count} avis)</div>` : ''}
+          <div><i class="fa-solid fa-eye"></i> ${recipe.views_count || 0} vue${(recipe.views_count || 0) > 1 ? 's' : ''}</div>
           <div><i class="fa-regular fa-clock"></i> Temps total : ${(recipe.steps || []).reduce((sum, s) => sum + (typeof s === 'object' ? (Number(s.time_min) || 0) : 0), 0)} min</div>
           <div><i class="fa-solid fa-gauge"></i> ${escape_html((recipe.difficulty || 'moyen').charAt(0).toUpperCase() + (recipe.difficulty || 'moyen').slice(1))}</div>
           <div class="servings_calculator">
