@@ -20,6 +20,7 @@
   </button>
   <nav class="tabs">
     <button data-tab="feed" class="active"><i class="fa-solid fa-fire"></i> Feed</button>
+    <button data-tab="search"><i class="fa-solid fa-magnifying-glass"></i> Recherche</button>
     <button data-tab="publish"><i class="fa-solid fa-plus"></i> Publier</button>
     <button data-tab="leaderboard"><i class="fa-solid fa-trophy"></i> Classement</button>
   </nav>
@@ -36,50 +37,126 @@
       <h1>Les dernières recettes</h1>
     </div>
 
-    <div class="feed-search-bar">
-      <i class="fa-solid fa-magnifying-glass"></i>
-      <input type="text" id="feed_search_input" placeholder="Rechercher un titre, un ingrédient, un auteur...">
-      <button type="button" id="toggle_feed_filters_btn" class="filter-toggle-btn"><i class="fa-solid fa-sliders"></i> Filtres <span id="active_filters_badge" class="active-filters-badge hidden">0</span></button>
+    <div class="feed-subtabs" id="feed_subtabs">
+      <button type="button" class="feed-subtab-btn active" data-feedtab="all"><i class="fa-solid fa-grip"></i> Tout</button>
+      <button type="button" class="feed-subtab-btn" data-feedtab="week"><i class="fa-solid fa-fire"></i> Cette semaine</button>
+      <button type="button" class="feed-subtab-btn" data-feedtab="ideas"><i class="fa-solid fa-lightbulb"></i> Idées de la semaine</button>
     </div>
 
-    <div class="feed-filters-panel hidden" id="feed_filters_panel">
+    <div id="feed_panel_all" class="feed-subtab-panel">
+      <div class="feed-search-bar">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="feed_search_input" placeholder="Rechercher un titre, un ingrédient, un auteur...">
+        <button type="button" id="toggle_feed_filters_btn" class="filter-toggle-btn"><i class="fa-solid fa-sliders"></i> Filtres <span id="active_filters_badge" class="active-filters-badge hidden">0</span></button>
+      </div>
+
+      <div class="feed-filters-panel hidden" id="feed_filters_panel">
+        <div class="filter-block">
+          <label><i class="fa-solid fa-tags"></i> Catégorie</label>
+          <div class="filter-row" id="category_filters"></div>
+        </div>
+        <div class="filter-block">
+          <label><i class="fa-solid fa-hashtag"></i> Tags</label>
+          <div class="filter-row" id="tag_filters"></div>
+        </div>
+        <div class="filter-row-split">
+          <div class="filter-block">
+            <label><i class="fa-solid fa-globe"></i> Pays</label>
+            <select id="filter_country_select"><option value="">Tous les pays</option></select>
+          </div>
+          <div class="filter-block">
+            <label><i class="fa-solid fa-gauge"></i> Difficulté</label>
+            <div class="filter-row" id="difficulty_filters"></div>
+          </div>
+        </div>
+        <div class="filter-block">
+          <label><i class="fa-solid fa-stopwatch"></i> Temps maximum</label>
+          <div class="filter-row" id="time_filters"></div>
+        </div>
+        <div class="filter-block">
+          <label><i class="fa-solid fa-arrow-down-wide-short"></i> Trier par</label>
+          <select id="feed_sort_select">
+            <option value="newest">Les plus récentes</option>
+            <option value="popular">Les plus aimées</option>
+            <option value="commented">Les plus commentées</option>
+            <option value="quickest">Les plus rapides</option>
+            <option value="best_rated">Les mieux notées</option>
+          </select>
+        </div>
+        <button type="button" id="reset_filters_btn" class="text-btn"><i class="fa-solid fa-arrow-rotate-left"></i> Réinitialiser les filtres</button>
+      </div>
+
+      <div class="feed-results-count" id="feed_results_count"></div>
+      <div class="recipe-grid" id="recipe_grid"></div>
+    </div>
+
+    <div id="feed_panel_week" class="feed-subtab-panel hidden">
+      <p class="sub-hint"><i class="fa-solid fa-fire"></i> Les recettes qui cartonnent cette semaine (vues, likes, avis reçus depuis 7 jours).</p>
+      <div class="recipe-grid" id="feed_week_grid"></div>
+    </div>
+
+    <div id="feed_panel_ideas" class="feed-subtab-panel hidden">
+      <div class="feed-ideas-toggle" id="feed_ideas_toggle">
+        <button type="button" class="feed-ideas-btn active" data-mealtime="diner"><i class="fa-solid fa-utensils"></i> Pour le dîner</button>
+        <button type="button" class="feed-ideas-btn" data-mealtime="apres_midi"><i class="fa-solid fa-cookie-bite"></i> Pour l'après-midi</button>
+      </div>
+      <p class="sub-hint">Une sélection qui change chaque semaine — reviens la semaine prochaine pour de nouvelles idées !</p>
+      <div class="recipe-grid" id="feed_ideas_grid"></div>
+    </div>
+  </section>
+
+  <!-- ---------------- RECHERCHE (recette parfaite selon objectifs) ---------------- -->
+  <section id="tab-search" class="hidden">
+    <div class="feed-header">
+      <h1><i class="fa-solid fa-magnifying-glass"></i> Recherche</h1>
+    </div>
+    <p class="sub-hint">Trouve la recette parfaite selon tes objectifs — calories, protéines, catégorie, allergènes à éviter...</p>
+
+    <div class="search-filters-card">
       <div class="filter-block">
         <label><i class="fa-solid fa-tags"></i> Catégorie</label>
-        <div class="filter-row" id="category_filters"></div>
-      </div>
-      <div class="filter-block">
-        <label><i class="fa-solid fa-hashtag"></i> Tags</label>
-        <div class="filter-row" id="tag_filters"></div>
+        <div class="filter-row" id="search_category_filters"></div>
       </div>
       <div class="filter-row-split">
         <div class="filter-block">
-          <label><i class="fa-solid fa-globe"></i> Pays</label>
-          <select id="filter_country_select"><option value="">Tous les pays</option></select>
+          <label><i class="fa-solid fa-gauge"></i> Difficulté</label>
+          <div class="filter-row" id="search_difficulty_filters"></div>
         </div>
         <div class="filter-block">
-          <label><i class="fa-solid fa-gauge"></i> Difficulté</label>
-          <div class="filter-row" id="difficulty_filters"></div>
+          <label><i class="fa-solid fa-globe"></i> Pays</label>
+          <select id="search_country_select"><option value="">Tous les pays</option></select>
+        </div>
+      </div>
+      <div class="filter-row-split">
+        <div class="filter-block">
+          <label><i class="fa-solid fa-fire"></i> Calories par portion</label>
+          <div class="search-range-row">
+            <input type="number" id="search_kcal_min" placeholder="Min" min="0">
+            <span>—</span>
+            <input type="number" id="search_kcal_max" placeholder="Max" min="0">
+            <span class="search-range-unit">kcal</span>
+          </div>
+        </div>
+        <div class="filter-block">
+          <label><i class="fa-solid fa-dumbbell"></i> Protéines minimum</label>
+          <div class="search-range-row">
+            <input type="number" id="search_protein_min" placeholder="Ex : 20" min="0">
+            <span class="search-range-unit">g / portion</span>
+          </div>
         </div>
       </div>
       <div class="filter-block">
-        <label><i class="fa-solid fa-stopwatch"></i> Temps maximum</label>
-        <div class="filter-row" id="time_filters"></div>
+        <label><i class="fa-solid fa-triangle-exclamation"></i> Exclure les allergènes</label>
+        <div class="filter-row" id="search_allergen_filters"></div>
       </div>
-      <div class="filter-block">
-        <label><i class="fa-solid fa-arrow-down-wide-short"></i> Trier par</label>
-        <select id="feed_sort_select">
-          <option value="newest">Les plus récentes</option>
-          <option value="popular">Les plus aimées</option>
-          <option value="commented">Les plus commentées</option>
-          <option value="quickest">Les plus rapides</option>
-          <option value="best_rated">Les mieux notées</option>
-        </select>
+      <div class="search-filters-actions">
+        <button type="button" id="run_search_btn" class="btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Rechercher</button>
+        <button type="button" id="reset_search_btn" class="text-btn"><i class="fa-solid fa-arrow-rotate-left"></i> Réinitialiser</button>
       </div>
-      <button type="button" id="reset_filters_btn" class="text-btn"><i class="fa-solid fa-arrow-rotate-left"></i> Réinitialiser les filtres</button>
     </div>
 
-    <div class="feed-results-count" id="feed_results_count"></div>
-    <div class="recipe-grid" id="recipe_grid"></div>
+    <div class="feed-results-count" id="search_results_count"></div>
+    <div class="recipe-grid" id="search_results_grid"></div>
   </section>
 
   <!-- Vue Page Recette Dédiée -->

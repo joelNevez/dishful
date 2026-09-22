@@ -211,6 +211,11 @@ label.field-label{
 .recipe-card-author-info{display:flex;flex-direction:column;gap:1px;align-items:flex-start;min-width:0;}
 .recipe-card-author-name{font-size:13.5px;font-weight:700;color:var(--ink);}
 .recipe-card-author:hover .recipe-card-author-name{color:var(--rust);}
+.official-badge{
+  display:inline-flex;align-items:center;gap:4px;background:var(--basil);color:#fff;
+  font-size:10px;font-weight:800;padding:2px 8px;border-radius:999px;margin-left:6px;
+  text-transform:uppercase;letter-spacing:0.02em;vertical-align:middle;
+}
 .recipe-card-author-sub{font-size:11.5px;color:var(--ink-soft);}
 
 /* ---------- Média avec titre en surimpression ---------- */
@@ -1387,6 +1392,18 @@ label.field-label{
 
 .feed-results-count{font-size:12.5px;color:var(--ink-soft);margin-bottom:10px;}
 
+/* ---------- Onglet Recherche ---------- */
+.search-filters-card{
+  background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;
+  margin:18px 0;display:flex;flex-direction:column;gap:18px;
+}
+.search-range-row{display:flex;align-items:center;gap:8px;}
+.search-range-row input{width:90px;flex:none;}
+.search-range-unit{font-size:12.5px;color:var(--ink-soft);font-weight:600;white-space:nowrap;}
+.search-filters-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.search-filters-actions .btn-primary{margin:0;flex:none;padding:11px 22px;}
+.allergen-filter-chip.active{background:var(--rust);border-color:#9c4527;}
+
 .recipe-card-stats-row{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 10px;}
 .recipe-card-stat{
   font-size:11.5px;font-weight:700;color:var(--ink-soft);background:var(--paper-deep);
@@ -1530,6 +1547,24 @@ label.field-label{
 .leaderboard-period-btn.active{background:var(--rust);color:#fff;border-color:#9c4527;}
 @media(max-width:560px){.feed-header{flex-direction:column;align-items:flex-start;}}
 
+/* ---------- Sous-onglets du feed (Tout / Cette semaine / Idées de la semaine) ---------- */
+.feed-subtabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.feed-subtab-btn{
+  background:var(--card);border:1px solid var(--line);padding:10px 18px;border-radius:999px;
+  font-size:13.5px;font-weight:700;color:var(--ink-soft);display:inline-flex;align-items:center;gap:8px;
+  transition:background .15s ease,border-color .15s ease,color .15s ease;
+}
+.feed-subtab-btn:hover{border-color:var(--saffron);color:var(--ink);}
+.feed-subtab-btn.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.feed-subtab-panel.hidden{display:none;}
+
+.feed-ideas-toggle{display:flex;gap:8px;margin-bottom:12px;}
+.feed-ideas-btn{
+  background:var(--paper);border:1px solid var(--line);padding:8px 16px;border-radius:999px;
+  font-size:12.5px;font-weight:700;color:var(--ink-soft);display:inline-flex;align-items:center;gap:7px;
+}
+.feed-ideas-btn.active{background:var(--basil);color:#fff;border-color:var(--basil-deep);}
+
 .comment_rating_picker{
   display:flex;align-items:center;gap:10px;background:var(--paper);border:1px solid var(--line);
   border-radius:10px;padding:9px 13px;
@@ -1562,6 +1597,31 @@ label.field-label{
 }
 .steps_pagination .btn-secondary{padding:9px 16px;}
 .steps_pagination .btn-secondary:disabled{opacity:0.35;}
+
+/* ---------- Valeurs nutritionnelles + allergènes ---------- */
+.nutrition_section{
+  margin:26px 24px 0;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px 22px;
+}
+.nutrition_section h3{margin:0 !important;border-bottom:none !important;padding-bottom:0 !important;}
+.nutrition_section .sub-hint{margin:4px 0 16px;}
+.nutrition_stats_grid{
+  display:grid;grid-template-columns:repeat(4, 1fr);gap:10px;margin-bottom:14px;
+}
+@media(max-width:600px){.nutrition_stats_grid{grid-template-columns:repeat(2, 1fr);}}
+.nutrition_stat{
+  display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;
+  background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 8px;
+}
+.nutrition_stat_value{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--rust);}
+.nutrition_stat_label{font-size:11px;color:var(--ink-soft);font-weight:600;text-transform:uppercase;letter-spacing:0.02em;}
+.allergen_row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;}
+.allergen_row_label{font-size:12.5px;font-weight:700;color:var(--ink-soft);display:inline-flex;align-items:center;gap:6px;}
+.allergen_row_label i{color:var(--saffron-deep);}
+.allergen_row_label.allergen_none i{color:var(--basil);}
+.allergen_chip{
+  display:inline-flex;align-items:center;gap:6px;background:#FBEAE3;color:var(--rust);
+  font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px;
+}
 
 /* ==========================================================
    Popup de publication réussie + partage

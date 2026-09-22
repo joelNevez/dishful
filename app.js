@@ -206,6 +206,343 @@ const COMMON_FOODS = [
 ];
 const FOOD_CATEGORIES = [...new Set(COMMON_FOODS.map(f => f.cat))];
 
+// =====================================================================
+// Valeurs nutritionnelles + allergènes courants, pour 100g (ou 100ml pour les
+// liquides). Ce ne sont PAS des valeurs de laboratoire certifiées — l'app n'a
+// pas accès à une base nutritionnelle officielle ni à un service externe — mais
+// des repères usuels raisonnables, suffisants pour donner une idée du profil
+// nutritionnel d'une recette. k=kcal, p=protéines(g), c=glucides(g), f=lipides(g),
+// a=allergènes. Vide/absent = aliment non couvert (traité comme 0).
+const FOOD_NUTRITION = {
+  'Tomate': {k:18, p:0.9, c:3.9, f:0.2, a:[]},
+  'Oignon': {k:40, p:1.1, c:9.3, f:0.1, a:[]},
+  'Ail': {k:149, p:6.4, c:33, f:0.5, a:[]},
+  'Carotte': {k:41, p:0.9, c:10, f:0.2, a:[]},
+  'Poivron': {k:31, p:1, c:6, f:0.3, a:[]},
+  'Pomme de terre': {k:77, p:2, c:17, f:0.1, a:[]},
+  'Patate douce': {k:86, p:1.6, c:20, f:0.1, a:[]},
+  'Courgette': {k:17, p:1.2, c:3.1, f:0.3, a:[]},
+  'Concombre': {k:15, p:0.7, c:3.6, f:0.1, a:[]},
+  'Aubergine': {k:25, p:1, c:6, f:0.2, a:[]},
+  'Champignon': {k:22, p:3.1, c:3.3, f:0.3, a:[]},
+  'Brocoli': {k:34, p:2.8, c:7, f:0.4, a:[]},
+  'Chou-fleur': {k:25, p:1.9, c:5, f:0.3, a:[]},
+  'Chou': {k:25, p:1.3, c:6, f:0.1, a:[]},
+  'Chou rouge': {k:31, p:1.4, c:7, f:0.2, a:[]},
+  'Chou de Bruxelles': {k:43, p:3.4, c:9, f:0.3, a:[]},
+  'Salade': {k:15, p:1.4, c:2.9, f:0.2, a:[]},
+  'Roquette': {k:25, p:2.6, c:3.7, f:0.7, a:[]},
+  'Épinard': {k:23, p:2.9, c:3.6, f:0.4, a:[]},
+  'Blette': {k:19, p:1.8, c:3.7, f:0.2, a:[]},
+  'Cresson': {k:11, p:2.3, c:1.3, f:0.1, a:[]},
+  'Endive': {k:17, p:0.9, c:3.4, f:0.1, a:[]},
+  'Maïs': {k:86, p:3.3, c:19, f:1.4, a:[]},
+  'Petit pois': {k:81, p:5.4, c:14, f:0.4, a:[]},
+  'Haricot vert': {k:31, p:1.8, c:7, f:0.2, a:[]},
+  'Fève': {k:88, p:7.9, c:17.6, f:0.4, a:[]},
+  'Citrouille': {k:26, p:1, c:6.5, f:0.1, a:[]},
+  'Potiron': {k:26, p:1, c:6.5, f:0.1, a:[]},
+  'Betterave': {k:43, p:1.6, c:10, f:0.2, a:[]},
+  'Radis': {k:16, p:0.7, c:3.4, f:0.1, a:[]},
+  'Navet': {k:28, p:0.9, c:6.4, f:0.1, a:[]},
+  'Panais': {k:75, p:1.2, c:18, f:0.3, a:[]},
+  'Céleri': {k:16, p:0.7, c:3, f:0.2, a:['celeri']},
+  'Fenouil': {k:31, p:1.2, c:7, f:0.2, a:[]},
+  'Artichaut': {k:47, p:3.3, c:10, f:0.2, a:[]},
+  'Asperge': {k:20, p:2.2, c:3.9, f:0.1, a:[]},
+  'Poireau': {k:61, p:1.5, c:14, f:0.3, a:[]},
+  'Cornichon': {k:11, p:0.8, c:1.8, f:0.2, a:[]},
+  'Igname': {k:118, p:1.5, c:28, f:0.2, a:[]},
+  'Manioc': {k:160, p:1.4, c:38, f:0.3, a:[]},
+  'Pomme': {k:52, p:0.3, c:14, f:0.2, a:[]},
+  'Poire': {k:57, p:0.4, c:15, f:0.1, a:[]},
+  'Banane': {k:89, p:1.1, c:23, f:0.3, a:[]},
+  'Citron': {k:29, p:1.1, c:9, f:0.3, a:[]},
+  'Citron vert': {k:30, p:0.7, c:11, f:0.2, a:[]},
+  'Orange': {k:47, p:0.9, c:12, f:0.1, a:[]},
+  'Mandarine': {k:53, p:0.8, c:13, f:0.3, a:[]},
+  'Clémentine': {k:47, p:0.9, c:12, f:0.2, a:[]},
+  'Pamplemousse': {k:42, p:0.8, c:11, f:0.1, a:[]},
+  'Fraise': {k:32, p:0.7, c:7.7, f:0.3, a:[]},
+  'Framboise': {k:52, p:1.2, c:12, f:0.7, a:[]},
+  'Myrtille': {k:57, p:0.7, c:14, f:0.3, a:[]},
+  'Groseille': {k:56, p:1.4, c:13, f:0.2, a:[]},
+  'Cassis': {k:63, p:1.4, c:15, f:0.4, a:[]},
+  'Raisin': {k:69, p:0.7, c:18, f:0.2, a:[]},
+  'Ananas': {k:50, p:0.5, c:13, f:0.1, a:[]},
+  'Pêche': {k:39, p:0.9, c:10, f:0.3, a:[]},
+  'Nectarine': {k:44, p:1.1, c:10, f:0.3, a:[]},
+  'Abricot': {k:48, p:1.4, c:11, f:0.4, a:[]},
+  'Prune': {k:46, p:0.7, c:11, f:0.3, a:[]},
+  'Mirabelle': {k:46, p:0.7, c:11, f:0.3, a:[]},
+  'Avocat': {k:160, p:2, c:8.5, f:15, a:[]},
+  'Mangue': {k:60, p:0.8, c:15, f:0.4, a:[]},
+  'Papaye': {k:43, p:0.5, c:11, f:0.3, a:[]},
+  'Cerise': {k:63, p:1.1, c:16, f:0.2, a:[]},
+  'Melon': {k:34, p:0.8, c:8, f:0.2, a:[]},
+  'Pastèque': {k:30, p:0.6, c:8, f:0.2, a:[]},
+  'Kiwi': {k:61, p:1.1, c:15, f:0.5, a:[]},
+  'Noix de coco': {k:354, p:3.3, c:15, f:33, a:[]},
+  'Figue': {k:74, p:0.8, c:19, f:0.3, a:[]},
+  'Datte': {k:282, p:2.5, c:75, f:0.4, a:[]},
+  'Grenade': {k:83, p:1.7, c:19, f:1.2, a:[]},
+  'Litchi': {k:66, p:0.8, c:17, f:0.4, a:[]},
+  'Fruit de la passion': {k:97, p:2.2, c:23, f:0.4, a:[]},
+  'Rhubarbe': {k:21, p:0.9, c:4.5, f:0.2, a:[]},
+  'Kaki': {k:70, p:0.6, c:18, f:0.2, a:[]},
+  'Poulet': {k:165, p:31, c:0, f:3.6, a:[]},
+  'Dinde': {k:135, p:30, c:0, f:1, a:[]},
+  'Canard': {k:337, p:19, c:0, f:28, a:[]},
+  'Lapin': {k:173, p:29, c:0, f:8, a:[]},
+  'Bœuf haché': {k:254, p:17, c:0, f:20, a:[]},
+  'Steak': {k:172, p:26, c:0, f:7, a:[]},
+  'Rôti de bœuf': {k:158, p:28, c:0, f:5, a:[]},
+  'Agneau': {k:294, p:25, c:0, f:21, a:[]},
+  'Porc': {k:242, p:27, c:0, f:14, a:[]},
+  'Bacon': {k:541, p:37, c:1.4, f:42, a:[]},
+  'Jambon': {k:145, p:21, c:1, f:6, a:[]},
+  'Lardons': {k:400, p:24, c:0, f:34, a:[]},
+  'Saucisse': {k:300, p:12, c:3, f:28, a:[]},
+  'Chorizo': {k:455, p:24, c:2, f:38, a:[]},
+  'Merguez': {k:300, p:17, c:2, f:25, a:[]},
+  'Boudin': {k:305, p:13, c:3, f:26, a:[]},
+  'Foie gras': {k:462, p:8, c:4, f:45, a:[]},
+  'Poisson blanc': {k:82, p:18, c:0, f:0.7, a:['poisson']},
+  'Saumon': {k:208, p:20, c:0, f:13, a:['poisson']},
+  'Thon': {k:132, p:28, c:0, f:1, a:['poisson']},
+  'Cabillaud': {k:82, p:18, c:0, f:0.7, a:['poisson']},
+  'Truite': {k:148, p:21, c:0, f:6.6, a:['poisson']},
+  'Sardine': {k:208, p:25, c:0, f:11, a:['poisson']},
+  'Maquereau': {k:205, p:19, c:0, f:14, a:['poisson']},
+  'Anchois': {k:131, p:20, c:0, f:5, a:['poisson']},
+  'Dorade': {k:96, p:20, c:0, f:1.5, a:['poisson']},
+  'Crevette': {k:99, p:24, c:0.2, f:0.3, a:['crustaces']},
+  'Calamar': {k:92, p:16, c:3, f:1.4, a:['crustaces']},
+  'Poulpe': {k:82, p:15, c:2.2, f:1, a:['crustaces']},
+  'Moule': {k:86, p:12, c:3.7, f:2.2, a:['crustaces']},
+  'Huître': {k:68, p:9, c:4, f:2.5, a:['crustaces']},
+  'Crabe': {k:97, p:19, c:0, f:1.5, a:['crustaces']},
+  'Homard': {k:89, p:19, c:0, f:0.9, a:['crustaces']},
+  'Œuf': {k:155, p:13, c:1.1, f:11, a:['oeufs']},
+  'Blanc d\'œuf': {k:52, p:11, c:0.7, f:0.2, a:['oeufs']},
+  'Jaune d\'œuf': {k:322, p:16, c:3.6, f:27, a:['oeufs']},
+  'Lait': {k:42, p:3.4, c:5, f:1, a:['lactose']},
+  'Lait de coco': {k:230, p:2.3, c:6, f:24, a:[]},
+  'Lait d\'amande': {k:17, p:0.6, c:0.6, f:1.1, a:['fruits_a_coque']},
+  'Beurre': {k:717, p:0.9, c:0.1, f:81, a:['lactose']},
+  'Crème fraîche': {k:292, p:2.2, c:3, f:30, a:['lactose']},
+  'Crème liquide': {k:340, p:2.1, c:3, f:35, a:['lactose']},
+  'Fromage blanc': {k:75, p:8, c:4, f:3, a:['lactose']},
+  'Petit-suisse': {k:120, p:8, c:4, f:8, a:['lactose']},
+  'Yaourt': {k:61, p:3.5, c:4.7, f:3.3, a:['lactose']},
+  'Fromage': {k:380, p:27, c:1.5, f:29, a:['lactose']},
+  'Mozzarella': {k:280, p:22, c:2.2, f:17, a:['lactose']},
+  'Parmesan': {k:392, p:35, c:3.2, f:26, a:['lactose']},
+  'Comté': {k:412, p:28, c:0, f:32, a:['lactose']},
+  'Gruyère': {k:413, p:29, c:0.4, f:32, a:['lactose']},
+  'Cheddar': {k:404, p:25, c:1.3, f:33, a:['lactose']},
+  'Chèvre': {k:364, p:22, c:0.5, f:30, a:['lactose']},
+  'Feta': {k:264, p:14, c:4, f:21, a:['lactose']},
+  'Ricotta': {k:174, p:11, c:3, f:13, a:['lactose']},
+  'Mascarpone': {k:429, p:5, c:3, f:45, a:['lactose']},
+  'Roquefort': {k:369, p:22, c:2, f:31, a:['lactose']},
+  'Brie': {k:334, p:21, c:0.5, f:28, a:['lactose']},
+  'Camembert': {k:300, p:20, c:0.5, f:24, a:['lactose']},
+  'Farine': {k:364, p:10, c:76, f:1, a:['gluten']},
+  'Riz': {k:365, p:7, c:80, f:0.7, a:[]},
+  'Pâtes': {k:371, p:13, c:75, f:1.5, a:['gluten']},
+  'Nouilles': {k:371, p:12, c:74, f:2, a:['gluten']},
+  'Vermicelles': {k:364, p:6, c:83, f:0.3, a:[]},
+  'Pain': {k:265, p:9, c:49, f:3.2, a:['gluten']},
+  'Tortilla': {k:218, p:6, c:36, f:5, a:['gluten']},
+  'Avoine': {k:389, p:17, c:66, f:7, a:['gluten']},
+  'Flocons d\'avoine': {k:389, p:17, c:66, f:7, a:['gluten']},
+  'Quinoa': {k:368, p:14, c:64, f:6, a:[]},
+  'Semoule': {k:360, p:12, c:73, f:1, a:['gluten']},
+  'Couscous': {k:376, p:13, c:77, f:0.6, a:['gluten']},
+  'Boulgour': {k:342, p:12, c:76, f:1.3, a:['gluten']},
+  'Sarrasin': {k:343, p:13, c:71, f:3.4, a:[]},
+  'Orge': {k:354, p:12, c:73, f:2.3, a:['gluten']},
+  'Polenta': {k:361, p:8, c:77, f:1.3, a:[]},
+  'Gnocchi': {k:150, p:3, c:24, f:3, a:['gluten']},
+  'Chapelure': {k:395, p:13, c:72, f:5, a:['gluten']},
+  'Lentilles': {k:353, p:25, c:60, f:1.1, a:[]},
+  'Pois cassés': {k:341, p:25, c:60, f:1.2, a:[]},
+  'Pois chiches': {k:364, p:19, c:61, f:6, a:[]},
+  'Haricots rouges': {k:333, p:24, c:60, f:0.8, a:[]},
+  'Haricots blancs': {k:333, p:23, c:60, f:0.8, a:[]},
+  'Sel': {k:0, p:0, c:0, f:0, a:[]},
+  'Poivre': {k:251, p:10, c:64, f:3.3, a:[]},
+  'Piment': {k:40, p:1.9, c:9, f:0.4, a:[]},
+  'Paprika': {k:282, p:14, c:54, f:13, a:[]},
+  'Curry': {k:325, p:14, c:58, f:14, a:[]},
+  'Curcuma': {k:354, p:8, c:65, f:10, a:[]},
+  'Cumin': {k:375, p:18, c:44, f:22, a:[]},
+  'Cannelle': {k:247, p:4, c:81, f:1.2, a:[]},
+  'Muscade': {k:525, p:6, c:49, f:36, a:[]},
+  'Cardamome': {k:311, p:11, c:68, f:6.7, a:[]},
+  'Safran': {k:310, p:11, c:65, f:6, a:[]},
+  'Gingembre': {k:80, p:1.8, c:18, f:0.8, a:[]},
+  'Ail en poudre': {k:331, p:17, c:73, f:0.7, a:[]},
+  'Basilic': {k:23, p:3.2, c:2.7, f:0.6, a:[]},
+  'Persil': {k:36, p:3, c:6, f:0.8, a:[]},
+  'Thym': {k:101, p:5.6, c:24, f:1.7, a:[]},
+  'Romarin': {k:131, p:3.3, c:20, f:5.9, a:[]},
+  'Laurier': {k:313, p:7.6, c:75, f:8.4, a:[]},
+  'Origan': {k:265, p:9, c:69, f:4.3, a:[]},
+  'Ciboulette': {k:30, p:3.3, c:4.4, f:0.7, a:[]},
+  'Coriandre': {k:23, p:2.1, c:3.7, f:0.5, a:[]},
+  'Menthe': {k:70, p:3.8, c:15, f:0.9, a:[]},
+  'Huile d\'olive': {k:884, p:0, c:0, f:100, a:[]},
+  'Huile de tournesol': {k:884, p:0, c:0, f:100, a:[]},
+  'Vinaigre': {k:18, p:0, c:0.4, f:0, a:[]},
+  'Moutarde': {k:66, p:4, c:5, f:3.5, a:['moutarde']},
+  'Mayonnaise': {k:680, p:1, c:1, f:75, a:['oeufs']},
+  'Ketchup': {k:101, p:1.2, c:26, f:0.1, a:[]},
+  'Sauce soja': {k:53, p:8, c:5, f:0.1, a:['soja', 'gluten']},
+  'Sauce tomate': {k:82, p:1.6, c:19, f:0.4, a:[]},
+  'Tabasco': {k:12, p:0.9, c:0.8, f:0.8, a:[]},
+  'Miel': {k:304, p:0.3, c:82, f:0, a:[]},
+  'Sirop d\'érable': {k:260, p:0, c:67, f:0.2, a:[]},
+  'Levure boulangère': {k:325, p:40, c:38, f:2, a:[]},
+  'Bicarbonate': {k:0, p:0, c:0, f:0, a:[]},
+  'Amande': {k:579, p:21, c:22, f:50, a:['fruits_a_coque']},
+  'Noix': {k:654, p:15, c:14, f:65, a:['fruits_a_coque']},
+  'Noisette': {k:628, p:15, c:17, f:61, a:['fruits_a_coque']},
+  'Cacahuète': {k:567, p:26, c:16, f:49, a:['arachides']},
+  'Pistache': {k:560, p:20, c:28, f:45, a:['fruits_a_coque']},
+  'Noix de cajou': {k:553, p:18, c:30, f:44, a:['fruits_a_coque']},
+  'Noix de pécan': {k:691, p:9, c:14, f:72, a:['fruits_a_coque']},
+  'Pignon de pin': {k:673, p:14, c:13, f:68, a:['fruits_a_coque']},
+  'Graines de tournesol': {k:584, p:21, c:20, f:51, a:[]},
+  'Graines de sésame': {k:573, p:18, c:23, f:50, a:['sesame']},
+  'Graines de chia': {k:486, p:17, c:42, f:31, a:[]},
+  'Graines de lin': {k:534, p:18, c:29, f:42, a:[]},
+  'Raisin sec': {k:299, p:3.1, c:79, f:0.5, a:[]},
+  'Abricot sec': {k:241, p:3.4, c:63, f:0.5, a:['sulfites']},
+  'Pruneau': {k:240, p:2.2, c:64, f:0.4, a:[]},
+  'Sucre': {k:387, p:0, c:100, f:0, a:[]},
+  'Sucre roux': {k:380, p:0, c:98, f:0, a:[]},
+  'Sucre glace': {k:389, p:0, c:100, f:0, a:[]},
+  'Sucre vanillé': {k:387, p:0, c:99, f:0, a:[]},
+  'Vanille': {k:288, p:0.1, c:13, f:0.1, a:[]},
+  'Chocolat noir': {k:546, p:7.8, c:46, f:31, a:[]},
+  'Chocolat au lait': {k:535, p:7.6, c:59, f:30, a:['lactose']},
+  'Chocolat blanc': {k:539, p:5.9, c:59, f:32, a:['lactose']},
+  'Pépites de chocolat': {k:480, p:4.5, c:60, f:28, a:['lactose']},
+  'Cacao en poudre': {k:228, p:20, c:58, f:14, a:[]},
+  'Pâte à tartiner': {k:539, p:6, c:58, f:31, a:['fruits_a_coque', 'lactose']},
+  'Confiture': {k:278, p:0.3, c:70, f:0.1, a:[]},
+  'Caramel': {k:382, p:2, c:77, f:6.5, a:['lactose']},
+  'Gélatine': {k:335, p:86, c:0, f:0, a:[]},
+  'Agar-agar': {k:26, p:0, c:6.8, f:0, a:[]},
+  'Levure chimique': {k:53, p:0, c:28, f:0, a:[]},
+  'Biscuit': {k:450, p:6, c:65, f:18, a:['gluten', 'oeufs', 'lactose']},
+  'Spéculoos': {k:470, p:6, c:70, f:18, a:['gluten', 'oeufs', 'lactose']},
+  'Pâte feuilletée': {k:558, p:7, c:45, f:38, a:['gluten', 'lactose']},
+  'Pâte brisée': {k:450, p:7, c:50, f:24, a:['gluten', 'lactose']},
+  'Eau': {k:0, p:0, c:0, f:0, a:[]},
+  'Vin blanc': {k:82, p:0.1, c:2.6, f:0, a:['sulfites']},
+  'Vin rouge': {k:85, p:0.1, c:2.6, f:0, a:['sulfites']},
+  'Cidre': {k:50, p:0, c:5, f:0, a:['sulfites']},
+  'Bière': {k:43, p:0.5, c:3.6, f:0, a:['gluten']},
+  'Rhum': {k:231, p:0, c:0, f:0, a:[]},
+  'Café': {k:2, p:0.1, c:0, f:0, a:[]},
+  'Thé': {k:1, p:0, c:0.3, f:0, a:[]},
+  'Jus d\'orange': {k:45, p:0.7, c:10, f:0.2, a:[]},
+  'Bouillon de légumes': {k:5, p:0.3, c:0.8, f:0.1, a:['celeri']},
+  'Bouillon de volaille': {k:7, p:0.6, c:0.6, f:0.2, a:['celeri']},
+  'Lait concentré': {k:135, p:7.5, c:10, f:8, a:['lactose']},
+};
+
+const ALLERGEN_INFO = {
+  gluten: { label: 'Gluten', icon: 'fa-wheat-awn' },
+  lactose: { label: 'Lactose', icon: 'fa-cheese' },
+  oeufs: { label: 'Œufs', icon: 'fa-egg' },
+  fruits_a_coque: { label: 'Fruits à coque', icon: 'fa-seedling' },
+  arachides: { label: 'Arachides', icon: 'fa-leaf' },
+  soja: { label: 'Soja', icon: 'fa-seedling' },
+  poisson: { label: 'Poisson', icon: 'fa-fish' },
+  crustaces: { label: 'Crustacés & mollusques', icon: 'fa-shrimp' },
+  sesame: { label: 'Sésame', icon: 'fa-circle-dot' },
+  moutarde: { label: 'Moutarde', icon: 'fa-pepper-hot' },
+  celeri: { label: 'Céleri', icon: 'fa-carrot' },
+  sulfites: { label: 'Sulfites', icon: 'fa-wine-glass' },
+};
+
+// Poids estimé (g) d'une "unité" pour les aliments comptés à la pièce plutôt qu'au poids —
+// une approximation courante, pas une pesée réelle, utilisée uniquement pour le calcul
+// nutritionnel quand la quantité est en "unité(s)".
+const UNIT_ITEM_WEIGHT_G = {
+  "blanc d'œuf": 33, "jaune d'œuf": 17, 'œuf': 50,
+  'citron vert': 65, 'citron': 100, 'orange': 150, 'mandarine': 80, 'clémentine': 70,
+  'pamplemousse': 350, 'banane': 120, 'pomme': 180, 'poire': 170, 'avocat': 200,
+  'tomate': 120, 'oignon': 110, 'poivron': 150, 'courgette': 200, 'concombre': 300,
+  'aubergine': 250, 'pêche': 150, 'abricot': 45, 'prune': 65, 'kiwi': 75, 'gousse': 5
+};
+function unit_item_weight_g(food_name) {
+  const n = normalize_for_search(food_name);
+  for (const key in UNIT_ITEM_WEIGHT_G) {
+    if (n.includes(normalize_for_search(key))) return UNIT_ITEM_WEIGHT_G[key];
+  }
+  return 100; // pas d'estimation connue pour cet aliment : repère par défaut
+}
+
+// Convertit une quantité+unité en grammes pour pouvoir calculer une valeur nutritionnelle
+// (les tables de FOOD_NUTRITION sont pour 100g/100ml). Approximatif par nature : une
+// cuillère à soupe ou un "au goût" n'ont pas de poids universel exact.
+function unit_to_grams(unit, amount, food_name) {
+  switch (unit) {
+    case 'g': return amount;
+    case 'kg': return amount * 1000;
+    case 'ml': return amount; // densité ~1 pour la plupart des liquides de cuisine
+    case 'cl': return amount * 10;
+    case 'l': return amount * 1000;
+    case 'cas': return amount * 15;
+    case 'cac': return amount * 5;
+    case 'pincée': return amount * 0.5;
+    case 'unité': return amount * unit_item_weight_g(food_name);
+    default: return amount;
+  }
+}
+
+// Retrouve les valeurs nutritionnelles d'un ingrédient de recette : correspondance exacte
+// d'abord, sinon on cherche la clé FOOD_NUTRITION la plus longue qui préfixe son nom — un
+// produit généré par une étape (ex : "Pomme de terre coupé(e)(s)") commence toujours par
+// le nom de l'aliment d'origine, donc ce préfixe suffit à retrouver le bon aliment brut.
+function find_nutrition_for_ingredient(name) {
+  if (FOOD_NUTRITION[name]) return FOOD_NUTRITION[name];
+  let best_key = null;
+  for (const key in FOOD_NUTRITION) {
+    if (name.startsWith(key) && (!best_key || key.length > best_key.length)) best_key = key;
+  }
+  return best_key ? FOOD_NUTRITION[best_key] : null;
+}
+
+// Additionne kcal/protéines/glucides/lipides + allergènes sur tous les ingrédients
+// réellement utilisés dans les étapes d'une recette (via compute_steps_total_ingredient_quantities,
+// définie plus bas). Un ingrédient "au goût" ou sans quantité ne contribue à rien (on ne
+// peut pas calculer une valeur sur une quantité non précisée) ; un ingrédient totalement
+// inconnu de FOOD_NUTRITION (aliment personnalisé exotique) est simplement ignoré.
+function compute_recipe_nutrition(steps, ratio) {
+  const totals_qty = compute_steps_total_ingredient_quantities(steps, ratio);
+  const result = { kcal: 0, protein: 0, carbs: 0, fat: 0, allergens: new Set(), has_unknown: false };
+  totals_qty.forEach((entry, name) => {
+    const nutrition = find_nutrition_for_ingredient(name);
+    if (!nutrition) { result.has_unknown = true; return; }
+    (nutrition.a || []).forEach(al => result.allergens.add(al));
+    entry.units.forEach((sum, unit) => {
+      const grams = unit_to_grams(unit, sum, name);
+      const factor = grams / 100;
+      result.kcal += nutrition.k * factor;
+      result.protein += nutrition.p * factor;
+      result.carbs += nutrition.c * factor;
+      result.fat += nutrition.f * factor;
+    });
+  });
+  return result;
+}
+
 // Ustensiles/matériel courants pour le sélecteur visuel (étape 4 du formulaire)
 const COMMON_TOOLS = [
   {name:"Four", emoji:"🔥"}, {name:"Plaque de cuisson", emoji:"🍳"}, {name:"Micro-ondes", emoji:"📦"},
@@ -478,6 +815,17 @@ if (window.supabase && typeof window.supabase.createClient === 'function') {
 }
 
 const CATEGORIES = ['Entrée','Plat','Dessert','Petit-déjeuner','Snack','Boisson'];
+
+// Compte "Dishful Officiel" : des recettes de démonstration (illustrations, pas des
+// photos) publiées par l'équipe pour peupler les onglets "Cette semaine"/"Idées de la
+// semaine" avant que la communauté ait publié assez de recettes. Toujours identifiable
+// via ce badge, pour ne jamais laisser croire que ce sont de vraies contributions.
+const DISHFUL_OFFICIAL_ID = '00000000-0000-4000-8000-000000000001';
+function official_badge_html(author_id) {
+  return author_id === DISHFUL_OFFICIAL_ID
+    ? `<span class="official-badge" title="Recette de démonstration publiée par l'équipe Dishful"><i class="fa-solid fa-circle-check"></i> Officiel</span>`
+    : '';
+}
 const SUGGESTED_TAGS = ['Étudiant / pas cher','Rendez-vous','Rapide','Healthy','Fête','Confort food'];
 
 let current_user = null;
@@ -2164,11 +2512,19 @@ function render_recipes() {
     return;
   }
   grid.innerHTML = list.map(r => recipe_card_html(r)).join('');
+  wire_recipe_card_events(grid, list);
+}
 
+// Branche les interactions d'une grille de cartes recette (clic → page recette, like,
+// traduction, clic sur l'auteur) — utilisé par le feed "Tout" et réutilisé tel quel par
+// les onglets "Cette semaine" / "Idées de la semaine" pour ne pas dupliquer cette logique.
+// Recherche scopée à `grid_el` (et pas tout le document) : sans ça, deux grilles affichant
+// la même recette en même temps se marchaient dessus (le mauvais data-recipe-id trouvé).
+function wire_recipe_card_events(grid_el, list) {
   list.forEach((r) => {
-    const card = document.querySelector(`[data-recipe-id="${r.id}"]`);
+    const card = grid_el.querySelector(`[data-recipe-id="${r.id}"]`);
+    if (!card) return;
     card.addEventListener("click", (e) => {
-      // Éviter de déclencher la navigation si on clique sur un bouton d'action de la carte
       if (e.target.closest(".like-btn, .donate-btn, .translate-btn, .recipe-card-author")) return;
       show_recipe_detail_page(r.id);
     });
@@ -2180,6 +2536,231 @@ function render_recipes() {
     });
   });
 }
+
+// =====================================================================
+// Onglets du feed : "Tout" (existant), "Cette semaine" (tendances calculées à partir
+// de l'activité des 7 derniers jours) et "Idées de la semaine" (sélection dîner/après-midi
+// qui change chaque semaine, sans backend dédié).
+// =====================================================================
+function switch_feed_subtab(name) {
+  document.querySelectorAll('.feed-subtab-btn').forEach(b => b.classList.toggle('active', b.dataset.feedtab === name));
+  document.querySelectorAll('.feed-subtab-panel').forEach(p => p.classList.toggle('hidden', p.id !== `feed_panel_${name}`));
+  if (name === 'week') load_feed_week_trending();
+  if (name === 'ideas') render_feed_ideas();
+}
+document.querySelectorAll('.feed-subtab-btn').forEach(btn => {
+  btn.addEventListener('click', () => switch_feed_subtab(btn.dataset.feedtab));
+});
+
+async function load_feed_week_trending() {
+  const grid = document.getElementById('feed_week_grid');
+  if (!grid) return;
+  if (!supabase) { grid.innerHTML = `<p class="empty-state">Supabase indisponible.</p>`; return; }
+  grid.innerHTML = dishful_loading_html('Chargement des tendances de la semaine...');
+
+  const since = week_ago_iso();
+  const [{ data: likes_week }, { data: views_week }, { data: comments_week }] = await Promise.all([
+    supabase.from('likes').select('recipe_id').gte('created_at', since),
+    supabase.from('recipe_views').select('recipe_id').gte('created_at', since),
+    supabase.from('comments').select('recipe_id').gte('created_at', since),
+  ]);
+
+  // Score simple : un like pèse plus qu'une vue, un commentaire (avis) un peu plus qu'un like.
+  const score = new Map();
+  (likes_week || []).forEach(l => score.set(l.recipe_id, (score.get(l.recipe_id) || 0) + 3));
+  (views_week || []).forEach(v => score.set(v.recipe_id, (score.get(v.recipe_id) || 0) + 1));
+  (comments_week || []).forEach(c => score.set(c.recipe_id, (score.get(c.recipe_id) || 0) + 4));
+
+  const ranked = [...score.entries()]
+    .map(([recipe_id, s]) => ({ recipe: all_recipes.find(r => r.id === recipe_id), score: s }))
+    .filter(x => x.recipe)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 24)
+    .map(x => x.recipe);
+
+  if (!ranked.length) {
+    grid.innerHTML = `<p class="empty-state">Pas encore assez d'activité cette semaine pour établir un classement. Reviens bientôt, ou découvre l'onglet "Tout" en attendant !</p>`;
+    return;
+  }
+  grid.innerHTML = ranked.map(r => recipe_card_html(r)).join('');
+  wire_recipe_card_events(grid, ranked);
+}
+
+// Numéro de semaine ISO (année-semaine) : sert de graine pour une sélection qui change
+// automatiquement chaque semaine, identique pour tout le monde (calculée côté client à
+// partir de la date du jour, sans avoir besoin d'un cron ni d'une table dédiée côté serveur).
+function get_iso_week_key(date = new Date()) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const day_num = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - day_num);
+  const year_start = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const week_num = Math.ceil((((d - year_start) / 86400000) + 1) / 7);
+  return `${d.getUTCFullYear()}-W${week_num}`;
+}
+function simple_string_hash(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (Math.imul(h, 31) + str.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+const MEALTIME_CATEGORIES = { diner: ['Plat', 'Entrée'], apres_midi: ['Snack', 'Dessert'] };
+let active_feed_ideas_mealtime = 'diner';
+
+function render_feed_ideas() {
+  const grid = document.getElementById('feed_ideas_grid');
+  if (!grid) return;
+  const cats = MEALTIME_CATEGORIES[active_feed_ideas_mealtime];
+  const week_key = get_iso_week_key();
+  const pool = all_recipes.filter(r => (r.categories || []).some(c => cats.includes(c)));
+  const ranked = pool
+    .map(r => ({ recipe: r, score: simple_string_hash(r.id + week_key) }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 12)
+    .map(x => x.recipe);
+
+  if (!ranked.length) {
+    grid.innerHTML = `<p class="empty-state">Pas encore de recette dans cette catégorie pour l'instant.</p>`;
+    return;
+  }
+  grid.innerHTML = ranked.map(r => recipe_card_html(r)).join('');
+  wire_recipe_card_events(grid, ranked);
+}
+document.querySelectorAll('.feed-ideas-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.feed-ideas-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    active_feed_ideas_mealtime = btn.dataset.mealtime;
+    render_feed_ideas();
+  });
+});
+
+// =====================================================================
+// Onglet "Recherche" : trouver une recette selon des objectifs nutritionnels
+// (calories/protéines par portion), en plus des filtres habituels (catégorie,
+// difficulté, pays) et d'une exclusion d'allergènes.
+// =====================================================================
+let search_category = null;
+let search_difficulty = null;
+let search_country = null;
+const search_excluded_allergens = new Set();
+
+function render_search_category_filters() {
+  const container = document.getElementById('search_category_filters');
+  if (!container) return;
+  container.innerHTML = [['', 'Toutes'], ...CATEGORIES.map(c => [c, c])].map(([val, label]) =>
+    `<button type="button" class="filter-chip ${search_category === (val || null) ? 'active' : ''}" data-cat="${escape_attr(val)}">${escape_html(label)}</button>`
+  ).join('');
+  container.querySelectorAll('.filter-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      search_category = btn.dataset.cat || null;
+      render_search_category_filters();
+    });
+  });
+}
+function render_search_difficulty_filters() {
+  const container = document.getElementById('search_difficulty_filters');
+  if (!container) return;
+  const options = [['', 'Toutes'], ['facile', 'Facile'], ['moyen', 'Moyen'], ['difficile', 'Difficile']];
+  container.innerHTML = options.map(([val, label]) =>
+    `<button type="button" class="filter-chip ${search_difficulty === (val || null) ? 'active' : ''}" data-diff="${val}">${label}</button>`
+  ).join('');
+  container.querySelectorAll('.filter-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      search_difficulty = btn.dataset.diff || null;
+      render_search_difficulty_filters();
+    });
+  });
+}
+function render_search_allergen_filters() {
+  const container = document.getElementById('search_allergen_filters');
+  if (!container) return;
+  container.innerHTML = Object.entries(ALLERGEN_INFO).map(([key, info]) =>
+    `<button type="button" class="filter-chip allergen-filter-chip ${search_excluded_allergens.has(key) ? 'active' : ''}" data-allergen="${key}"><i class="fa-solid ${info.icon}"></i> ${escape_html(info.label)}</button>`
+  ).join('');
+  container.querySelectorAll('.filter-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.allergen;
+      if (search_excluded_allergens.has(key)) search_excluded_allergens.delete(key); else search_excluded_allergens.add(key);
+      render_search_allergen_filters();
+    });
+  });
+}
+render_search_category_filters();
+render_search_difficulty_filters();
+render_search_allergen_filters();
+
+const search_country_select = document.getElementById('search_country_select');
+if (search_country_select) {
+  country_list.slice().sort((a, b) => a.name.localeCompare(b.name, 'fr')).forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.code;
+    opt.textContent = `${c.flag} ${c.name}`;
+    search_country_select.appendChild(opt);
+  });
+  search_country_select.addEventListener('change', () => { search_country = search_country_select.value || null; });
+}
+
+async function load_recipes_for_search() {
+  await load_recipes();
+  run_search();
+}
+
+function run_search() {
+  const grid = document.getElementById('search_results_grid');
+  if (!grid) return;
+  const kcal_min = parseFloat(document.getElementById('search_kcal_min').value);
+  const kcal_max = parseFloat(document.getElementById('search_kcal_max').value);
+  const protein_min = parseFloat(document.getElementById('search_protein_min').value);
+  const has_kcal_min = !isNaN(kcal_min), has_kcal_max = !isNaN(kcal_max), has_protein_min = !isNaN(protein_min);
+
+  let results = all_recipes.filter(r => {
+    if (search_category && !(r.categories || []).includes(search_category)) return false;
+    if (search_difficulty && (r.difficulty || 'moyen') !== search_difficulty) return false;
+    if (search_country && r.country_code !== search_country) return false;
+    return true;
+  });
+
+  // Le calcul nutritionnel (potentiellement coûteux sur beaucoup de recettes) n'est fait
+  // que si un critère nutrition/allergène est réellement demandé.
+  const needs_nutrition = has_kcal_min || has_kcal_max || has_protein_min || search_excluded_allergens.size > 0;
+  if (needs_nutrition) {
+    results = results.filter(r => {
+      const totals = compute_recipe_nutrition(r.steps, 1);
+      const servings = r.servings || 1;
+      const per_serving_kcal = totals.kcal / servings;
+      const per_serving_protein = totals.protein / servings;
+      if (has_kcal_min && per_serving_kcal < kcal_min) return false;
+      if (has_kcal_max && per_serving_kcal > kcal_max) return false;
+      if (has_protein_min && per_serving_protein < protein_min) return false;
+      if (search_excluded_allergens.size && [...totals.allergens].some(a => search_excluded_allergens.has(a))) return false;
+      return true;
+    });
+  }
+
+  const count_el = document.getElementById('search_results_count');
+  if (count_el) count_el.textContent = `${results.length} recette${results.length !== 1 ? 's' : ''}`;
+
+  if (!results.length) {
+    grid.innerHTML = all_recipes.length === 0
+      ? `<p class="empty-state">Aucune recette pour l'instant. Sois le·la premier·ère à publier !</p>`
+      : `<p class="empty-state">Aucune recette ne correspond à ces critères. Essaie d'élargir ta recherche.</p>`;
+    return;
+  }
+  grid.innerHTML = results.map(r => recipe_card_html(r)).join('');
+  wire_recipe_card_events(grid, results);
+}
+document.getElementById('run_search_btn')?.addEventListener('click', run_search);
+document.getElementById('reset_search_btn')?.addEventListener('click', () => {
+  search_category = null; search_difficulty = null; search_country = null; search_excluded_allergens.clear();
+  document.getElementById('search_kcal_min').value = '';
+  document.getElementById('search_kcal_max').value = '';
+  document.getElementById('search_protein_min').value = '';
+  if (search_country_select) search_country_select.value = '';
+  render_search_category_filters();
+  render_search_difficulty_filters();
+  render_search_allergen_filters();
+  run_search();
+});
 
 function show_translate_stub() {
   alert("Traduction automatique : fonctionnalité prête côté interface, mais elle nécessite de connecter une clé API de traduction (DeepL ou Google Cloud Translation) côté serveur. Dis-moi si tu veux qu'on la branche.");
@@ -2205,7 +2786,7 @@ function recipe_card_html(r) {
       <button type="button" class="recipe-card-author" data-author-id="${escape_attr(r.author_id)}">
         <span class="avatar recipe-card-avatar">${author_avatar_url ? `<img src="${escape_attr(author_avatar_url)}" alt="">` : author_initial}</span>
         <span class="recipe-card-author-info">
-          <span class="recipe-card-author-name">${escape_html(author_name)}</span>
+          <span class="recipe-card-author-name">${escape_html(author_name)}${official_badge_html(r.author_id)}</span>
           <span class="recipe-card-author-sub">${r.country ? flag_html + ' ' + escape_html(r.country) + ' · ' : ''}${format_relative_date(r.created_at)}</span>
         </span>
       </button>
@@ -2896,7 +3477,7 @@ function switch_tab(tab_name) {
     btn.classList.toggle("active", btn.dataset.tab === tab_name);
   });
 
-  ["feed", "publish", "profile", "recipe-detail", "leaderboard", "public-profile"].forEach((tab_id) => {
+  ["feed", "publish", "profile", "recipe-detail", "leaderboard", "public-profile", "search"].forEach((tab_id) => {
     const page_element = document.getElementById("tab-" + tab_id);
     if (page_element) {
       page_element.classList.toggle("hidden", tab_id !== tab_name);
@@ -2915,6 +3496,10 @@ function switch_tab(tab_name) {
   }
   if (tab_name === "leaderboard" && typeof load_leaderboard === "function") {
     load_leaderboard();
+  }
+  if (tab_name === "search" && supabase) {
+    refresh_session();
+    load_recipes_for_search();
   }
 
   // Le lien direct vers une recette (?recipe=...) n'a de sens que sur cet onglet précis.
@@ -3544,8 +4129,37 @@ async function show_recipe_detail_page(recipe_id) {
 
     // La numérotation/le texte des étapes est mis à l'échelle séparément
     render_steps_page();
+    render_nutrition_section();
 
     document.getElementById("servings_count_display").innerText = current_servings;
+  }
+
+  function render_nutrition_section() {
+    const ratio = current_servings / base_servings;
+    const totals = compute_recipe_nutrition(recipe.steps, ratio);
+    const per_serving = current_servings > 0 ? {
+      kcal: totals.kcal / current_servings, protein: totals.protein / current_servings,
+      carbs: totals.carbs / current_servings, fat: totals.fat / current_servings
+    } : totals;
+
+    document.getElementById('nutrition_stats_grid').innerHTML = `
+      <div class="nutrition_stat"><span class="nutrition_stat_value">${Math.round(per_serving.kcal)}</span><span class="nutrition_stat_label">kcal / portion</span></div>
+      <div class="nutrition_stat"><span class="nutrition_stat_value">${Math.round(per_serving.protein)} g</span><span class="nutrition_stat_label">Protéines</span></div>
+      <div class="nutrition_stat"><span class="nutrition_stat_value">${Math.round(per_serving.carbs)} g</span><span class="nutrition_stat_label">Glucides</span></div>
+      <div class="nutrition_stat"><span class="nutrition_stat_value">${Math.round(per_serving.fat)} g</span><span class="nutrition_stat_label">Lipides</span></div>
+    `;
+
+    const allergen_list = [...totals.allergens];
+    const allergen_row = document.getElementById('allergen_row');
+    if (allergen_list.length) {
+      allergen_row.innerHTML = `<span class="allergen_row_label"><i class="fa-solid fa-triangle-exclamation"></i> Allergènes potentiels :</span>` +
+        allergen_list.map(a => {
+          const info = ALLERGEN_INFO[a];
+          return `<span class="allergen_chip"><i class="fa-solid ${info.icon}"></i> ${escape_html(info.label)}</span>`;
+        }).join('');
+    } else {
+      allergen_row.innerHTML = `<span class="allergen_row_label allergen_none"><i class="fa-solid fa-circle-check"></i> Aucun des 12 allergènes suivis détecté dans les aliments renseignés</span>`;
+    }
   }
 
   container.innerHTML = `
@@ -3568,7 +4182,7 @@ async function show_recipe_detail_page(recipe_id) {
         ${recipe.description ? `<p class="recipe_description">${escape_html(recipe.description)}</p>` : ''}
 
         <div class="author_row">
-          <span>Par <a href="#" id="author_profile_link" class="author_link">${escape_html(recipe.profiles?.username || 'Anonyme')}</a></span>
+          <span>Par <a href="#" id="author_profile_link" class="author_link">${escape_html(recipe.profiles?.username || 'Anonyme')}</a>${official_badge_html(recipe.author_id)}</span>
           <div class="author_row_actions">
             ${current_user && current_user.id === recipe.author_id ? `
               <button id="edit_recipe_btn" class="secondary_btn"><i class="fa-solid fa-pen"></i> Modifier</button>
@@ -3607,6 +4221,13 @@ async function show_recipe_detail_page(recipe_id) {
             </div>
           ` : ''}
         </div>
+      </div>
+
+      <div class="nutrition_section" id="nutrition_section">
+        <h3><i class="fa-solid fa-chart-simple"></i> Valeurs nutritionnelles</h3>
+        <p class="sub-hint">Estimation approximative par portion, selon les aliments et quantités renseignés — pas une valeur certifiée.</p>
+        <div class="nutrition_stats_grid" id="nutrition_stats_grid"></div>
+        <div class="allergen_row" id="allergen_row"></div>
       </div>
 
       <h3>Préparation</h3>
