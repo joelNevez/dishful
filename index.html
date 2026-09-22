@@ -736,6 +736,20 @@
   </div>
 </div>
 
+<!-- ---------------- POPUP : DEMANDE DE SUPPRESSION D'UNE RECETTE ---------------- -->
+<div id="deletion_request_modal" class="modal hidden">
+  <div class="modal-card">
+    <button id="close_deletion_request_btn" type="button" class="close-btn">&times;</button>
+    <h2><i class="fa-solid fa-trash-can" style="color:var(--rust);"></i> Demander la suppression</h2>
+    <p class="sub">Ta recette ne sera pas supprimée tout de suite : la demande est transmise à l'équipe Dishful, qui la traitera.</p>
+    <textarea id="deletion_request_reason" rows="3" placeholder="Raison (optionnel)"></textarea>
+    <div class="wizard-actions">
+      <button type="button" class="btn-secondary" id="cancel_deletion_request_btn">Annuler</button>
+      <button type="button" class="btn-secondary danger" id="confirm_deletion_request_btn"><i class="fa-solid fa-paper-plane"></i> Envoyer la demande</button>
+    </div>
+  </div>
+</div>
+
 <script src="app.js"></script>
 </body>
 </html>

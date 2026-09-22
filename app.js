@@ -1905,6 +1905,40 @@ function open_publish_success_modal(recipe) {
 document.getElementById('close_publish_success_btn')?.addEventListener('click', () => publish_success_modal.classList.add('hidden'));
 document.getElementById('publish_success_close_btn')?.addEventListener('click', () => publish_success_modal.classList.add('hidden'));
 
+// =====================================================================
+// 8bis. DEMANDE DE SUPPRESSION D'UNE RECETTE
+// Pas de suppression directe côté client : la demande est enregistrée pour
+// l'équipe Dishful, qui la traite (l'envoi d'email au CEO viendra une fois
+// un fournisseur d'emails configuré — voir la RPC/table deletion_requests).
+// =====================================================================
+const deletion_request_modal = document.getElementById('deletion_request_modal');
+let deletion_request_recipe_id = null;
+
+function open_deletion_request_modal(recipe_id) {
+  if (!deletion_request_modal) return;
+  deletion_request_recipe_id = recipe_id;
+  document.getElementById('deletion_request_reason').value = '';
+  deletion_request_modal.classList.remove('hidden');
+}
+document.getElementById('close_deletion_request_btn')?.addEventListener('click', () => deletion_request_modal.classList.add('hidden'));
+document.getElementById('cancel_deletion_request_btn')?.addEventListener('click', () => deletion_request_modal.classList.add('hidden'));
+
+document.getElementById('confirm_deletion_request_btn')?.addEventListener('click', async () => {
+  if (!supabase || !current_user || !deletion_request_recipe_id) return;
+  const reason = document.getElementById('deletion_request_reason').value.trim();
+  const { error } = await supabase.from('deletion_requests').insert([{
+    recipe_id: deletion_request_recipe_id,
+    requester_id: current_user.id,
+    reason: reason || null
+  }]);
+  if (error) {
+    show_toast('Erreur : ' + error.message, 'fa-triangle-exclamation');
+    return;
+  }
+  deletion_request_modal.classList.add('hidden');
+  show_toast("Demande envoyée. L'équipe Dishful va l'examiner.", 'fa-paper-plane');
+});
+
 function reset_publish_form() {
   recipe_form.reset();
   document.querySelectorAll('.chip.checked').forEach(c => c.classList.remove('checked'));
@@ -3280,7 +3314,10 @@ async function show_recipe_detail_page(recipe_id) {
         <div class="author_row">
           <span>Par <a href="#" id="author_profile_link" class="author_link">${escape_html(recipe.profiles?.username || 'Anonyme')}</a></span>
           <div class="author_row_actions">
-            ${current_user && current_user.id === recipe.author_id ? `<button id="edit_recipe_btn" class="secondary_btn"><i class="fa-solid fa-pen"></i> Modifier</button>` : ''}
+            ${current_user && current_user.id === recipe.author_id ? `
+              <button id="edit_recipe_btn" class="secondary_btn"><i class="fa-solid fa-pen"></i> Modifier</button>
+              <button id="request_delete_recipe_btn" class="secondary_btn danger"><i class="fa-solid fa-trash-can"></i> Demander la suppression</button>
+            ` : ''}
             <button id="toggle_cooking_mode_btn" class="secondary_btn"><i class="fa-solid fa-book-open"></i> Mode Cuisine</button>
           </div>
         </div>
@@ -3411,6 +3448,10 @@ async function show_recipe_detail_page(recipe_id) {
 
   document.getElementById("edit_recipe_btn")?.addEventListener("click", () => {
     load_recipe_into_publish_form(recipe);
+  });
+
+  document.getElementById("request_delete_recipe_btn")?.addEventListener("click", () => {
+    open_deletion_request_modal(recipe.id);
   });
 
   document.getElementById("author_profile_link").onclick = (e) => {

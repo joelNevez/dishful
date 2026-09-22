@@ -1187,14 +1187,14 @@ label.field-label{
    Ajouts : wizard repensé, sélecteur d'ingrédients, éditeur d'étapes
    ========================================================== */
 
-.btn-secondary{
+.btn-secondary, .secondary_btn{
   background:var(--card);color:var(--ink);border:1px solid var(--line);
   padding:11px 18px;border-radius:9px;font-weight:700;font-size:14px;
   display:inline-flex;align-items:center;gap:8px;
 }
-.btn-secondary:hover{background:var(--paper-deep);}
-.btn-secondary.danger{color:var(--rust);border-color:var(--rust);}
-.btn-secondary.danger:hover{background:#FBEAE3;}
+.btn-secondary:hover, .secondary_btn:hover{background:var(--paper-deep);}
+.btn-secondary.danger, .secondary_btn.danger{color:var(--rust);border-color:var(--rust);}
+.btn-secondary.danger:hover, .secondary_btn.danger:hover{background:#FBEAE3;}
 
 .sub-hint{font-size:12.5px;color:var(--ink-soft);margin:-4px 0 8px;}
 
