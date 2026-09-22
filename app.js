@@ -650,7 +650,9 @@ const UNIT_OPTIONS = [
 ];
 const TO_TASTE_UNIT = 'au_gout';
 function unit_label(unit) {
-  return (UNIT_OPTIONS.find(u => u.value === unit) || {}).label || unit || '';
+  if (!unit) return '';
+  if (UNIT_OPTIONS.some(u => u.value === unit)) return I18N.td('units', unit);
+  return unit;
 }
 // Une quantité doit toujours être explicite : un nombre+unité, ou "Au goût" par défaut si
 // l'utilisateur ne renseigne rien — plus jamais de quantité silencieusement non précisée.
@@ -693,7 +695,7 @@ function populate_nationality_select() {
   const nationality_select = document.getElementById("profile_nationality");
   if (!nationality_select) return;
 
-  nationality_select.innerHTML = '<option value="">Sélectionner un pays</option>';
+  nationality_select.innerHTML = `<option value="">${I18N.t('profile.nationality_placeholder')}</option>`;
   country_list.forEach((country) => {
     const country_option = document.createElement("option");
     country_option.value = country.code;
@@ -746,17 +748,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const msg = document.getElementById("email_change_msg");
     const new_email = document.getElementById("new_email_input").value.trim();
     if (!new_email) return;
-    if (!supabase) { msg.className = "msg error"; msg.textContent = "Supabase indisponible."; return; }
+    if (!supabase) { msg.className = "msg error"; msg.textContent = I18N.t('profile.supabase_unavailable'); return; }
     msg.className = "msg";
-    msg.textContent = "Envoi de la confirmation...";
+    msg.textContent = I18N.t('profile.sending_confirmation');
     const { error } = await supabase.auth.updateUser({ email: new_email });
     if (error) {
       msg.className = "msg error";
-      msg.textContent = "Erreur : " + error.message;
+      msg.textContent = I18N.t('common.error_prefix') + error.message;
       return;
     }
     msg.className = "msg";
-    msg.textContent = "Un email de confirmation a été envoyé à l'ancienne ET à la nouvelle adresse. Clique sur les deux liens pour valider le changement.";
+    msg.textContent = I18N.t('profile.email_confirm_sent');
     document.getElementById("change_email_form").classList.add("hidden");
   });
 
@@ -769,18 +771,18 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("confirm_password_change_btn")?.addEventListener("click", async () => {
     const msg = document.getElementById("password_change_msg");
     const new_password = document.getElementById("new_password_input").value;
-    if (new_password.length < 6) { msg.className = "msg error"; msg.textContent = "Le mot de passe doit faire au moins 6 caractères."; return; }
-    if (!supabase) { msg.className = "msg error"; msg.textContent = "Supabase indisponible."; return; }
+    if (new_password.length < 6) { msg.className = "msg error"; msg.textContent = I18N.t('profile.password_too_short'); return; }
+    if (!supabase) { msg.className = "msg error"; msg.textContent = I18N.t('profile.supabase_unavailable'); return; }
     msg.className = "msg";
-    msg.textContent = "Mise à jour...";
+    msg.textContent = I18N.t('profile.updating');
     const { error } = await supabase.auth.updateUser({ password: new_password });
     if (error) {
       msg.className = "msg error";
-      msg.textContent = "Erreur : " + error.message;
+      msg.textContent = I18N.t('common.error_prefix') + error.message;
       return;
     }
     msg.className = "msg";
-    msg.textContent = "Mot de passe mis à jour !";
+    msg.textContent = I18N.t('profile.saved_password_msg');
     document.getElementById("change_password_form").classList.add("hidden");
   });
 });
@@ -823,7 +825,18 @@ const CATEGORIES = ['Entrée','Plat','Dessert','Petit-déjeuner','Snack','Boisso
 const DISHFUL_OFFICIAL_ID = '00000000-0000-4000-8000-000000000001';
 function official_badge_html(author_id) {
   return author_id === DISHFUL_OFFICIAL_ID
-    ? `<span class="official-badge" title="Recette de démonstration publiée par l'équipe Dishful"><i class="fa-solid fa-circle-check"></i> Officiel</span>`
+    ? `<span class="official-badge" title="${escape_html(I18N.t('common.demo_badge'))}"><i class="fa-solid fa-circle-check"></i> ${escape_html(I18N.t('common.official_badge'))}</span>`
+    : '';
+}
+
+// Badge "CEO" réservé au compte du fondateur — vide (aucun compte réel créé pour
+// l'instant, vérifié côté base de données). Dès que ce compte existe, remplacer
+// cette valeur par son id réel (uuid de la table profiles) pour que le badge
+// apparaisse automatiquement partout où son nom est affiché.
+const CEO_ACCOUNT_ID = null;
+function ceo_badge_html(author_id) {
+  return (CEO_ACCOUNT_ID && author_id === CEO_ACCOUNT_ID)
+    ? `<span class="ceo-badge" title="${escape_html(I18N.t('common.ceo_badge_title'))}"><i class="fa-solid fa-crown"></i> ${escape_html(I18N.t('common.ceo_badge'))}</span>`
     : '';
 }
 const SUGGESTED_TAGS = ['Étudiant / pas cher','Rendez-vous','Rapide','Healthy','Fête','Confort food'];
@@ -872,7 +885,7 @@ function normalize_for_search(str) {
 }
 
 function dishful_loading_html(label) {
-  return `<div class="dishful-loading"><i class="fa-solid fa-utensils dishful-loading-icon"></i><span>${escape_html(label || 'Chargement...')}</span></div>`;
+  return `<div class="dishful-loading"><i class="fa-solid fa-utensils dishful-loading-icon"></i><span>${escape_html(label || I18N.t('common.loading'))}</span></div>`;
 }
 
 function compute_recipe_total_time(recipe) {
@@ -917,27 +930,27 @@ const message_text = document.getElementById('message_text');
 
 login_form.addEventListener('submit', async (e) => {
   e.preventDefault();
-  if (!supabase) { message_text.className = 'msg error'; message_text.textContent = 'Supabase indisponible.'; return; }
+  if (!supabase) { message_text.className = 'msg error'; message_text.textContent = I18N.t('profile.supabase_unavailable'); return; }
   message_text.className = 'msg';
-  message_text.textContent = 'Connexion...';
+  message_text.textContent = I18N.t('auth.logging_in');
   const { error } = await supabase.auth.signInWithPassword({
     email: document.getElementById('login_email_input').value,
     password: document.getElementById('login_password_input').value
   });
   if (error) {
     message_text.className = 'msg error';
-    message_text.textContent = 'Erreur : ' + error.message;
+    message_text.textContent = I18N.t('common.error_prefix') + error.message;
     return;
   }
-  message_text.textContent = 'Connecté !';
+  message_text.textContent = I18N.t('auth.logged_in');
   setTimeout(() => auth_modal.classList.add('hidden'), 500);
 });
 
 signup_form.addEventListener('submit', async (e) => {
   e.preventDefault();
-  if (!supabase) { message_text.className = 'msg error'; message_text.textContent = 'Supabase indisponible.'; return; }
+  if (!supabase) { message_text.className = 'msg error'; message_text.textContent = I18N.t('profile.supabase_unavailable'); return; }
   message_text.className = 'msg';
-  message_text.textContent = 'Création du compte...';
+  message_text.textContent = I18N.t('auth.creating_account');
 
   const email_val = document.getElementById('email_input').value;
   const password_val = document.getElementById('password_input').value;
@@ -959,7 +972,7 @@ signup_form.addEventListener('submit', async (e) => {
 
   if (auth_error) {
     message_text.className = 'msg error';
-    message_text.textContent = 'Erreur : ' + auth_error.message;
+    message_text.textContent = I18N.t('common.error_prefix') + auth_error.message;
     return;
   }
 
@@ -967,8 +980,8 @@ signup_form.addEventListener('submit', async (e) => {
   // côté base de données par un trigger sur auth.users — pas besoin de l'insérer ici.
   message_text.className = 'msg';
   message_text.textContent = auth_data.session
-    ? 'Compte créé ! Tu peux publier une recette.'
-    : 'Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse, puis connecte-toi.';
+    ? I18N.t('auth.account_created_session')
+    : I18N.t('auth.account_created_confirm');
   setTimeout(() => auth_modal.classList.add('hidden'), 1200);
 });
 
@@ -1033,8 +1046,8 @@ function render_user_zone() {
       ? `<img src="${escape_attr(current_profile.avatar_url)}" alt="">`
       : initials;
     zone.innerHTML = `
-      <div class="xp-pill"><i class="fa-solid fa-fire"></i> <span class="lvl">Niv. ${current_profile.user_level}</span> · ${current_profile.xp_points} XP</div>
-      <button id="open_profile_btn" class="avatar avatar-header" title="Mon profil">${avatar_html}</button>
+      <div class="xp-pill"><i class="fa-solid fa-fire"></i> <span class="lvl">${escape_html(I18N.t('leaderboard.level_short'))} ${current_profile.user_level}</span> · ${current_profile.xp_points} XP</div>
+      <button id="open_profile_btn" class="avatar avatar-header" title="${escape_attr(I18N.t('common.my_profile'))}">${avatar_html}</button>
     `;
     document.getElementById('open_profile_btn').addEventListener('click', () => switch_tab('profile'));
   } else {
@@ -1042,7 +1055,7 @@ function render_user_zone() {
     if (!document.getElementById('tab-profile').classList.contains('hidden')) {
       switch_tab('feed');
     }
-    zone.innerHTML = `<button id="open_auth_btn" class="text-btn"><i class="fa-solid fa-right-to-bracket"></i> Se connecter</button>`;
+    zone.innerHTML = `<button id="open_auth_btn" class="text-btn"><i class="fa-solid fa-right-to-bracket"></i> ${escape_html(I18N.t('nav.login'))}</button>`;
     document.getElementById('open_auth_btn').addEventListener('click', () => auth_modal.classList.remove('hidden'));
   }
 }
@@ -1050,10 +1063,10 @@ function render_user_zone() {
 // =====================================================================
 // 4. CATEGORY / TAG CHIPS
 // =====================================================================
-function build_chip_group(container, values, name) {
+function build_chip_group(container, values, name, td_category) {
   container.innerHTML = values.map((v) => `
-    <label class="chip" data-value="${v}">
-      <input type="checkbox" name="${name}" value="${v}">${v}
+    <label class="chip" data-value="${escape_attr(v)}">
+      <input type="checkbox" name="${name}" value="${escape_attr(v)}">${escape_html(td_category ? I18N.td(td_category, v) : v)}
     </label>
   `).join('');
   container.querySelectorAll('.chip').forEach(chip => {
@@ -1065,8 +1078,8 @@ function build_chip_group(container, values, name) {
     });
   });
 }
-build_chip_group(document.getElementById('category_chips'), CATEGORIES, 'cat');
-build_chip_group(document.getElementById('tag_chips'), SUGGESTED_TAGS, 'tag');
+build_chip_group(document.getElementById('category_chips'), CATEGORIES, 'cat', 'categories');
+build_chip_group(document.getElementById('tag_chips'), SUGGESTED_TAGS, 'tag', 'tags');
 
 let feed_search_query = '';
 let active_country_filter = null;
@@ -1077,8 +1090,8 @@ let active_sort = 'newest';
 
 function render_category_filters() {
   const container = document.getElementById('category_filters');
-  container.innerHTML = `<button class="filter-chip ${!active_category_filter ? 'active' : ''}" data-cat="">Tout</button>` +
-    CATEGORIES.map(c => `<button class="filter-chip ${active_category_filter===c?'active':''}" data-cat="${c}">${c}</button>`).join('');
+  container.innerHTML = `<button class="filter-chip ${!active_category_filter ? 'active' : ''}" data-cat="">${escape_html(I18N.t('common.all'))}</button>` +
+    CATEGORIES.map(c => `<button class="filter-chip ${active_category_filter===c?'active':''}" data-cat="${escape_attr(c)}">${escape_html(I18N.td('categories', c))}</button>`).join('');
   container.querySelectorAll('.filter-chip').forEach(btn => {
     btn.addEventListener('click', () => {
       active_category_filter = btn.dataset.cat || null;
@@ -1093,7 +1106,7 @@ render_category_filters();
 function render_tag_filters() {
   const container = document.getElementById('tag_filters');
   container.innerHTML = SUGGESTED_TAGS.map(t =>
-    `<button class="filter-chip ${active_tag_filters.has(t) ? 'active' : ''}" data-tag="${escape_attr(t)}">${escape_html(t)}</button>`
+    `<button class="filter-chip ${active_tag_filters.has(t) ? 'active' : ''}" data-tag="${escape_attr(t)}">${escape_html(I18N.td('tags', t))}</button>`
   ).join('');
   container.querySelectorAll('.filter-chip').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1109,10 +1122,10 @@ function render_tag_filters() {
 render_tag_filters();
 
 function render_difficulty_filters() {
-  const options = [['', 'Toutes'], ['facile', 'Facile'], ['moyen', 'Moyen'], ['difficile', 'Difficile']];
+  const options = [['', I18N.t('common.all')], ['facile', I18N.t('publish.difficulty_easy')], ['moyen', I18N.t('publish.difficulty_medium')], ['difficile', I18N.t('publish.difficulty_hard')]];
   const container = document.getElementById('difficulty_filters');
   container.innerHTML = options.map(([val, label]) =>
-    `<button class="filter-chip ${active_difficulty_filter === (val || null) ? 'active' : ''}" data-diff="${val}">${label}</button>`
+    `<button class="filter-chip ${active_difficulty_filter === (val || null) ? 'active' : ''}" data-diff="${val}">${escape_html(label)}</button>`
   ).join('');
   container.querySelectorAll('.filter-chip').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1126,10 +1139,10 @@ function render_difficulty_filters() {
 render_difficulty_filters();
 
 function render_time_filters() {
-  const options = [[null, 'Tout'], [15, '≤ 15 min'], [30, '≤ 30 min'], [60, '≤ 1h'], [120, '≤ 2h']];
+  const options = [[null, I18N.t('common.all')], [15, '≤ 15 min'], [30, '≤ 30 min'], [60, '≤ 1h'], [120, '≤ 2h']];
   const container = document.getElementById('time_filters');
   container.innerHTML = options.map(([val, label]) =>
-    `<button class="filter-chip ${active_time_filter === val ? 'active' : ''}" data-time="${val ?? ''}">${label}</button>`
+    `<button class="filter-chip ${active_time_filter === val ? 'active' : ''}" data-time="${val ?? ''}">${escape_html(label)}</button>`
   ).join('');
   container.querySelectorAll('.filter-chip').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1229,12 +1242,12 @@ const ingredient_picker_modal = document.getElementById('ingredient_picker_modal
 function render_ingredient_pool_chips() {
   const container = document.getElementById('ingredient_pool_chips');
   if (ingredient_pool.length === 0) {
-    container.innerHTML = `<p class="empty-hint">Aucun ingrédient ajouté pour l'instant.</p>`;
+    container.innerHTML = `<p class="empty-hint">${escape_html(I18N.t('feed.no_ingredients_yet'))}</p>`;
     return;
   }
   container.innerHTML = ingredient_pool.map((ing, i) => `
     <span class="pool-chip" data-index="${i}">
-      <span class="pool-chip-emoji">${ing.emoji}</span> ${escape_html(ing.name)}
+      <span class="pool-chip-emoji">${ing.emoji}</span> ${escape_html(I18N.td('foods', ing.name))}
       <button type="button" class="pool-chip-remove" data-index="${i}"><i class="fa-solid fa-xmark"></i></button>
     </span>
   `).join('');
@@ -1259,8 +1272,8 @@ function add_ingredient_to_pool(name, emoji) {
 
 function render_food_category_tabs() {
   const container = document.getElementById('food_category_tabs');
-  container.innerHTML = `<button type="button" class="food-cat-tab ${!active_food_category ? 'active' : ''}" data-cat="">Tout</button>` +
-    FOOD_CATEGORIES.map(c => `<button type="button" class="food-cat-tab ${active_food_category === c ? 'active' : ''}" data-cat="${escape_attr(c)}">${escape_html(c)}</button>`).join('');
+  container.innerHTML = `<button type="button" class="food-cat-tab ${!active_food_category ? 'active' : ''}" data-cat="">${escape_html(I18N.t('common.all'))}</button>` +
+    FOOD_CATEGORIES.map(c => `<button type="button" class="food-cat-tab ${active_food_category === c ? 'active' : ''}" data-cat="${escape_attr(c)}">${escape_html(I18N.td('food_categories', c))}</button>`).join('');
   container.querySelectorAll('.food-cat-tab').forEach(btn => {
     btn.addEventListener('click', () => {
       active_food_category = btn.dataset.cat || null;
@@ -1283,10 +1296,10 @@ function render_food_picker_grid() {
   const grid = document.getElementById('food_picker_grid');
   let list = [...COMMON_FOODS, ...custom_food_entries];
   if (active_food_category) list = list.filter(f => f.cat === active_food_category);
-  if (search) list = list.filter(f => normalize_for_search(f.name).includes(normalize_for_search(search)));
+  if (search) list = list.filter(f => normalize_for_search(f.name).includes(normalize_for_search(search)) || normalize_for_search(I18N.td('foods', f.name)).includes(normalize_for_search(search)));
 
   if (list.length === 0) {
-    grid.innerHTML = `<p class="empty-hint">Aucun résultat. Ajoute-le manuellement ci-dessous.</p>`;
+    grid.innerHTML = `<p class="empty-hint">${escape_html(I18N.t('common.no_results_add_manually'))}</p>`;
     update_confirm_add_button();
     return;
   }
@@ -1295,7 +1308,7 @@ function render_food_picker_grid() {
     const is_selected = food_picker_selected.has(f.name);
     return `<button type="button" class="food-tile ${already_added ? 'added' : ''} ${is_selected ? 'selected' : ''}" data-name="${escape_attr(f.name)}" data-emoji="${f.emoji}" ${already_added ? 'disabled' : ''}>
       <span class="food-tile-emoji">${f.emoji}</span>
-      <span class="food-tile-name">${escape_html(f.name)}</span>
+      <span class="food-tile-name">${escape_html(I18N.td('foods', f.name))}</span>
       ${already_added ? '<i class="fa-solid fa-check food-tile-check"></i>' : (is_selected ? '<i class="fa-solid fa-circle-check food-tile-check selected-check"></i>' : '')}
     </button>`;
   }).join('');
@@ -1325,14 +1338,14 @@ function render_ingredient_selection_cloud() {
   const cloud = document.getElementById('cloud_bubbles');
   if (!cloud) return;
   if (food_picker_selected.size === 0) {
-    cloud.innerHTML = `<p class="cloud-empty-hint">Clique sur des aliments pour les voir apparaître ici.</p>`;
+    cloud.innerHTML = `<p class="cloud-empty-hint">${escape_html(I18N.t('modal.ingredient_picker.selection_empty'))}</p>`;
     return;
   }
   cloud.innerHTML = [...food_picker_selected].map(name => {
     const found = COMMON_FOODS.find(f => f.name === name);
     const emoji = found ? found.emoji : '🍽️';
     return `<button type="button" class="cloud-bubble" data-name="${escape_attr(name)}">
-      <span>${emoji} ${escape_html(name)}</span>
+      <span>${emoji} ${escape_html(I18N.td('foods', name))}</span>
       <span class="cloud-bubble-remove"><i class="fa-solid fa-xmark"></i></span>
     </button>`;
   }).join('');
@@ -1355,7 +1368,9 @@ document.getElementById('confirm_add_ingredients_btn').addEventListener('click',
   render_food_picker_grid();
   // Clic sur "Ajouter" -> les aliments sont ajoutés ET la popup se ferme, comme on s'y attend.
   ingredient_picker_modal.classList.add('hidden');
-  show_toast(added_names.length > 1 ? `${added_names.length} ingrédients ajoutés` : `"${added_names[0]}" ajouté à la recette`);
+  show_toast(added_names.length > 1
+    ? I18N.t('modal.ingredient_picker.toast_added_multiple', { count: added_names.length })
+    : I18N.t('modal.ingredient_picker.toast_added_single', { name: I18N.td('foods', added_names[0]) }));
 });
 
 document.getElementById('open_ingredient_picker_btn').addEventListener('click', () => {
@@ -1395,7 +1410,7 @@ document.getElementById('create_custom_ingredient_btn').addEventListener('click'
   active_food_category = null; // le nouvel aliment n'a pas de catégorie : on revient sur "Tout" pour le voir
   render_food_category_tabs();
   render_food_picker_grid();
-  show_toast(`"${name}" ajouté à la liste — clique sur "Ajouter" pour le confirmer.`, 'fa-circle-plus');
+  show_toast(I18N.t('modal.ingredient_picker.toast_custom_added', { name }), 'fa-circle-plus');
 });
 document.getElementById('custom_ingredient_input').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') { e.preventDefault(); document.getElementById('create_custom_ingredient_btn').click(); }
@@ -1408,7 +1423,7 @@ render_ingredient_pool_chips();
 // =====================================================================
 function render_recipe_preview() {
   const container = document.getElementById('recipe_preview_container');
-  const title = document.getElementById('recipe_title_input').value.trim() || '(Sans titre)';
+  const title = document.getElementById('recipe_title_input').value.trim() || I18N.t('publish.no_title_placeholder');
   const description = document.getElementById('recipe_description_input')?.value.trim() || '';
   const categories = Array.from(document.querySelectorAll('#category_chips input:checked')).map(i => i.value);
   const tags = Array.from(document.querySelectorAll('#tag_chips input:checked')).map(i => i.value);
@@ -1437,14 +1452,14 @@ function render_recipe_preview() {
       <div class="media_wrapper">
         ${cover_url
           ? `<img src="${escape_attr(cover_url)}" alt="">`
-          : `<div class="preview-cover-empty"><i class="fa-solid fa-image"></i> Pas encore de photo de couverture</div>`}
+          : `<div class="preview-cover-empty"><i class="fa-solid fa-image"></i> ${escape_html(I18N.t('publish.no_cover_yet'))}</div>`}
       </div>
       ${gallery_urls.length ? `<div class="recipe_gallery">${gallery_urls.map(u => `<img src="${escape_attr(u)}" alt="">`).join('')}</div>` : ''}
 
       <div class="leaderboard-subtabs preview-subtab-nav">
-        <button type="button" class="leaderboard-subtab-btn preview-subtab-btn active" data-ptab="info"><i class="fa-solid fa-circle-info"></i> Infos</button>
-        <button type="button" class="leaderboard-subtab-btn preview-subtab-btn" data-ptab="ingredients"><i class="fa-solid fa-carrot"></i> Ingrédients & Ustensiles</button>
-        <button type="button" class="leaderboard-subtab-btn preview-subtab-btn" data-ptab="steps"><i class="fa-solid fa-list-ol"></i> Étapes${recipe_steps.length ? ` (${recipe_steps.length})` : ''}</button>
+        <button type="button" class="leaderboard-subtab-btn preview-subtab-btn active" data-ptab="info"><i class="fa-solid fa-circle-info"></i> ${escape_html(I18N.t('publish.preview_tab_info'))}</button>
+        <button type="button" class="leaderboard-subtab-btn preview-subtab-btn" data-ptab="ingredients"><i class="fa-solid fa-carrot"></i> ${escape_html(I18N.t('publish.preview_tab_ingredients'))}</button>
+        <button type="button" class="leaderboard-subtab-btn preview-subtab-btn" data-ptab="steps"><i class="fa-solid fa-list-ol"></i> ${escape_html(I18N.t('recipe_detail.steps_title'))}${recipe_steps.length ? ` (${recipe_steps.length})` : ''}</button>
       </div>
 
       <div class="preview-subtab-panel" data-ptab-panel="info">
@@ -1453,62 +1468,63 @@ function render_recipe_preview() {
             <h2>${escape_html(title)}</h2>
             ${country_display
               ? `<span class="country_badge">${country_flag_from_code(country_code_val) || '🌍'} ${escape_html(country_display)}</span>`
-              : `<span class="country_badge preview-meta-missing"><i class="fa-solid fa-triangle-exclamation"></i> Pays manquant</span>`}
+              : `<span class="country_badge preview-meta-missing"><i class="fa-solid fa-triangle-exclamation"></i> ${escape_html(I18N.t('publish.country_missing'))}</span>`}
           </div>
-          ${description ? `<p class="recipe_description">${escape_html(description)}</p>` : '<p class="empty-hint">Pas de description</p>'}
+          ${description ? `<p class="recipe_description">${escape_html(description)}</p>` : `<p class="empty-hint">${escape_html(I18N.t('publish.no_description'))}</p>`}
 
           <div class="recipe_meta_bar">
-            <div><i class="fa-solid fa-users"></i> ${escape_html(String(servings))} pers.</div>
-            <div><i class="fa-solid fa-gauge"></i> ${escape_html(difficulty.charAt(0).toUpperCase() + difficulty.slice(1))}</div>
-            <div><i class="fa-regular fa-clock"></i> Temps total : ${total_time} min</div>
+            <div><i class="fa-solid fa-users"></i> ${escape_html(String(servings))} ${escape_html(I18N.t('common.servings'))}</div>
+            <div><i class="fa-solid fa-gauge"></i> ${escape_html(I18N.td('difficulty', difficulty))}</div>
+            <div><i class="fa-regular fa-clock"></i> ${escape_html(I18N.t('publish.total_time'))} ${total_time} ${escape_html(I18N.t('common.minutes_short'))}</div>
           </div>
 
           <div class="chips-row" style="margin-top:14px;">
-            ${[...categories, ...tags, ...custom_tags].map(t => `<span class="tag-chip">${escape_html(t)}</span>`).join('') || '<span class="empty-hint">Aucune catégorie/tag choisi</span>'}
+            ${[...categories, ...tags, ...custom_tags].map(t => `<span class="tag-chip">${escape_html(I18N.td(CATEGORIES.includes(t) ? 'categories' : 'tags', t))}</span>`).join('') || `<span class="empty-hint">${escape_html(I18N.t('publish.no_tags_chosen'))}</span>`}
           </div>
         </div>
       </div>
 
       <div class="preview-subtab-panel hidden" data-ptab-panel="ingredients">
         <div class="prep_before_start">
-          <h3 class="prep_before_start_title"><i class="fa-solid fa-list-check"></i> Ce qu'il faut rassembler</h3>
+          <h3 class="prep_before_start_title"><i class="fa-solid fa-list-check"></i> ${escape_html(I18N.t('publish.gather_title'))}</h3>
           <div class="prep_before_start_columns">
             <div class="prep_column">
-              <h4><i class="fa-solid fa-carrot"></i> Ingrédients</h4>
-              ${render_product_list_html(ingredient_pool.filter(i => total_qty.has(i.name)), total_qty, 'Aucun ingrédient utilisé dans les étapes')}
+              <h4><i class="fa-solid fa-carrot"></i> ${escape_html(I18N.t('recipe_detail.ingredients_title'))}</h4>
+              ${render_product_list_html(ingredient_pool.filter(i => total_qty.has(i.name)), total_qty, I18N.t('recipe_detail.no_ingredients_used'))}
             </div>
             <div class="prep_column">
-              <h4><i class="fa-solid fa-kitchen-set"></i> Ustensiles</h4>
-              ${render_product_list_html(all_tools, null, 'Aucun outil requis')}
+              <h4><i class="fa-solid fa-kitchen-set"></i> ${escape_html(I18N.t('recipe_detail.tools_title'))}</h4>
+              ${render_product_list_html(all_tools, null, I18N.t('recipe_detail.no_tools_required'))}
             </div>
           </div>
         </div>
       </div>
 
       <div class="preview-subtab-panel hidden" data-ptab-panel="steps">
-        <h3><i class="fa-solid fa-list-ol"></i> Préparation</h3>
+        <h3><i class="fa-solid fa-list-ol"></i> ${escape_html(I18N.t('recipe_detail.steps_title'))}</h3>
         ${recipe_steps.length ? `
           <ol class="steps_list">
             ${recipe_steps.map((s) => {
-              const type_info = STEP_TYPES[s.type] || STEP_TYPES.prep;
-              const ing_tags = (s.ingredients || []).map(ing => `<span class="tag-chip">${ing.amount || ''}${escape_html(ing.unit || '')} ${escape_html(ing.name)}</span>`).join('');
-              const tool_tags = (s.tools || []).map(t => `<span class="tag-chip tool-tag-chip">${t.emoji || '🔧'} ${escape_html(t.name)}</span>`).join('');
+              const type_key = STEP_TYPES[s.type] ? s.type : 'prep';
+              const type_info = STEP_TYPES[type_key];
+              const ing_tags = (s.ingredients || []).map(ing => `<span class="tag-chip">${ing.amount || ''}${escape_html(unit_label(ing.unit))} ${escape_html(I18N.td('foods', ing.name))}</span>`).join('');
+              const tool_tags = (s.tools || []).map(t => `<span class="tag-chip tool-tag-chip">${t.emoji || '🔧'} ${escape_html(I18N.td('tools', t.name))}</span>`).join('');
               const media = step_preview_media(s);
               const media_html = media
                 ? (media.type === 'image'
                     ? `<img class="step_media_preview" src="${escape_attr(media.url)}" alt="">`
                     : `<video class="step_media_preview" src="${escape_attr(media.url)}" controls></video>`)
-                : (s.external_url ? `<a href="${escape_attr(s.external_url)}" target="_blank" rel="noopener" class="step_external_link"><i class="fa-solid fa-link"></i> Média externe</a>` : '');
+                : (s.external_url ? `<a href="${escape_attr(s.external_url)}" target="_blank" rel="noopener" class="step_external_link"><i class="fa-solid fa-link"></i> ${escape_html(I18N.t('recipe_detail.external_media'))}</a>` : '');
               return `<li>
-                <span class="step_type_badge"><i class="fa-solid ${type_info.icon}"></i> ${type_info.label}${s.oven_temp ? ' · ' + s.oven_temp + '°C' : ''}</span>
-                ${s.time_min ? `<span class="step_time_badge"><i class="fa-solid fa-stopwatch"></i> ${s.time_min} min</span>` : ''}
+                <span class="step_type_badge"><i class="fa-solid ${type_info.icon}"></i> ${escape_html(I18N.td('step_types', type_key))}${s.oven_temp ? ' · ' + s.oven_temp + '°C' : ''}</span>
+                ${s.time_min ? `<span class="step_time_badge"><i class="fa-solid fa-stopwatch"></i> ${s.time_min} ${escape_html(I18N.t('common.minutes_short'))}</span>` : ''}
                 <p>${escape_html(s.text || '')}</p>
                 ${step_detail_blocks_html(ing_tags, tool_tags)}
                 ${media_html}
               </li>`;
             }).join('')}
           </ol>
-        ` : '<p class="empty-hint" style="margin:0 24px;">Aucune étape ajoutée</p>'}
+        ` : `<p class="empty-hint" style="margin:0 24px;">${escape_html(I18N.t('publish.no_steps_added'))}</p>`}
       </div>
     </article>
   `;
@@ -1562,21 +1578,22 @@ function compute_total_ingredient_quantities() {
 // vaut null pour les outils (pas de quantité), sinon c'est la Map de compute_steps_total_ingredient_quantities.
 function render_product_list_html(items, total_qty, empty_label) {
   if (!items.length) return `<p class="empty-hint">${escape_html(empty_label)}</p>`;
+  const td_category = total_qty ? 'foods' : 'tools';
   return `<div class="product-list">${items.map(item => {
     const entry = total_qty ? total_qty.get(item.name) : null;
     const parts = entry ? [...entry.units.entries()].map(([unit, sum]) => {
-      const unit_label = (UNIT_OPTIONS.find(u => u.value === unit) || {}).label || unit;
+      const unit_label = I18N.td('units', unit);
       const formatted = Number.isInteger(sum) ? sum : Math.round(sum * 100) / 100;
       return `${formatted} ${unit_label}`;
     }) : [];
-    if (entry && entry.to_taste) parts.push('Au goût');
+    if (entry && entry.to_taste) parts.push(I18N.td('units', TO_TASTE_UNIT));
     const qty_html = parts.length
       ? `<span class="product-list-qty">${escape_html(parts.join(' + '))}</span>`
-      : (entry && entry.unspecified ? `<span class="product-list-qty unspecified">qté libre</span>` : '');
+      : (entry && entry.unspecified ? `<span class="product-list-qty unspecified">${escape_html(I18N.t('recipe_detail.free_qty'))}</span>` : '');
     return `
       <div class="product-list-item">
         <span class="product-list-icon">${item.emoji || '🍽️'}</span>
-        <span class="product-list-name">${escape_html(item.name)}</span>
+        <span class="product-list-name">${escape_html(I18N.td(td_category, item.name))}</span>
         ${qty_html}
       </div>
     `;
@@ -1588,8 +1605,8 @@ function render_product_list_html(items, total_qty, empty_label) {
 // de ce qui est un outil.
 function step_detail_blocks_html(ing_tags, tool_tags) {
   let html = '';
-  if (ing_tags) html += `<div class="step_detail_block"><span class="step_detail_label"><i class="fa-solid fa-carrot"></i> Ingrédients</span><div class="step_ing_tags">${ing_tags}</div></div>`;
-  if (tool_tags) html += `<div class="step_detail_block"><span class="step_detail_label"><i class="fa-solid fa-kitchen-set"></i> Outils</span><div class="step_ing_tags">${tool_tags}</div></div>`;
+  if (ing_tags) html += `<div class="step_detail_block"><span class="step_detail_label"><i class="fa-solid fa-carrot"></i> ${escape_html(I18N.t('recipe_detail.ingredients_title'))}</span><div class="step_ing_tags">${ing_tags}</div></div>`;
+  if (tool_tags) html += `<div class="step_detail_block"><span class="step_detail_label"><i class="fa-solid fa-kitchen-set"></i> ${escape_html(I18N.t('recipe_detail.tools_title'))}</span><div class="step_ing_tags">${tool_tags}</div></div>`;
   return html;
 }
 
@@ -1598,24 +1615,25 @@ function step_detail_blocks_html(ing_tags, tool_tags) {
 // n'était visible que dans l'éditeur, jamais sur la page de la recette elle-même.
 function step_output_product_html(step) {
   if (!step.output_product) return '';
-  return `<div class="step_output_product"><i class="fa-solid fa-wand-magic-sparkles"></i> Donne : <strong>${escape_html(step.output_product)}</strong></div>`;
+  return `<div class="step_output_product"><i class="fa-solid fa-wand-magic-sparkles"></i> ${escape_html(I18N.t('recipe_detail.gives'))} <strong>${escape_html(step.output_product)}</strong></div>`;
 }
 
 function render_steps_compact_list() {
   const container = document.getElementById('steps_compact_list');
   if (recipe_steps.length === 0) {
-    container.innerHTML = `<p class="empty-hint">Aucune étape ajoutée pour l'instant.</p>`;
+    container.innerHTML = `<p class="empty-hint">${escape_html(I18N.t('modal.step_editor.no_steps_yet'))}</p>`;
   } else {
     container.innerHTML = recipe_steps.map((step, i) => {
-      const type_info = STEP_TYPES[step.type] || STEP_TYPES.prep;
+      const type_key = STEP_TYPES[step.type] ? step.type : 'prep';
+      const type_info = STEP_TYPES[type_key];
       const preview_source = step.text || '';
       const preview_text = preview_source.slice(0, 70) + (preview_source.length > 70 ? '…' : '');
       return `
         <div class="step-compact-card" data-index="${i}">
           <div class="step-compact-icon"><i class="fa-solid ${type_info.icon}"></i></div>
           <div class="step-compact-body">
-            <div class="step-compact-title">Étape ${i + 1} · ${type_info.label}${step.oven_temp ? ' · ' + step.oven_temp + '°C' : ''}</div>
-            <div class="step-compact-text">${preview_text ? escape_html(preview_text) : '<em>Pas encore de description</em>'}</div>
+            <div class="step-compact-title">${escape_html(I18N.t('modal.step_editor.step_word'))} ${i + 1} · ${escape_html(I18N.td('step_types', type_key))}${step.oven_temp ? ' · ' + step.oven_temp + '°C' : ''}</div>
+            <div class="step-compact-text">${preview_text ? escape_html(preview_text) : '<em>' + escape_html(I18N.t('modal.step_editor.no_description_yet')) + '</em>'}</div>
           </div>
           ${step.time_min ? `<div class="step-compact-time"><i class="fa-solid fa-stopwatch"></i> ${step.time_min} min</div>` : ''}
           <button type="button" class="step-compact-edit"><i class="fa-solid fa-pen"></i></button>
@@ -1633,8 +1651,8 @@ function render_steps_compact_list() {
 function set_step_editor_type(type, auto_suggest_tool, previous_type) {
   step_editor_current_type = type;
   document.querySelectorAll('.step-type-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.type === type));
-  const type_info = STEP_TYPES[type] || STEP_TYPES.prep;
-  document.getElementById('step_editor_time_label').textContent = type_info.time_label;
+  const type_key = STEP_TYPES[type] ? type : 'prep';
+  document.getElementById('step_editor_time_label').textContent = I18N.td('step_time_labels', type_key);
   document.getElementById('step_editor_temp_group').classList.toggle('hidden', type !== 'oven');
 
   if (auto_suggest_tool) {
@@ -1685,7 +1703,7 @@ function render_step_editor_linked_list() {
   document.getElementById('step_editor_no_ingredients_hint').classList.toggle('hidden', ingredient_pool.length > 0);
 
   if (step_editor_linked_ingredients.length === 0) {
-    container.innerHTML = `<p class="empty-hint">Aucun ingrédient ajouté à cette étape.</p>`;
+    container.innerHTML = `<p class="empty-hint">${escape_html(I18N.t('modal.step_editor.no_ingredients_step'))}</p>`;
     refresh_output_product_suggestion();
     return;
   }
@@ -1696,23 +1714,22 @@ function render_step_editor_linked_list() {
     if (step_editor_linked_edit_index === i) {
       return `
         <div class="step-linked-ing-row editing" data-index="${i}">
-          <span class="step-linked-ing-label">${emoji} ${escape_html(ing.name)}</span>
-          <input type="number" class="step_linked_ing_amount" data-index="${i}" placeholder="Qté" step="any" min="0" value="${escape_attr(ing.amount)}" ${ing.unit === TO_TASTE_UNIT ? 'disabled' : ''}>
+          <span class="step-linked-ing-label">${emoji} ${escape_html(I18N.td('foods', ing.name))}</span>
+          <input type="number" class="step_linked_ing_amount" data-index="${i}" placeholder="${escape_attr(I18N.t('common.qty_placeholder'))}" step="any" min="0" value="${escape_attr(ing.amount)}" ${ing.unit === TO_TASTE_UNIT ? 'disabled' : ''}>
           <select class="step_linked_ing_unit" data-index="${i}">
-            ${UNIT_OPTIONS.map(u => `<option value="${u.value}" ${ing.unit === u.value ? 'selected' : ''}>${u.label}</option>`).join('')}
+            ${UNIT_OPTIONS.map(u => `<option value="${u.value}" ${ing.unit === u.value ? 'selected' : ''}>${escape_html(I18N.td('units', u.value))}</option>`).join('')}
           </select>
           <button type="button" class="step-linked-ing-done" data-index="${i}"><i class="fa-solid fa-check"></i></button>
           <button type="button" class="step-linked-ing-remove" data-index="${i}"><i class="fa-solid fa-xmark"></i></button>
         </div>
       `;
     }
-    const unit_label = (UNIT_OPTIONS.find(u => u.value === ing.unit) || {}).label || ing.unit || '';
     const qty_display = ing.unit === TO_TASTE_UNIT
-      ? 'Au goût'
-      : (ing.amount ? `${escape_html(String(ing.amount))} ${escape_html(unit_label)}` : `<em>Qté non précisée</em>`);
+      ? escape_html(I18N.td('units', TO_TASTE_UNIT))
+      : (ing.amount ? `${escape_html(String(ing.amount))} ${escape_html(unit_label(ing.unit))}` : `<em>${escape_html(I18N.t('common.qty_unspecified'))}</em>`);
     return `
       <div class="step-linked-ing-row compact" data-index="${i}">
-        <span class="step-linked-ing-label">${emoji} ${escape_html(ing.name)}</span>
+        <span class="step-linked-ing-label">${emoji} ${escape_html(I18N.td('foods', ing.name))}</span>
         <span class="step-linked-ing-qty-display">${qty_display}</span>
         <button type="button" class="step-linked-ing-edit" data-index="${i}"><i class="fa-solid fa-pen"></i></button>
         <button type="button" class="step-linked-ing-remove" data-index="${i}"><i class="fa-solid fa-xmark"></i></button>
@@ -1769,13 +1786,13 @@ function render_step_ing_picker_grid() {
   let list = ingredient_pool.filter(p => !already_linked.includes(p.name));
 
   if (ingredient_pool.length === 0) {
-    grid.innerHTML = `<p class="empty-hint">Ajoute d'abord des ingrédients à l'étape 3 du formulaire.</p>`;
+    grid.innerHTML = `<p class="empty-hint">${escape_html(I18N.t('modal.step_editor.no_ingredients_hint'))}</p>`;
     update_step_ing_picker_confirm();
     return;
   }
-  if (search) list = list.filter(f => normalize_for_search(f.name).includes(normalize_for_search(search)));
+  if (search) list = list.filter(f => normalize_for_search(f.name).includes(normalize_for_search(search)) || normalize_for_search(I18N.td('foods', f.name)).includes(normalize_for_search(search)));
   if (list.length === 0) {
-    grid.innerHTML = `<p class="empty-hint">${already_linked.length === ingredient_pool.length ? 'Tous les ingrédients de la recette sont déjà ajoutés à cette étape.' : 'Aucun résultat.'}</p>`;
+    grid.innerHTML = `<p class="empty-hint">${escape_html(already_linked.length === ingredient_pool.length ? I18N.t('modal.step_ing_picker.all_already_linked') : I18N.t('common.no_results'))}</p>`;
     update_step_ing_picker_confirm();
     return;
   }
@@ -1783,7 +1800,7 @@ function render_step_ing_picker_grid() {
     const is_selected = step_ing_modal_selected.has(f.name);
     return `<button type="button" class="food-tile ${is_selected ? 'selected' : ''}" data-name="${escape_attr(f.name)}">
       <span class="food-tile-emoji">${f.emoji}</span>
-      <span class="food-tile-name">${escape_html(f.name)}</span>
+      <span class="food-tile-name">${escape_html(I18N.td('foods', f.name))}</span>
       ${is_selected ? '<i class="fa-solid fa-circle-check food-tile-check selected-check"></i>' : ''}
     </button>`;
   }).join('');
@@ -1802,7 +1819,7 @@ function render_step_ing_picker_grid() {
 function render_step_ing_picker_qty_list() {
   const container = document.getElementById('step_ing_picker_qty_list');
   if (step_ing_modal_selected.size === 0) {
-    container.innerHTML = `<p class="empty-hint">Choisis d'abord des ingrédients dans l'onglet « 1. Choisir ».</p>`;
+    container.innerHTML = `<p class="empty-hint">${escape_html(I18N.t('modal.step_ing_picker.choose_first'))}</p>`;
     return;
   }
   container.innerHTML = [...step_ing_modal_selected.entries()].map(([name, data]) => {
@@ -1810,10 +1827,10 @@ function render_step_ing_picker_qty_list() {
     const emoji = pool_match ? pool_match.emoji : '🍽️';
     return `
       <div class="step-linked-ing-row" data-name="${escape_attr(name)}">
-        <span class="step-linked-ing-label">${emoji} ${escape_html(name)}</span>
-        <input type="number" class="step_linked_ing_amount" data-name="${escape_attr(name)}" placeholder="Qté" step="any" min="0" value="${escape_attr(data.amount)}" ${data.unit === TO_TASTE_UNIT ? 'disabled' : ''}>
+        <span class="step-linked-ing-label">${emoji} ${escape_html(I18N.td('foods', name))}</span>
+        <input type="number" class="step_linked_ing_amount" data-name="${escape_attr(name)}" placeholder="${escape_attr(I18N.t('common.qty_placeholder'))}" step="any" min="0" value="${escape_attr(data.amount)}" ${data.unit === TO_TASTE_UNIT ? 'disabled' : ''}>
         <select class="step_linked_ing_unit" data-name="${escape_attr(name)}">
-          ${UNIT_OPTIONS.map(u => `<option value="${u.value}" ${data.unit === u.value ? 'selected' : ''}>${u.label}</option>`).join('')}
+          ${UNIT_OPTIONS.map(u => `<option value="${u.value}" ${data.unit === u.value ? 'selected' : ''}>${escape_html(I18N.td('units', u.value))}</option>`).join('')}
         </select>
         <button type="button" class="step-linked-ing-remove" data-name="${escape_attr(name)}"><i class="fa-solid fa-xmark"></i></button>
       </div>
@@ -1894,12 +1911,12 @@ let step_editor_tools = [];
 function render_step_editor_tools_list() {
   const container = document.getElementById('step_editor_tools_list');
   if (step_editor_tools.length === 0) {
-    container.innerHTML = `<p class="empty-hint">Aucun outil ajouté à cette étape.</p>`;
+    container.innerHTML = `<p class="empty-hint">${escape_html(I18N.t('modal.step_editor.no_tools_step'))}</p>`;
     return;
   }
   container.innerHTML = step_editor_tools.map((tool, i) => `
     <div class="step-linked-ing-row" data-index="${i}">
-      <span class="step-linked-ing-label">${tool.emoji} ${escape_html(tool.name)}</span>
+      <span class="step-linked-ing-label">${tool.emoji} ${escape_html(I18N.td('tools', tool.name))}</span>
       <button type="button" class="step-linked-ing-remove" data-index="${i}"><i class="fa-solid fa-xmark"></i></button>
     </div>
   `).join('');
@@ -1919,10 +1936,10 @@ function render_step_tool_picker_grid() {
   const grid = document.getElementById('step_tool_picker_grid');
   const auto_tool_names = Object.values(STEP_TYPE_DEFAULT_TOOL);
   let list = COMMON_TOOLS.filter(t => !step_editor_tools.some(l => l.name === t.name) && !auto_tool_names.includes(t.name));
-  if (search) list = list.filter(t => normalize_for_search(t.name).includes(normalize_for_search(search)));
+  if (search) list = list.filter(t => normalize_for_search(t.name).includes(normalize_for_search(search)) || normalize_for_search(I18N.td('tools', t.name)).includes(normalize_for_search(search)));
 
   if (list.length === 0) {
-    grid.innerHTML = `<p class="empty-hint">Tous les outils courants sont déjà ajoutés.</p>`;
+    grid.innerHTML = `<p class="empty-hint">${escape_html(I18N.t('modal.step_tool_picker.all_added'))}</p>`;
     update_step_tool_picker_confirm();
     return;
   }
@@ -1930,7 +1947,7 @@ function render_step_tool_picker_grid() {
     const is_selected = step_tool_modal_selected.has(t.name);
     return `<button type="button" class="food-tile ${is_selected ? 'selected' : ''}" data-name="${escape_attr(t.name)}" data-emoji="${t.emoji}">
       <span class="food-tile-emoji">${t.emoji}</span>
-      <span class="food-tile-name">${escape_html(t.name)}</span>
+      <span class="food-tile-name">${escape_html(I18N.td('tools', t.name))}</span>
       ${is_selected ? '<i class="fa-solid fa-circle-check food-tile-check selected-check"></i>' : ''}
     </button>`;
   }).join('');
@@ -1990,8 +2007,8 @@ function open_step_editor(index) {
   const step = is_editing ? recipe_steps[index] : { type: 'prep', text: '', time_min: '', oven_temp: '', ingredients: [], tools: [], image_url: null, video_url: null, external_url: '', output_product: '' };
 
   document.getElementById('step_editor_title').innerHTML = is_editing
-    ? `<i class="fa-solid fa-list-ol"></i> Modifier l'étape ${index + 1}`
-    : `<i class="fa-solid fa-list-ol"></i> Ajouter une étape`;
+    ? `<i class="fa-solid fa-list-ol"></i> ${escape_html(I18N.t('modal.step_editor.title_edit_numbered', { n: index + 1 }))}`
+    : `<i class="fa-solid fa-list-ol"></i> ${escape_html(I18N.t('modal.step_editor.title_add'))}`;
   document.getElementById('step_editor_text').value = step.text || '';
   document.getElementById('step_editor_time').value = step.time_min || '';
   sync_time_clock_dial('step_editor_time');
@@ -2063,7 +2080,7 @@ document.getElementById('step_editor_video_input').addEventListener('change', (e
 
 document.getElementById('save_step_editor_btn').addEventListener('click', () => {
   const text = document.getElementById('step_editor_text').value.trim();
-  if (!text) { alert('Ajoute une description pour cette étape.'); return; }
+  if (!text) { alert(I18N.t('modal.step_editor.error_description')); return; }
 
   const creates_product = document.getElementById('step_editor_creates_product').checked;
   const output_product = creates_product ? document.getElementById('step_editor_output_product').value.trim() : '';
@@ -2118,7 +2135,7 @@ function render_cover_photo_preview() {
     dropzone.innerHTML = `<img src="${escape_attr(url)}" alt="">`;
     dropzone.classList.add('has-image');
   } else {
-    dropzone.innerHTML = `<i class="fa-solid fa-camera"></i><span>Choisir une photo</span>`;
+    dropzone.innerHTML = `<i class="fa-solid fa-camera"></i><span>${escape_html(I18N.t('publish.cover_choose'))}</span>`;
     dropzone.classList.remove('has-image');
   }
 }
@@ -2151,8 +2168,8 @@ function update_image_preview_text() {
   const label = document.getElementById('recipe_images_preview_text');
   if (!label) return;
   label.textContent = pending_images.length
-    ? `${pending_images.length} photo${pending_images.length > 1 ? 's' : ''} sélectionnée${pending_images.length > 1 ? 's' : ''}`
-    : 'Aucun fichier choisi';
+    ? I18N.t('publish.photos_selected', { count: pending_images.length })
+    : I18N.t('publish.no_file_chosen');
 }
 
 function render_image_thumbs() {
@@ -2209,11 +2226,11 @@ const recipe_message_text = document.getElementById('recipe_message_text');
 recipe_form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  if (!supabase) { recipe_message_text.className = 'msg error'; recipe_message_text.textContent = 'Supabase indisponible.'; return; }
+  if (!supabase) { recipe_message_text.className = 'msg error'; recipe_message_text.textContent = I18N.t('profile.supabase_unavailable'); return; }
 
   if (!current_user) {
     recipe_message_text.className = 'msg error';
-    recipe_message_text.textContent = 'Tu dois être connecté pour publier une recette.';
+    recipe_message_text.textContent = I18N.t('publish.error_login_required');
     auth_modal.classList.remove('hidden');
     return;
   }
@@ -2227,25 +2244,25 @@ recipe_form.addEventListener('submit', async (e) => {
 
   if (!cover_image_file && !existing_cover_image_url) {
     recipe_message_text.className = 'msg error';
-    recipe_message_text.textContent = 'Ajoute une photo de couverture pour ta recette.';
+    recipe_message_text.textContent = I18N.t('publish.error_cover');
     return;
   }
 
   // --- Ingrédients (pool simple, sans quantité globale) ---
   if (ingredient_pool.length === 0 || recipe_steps.length === 0) {
     recipe_message_text.className = 'msg error';
-    recipe_message_text.textContent = 'Ajoute au moins un ingrédient et une étape.';
+    recipe_message_text.textContent = I18N.t('publish.error_ingredients_and_steps');
     return;
   }
   const steps_missing_text = recipe_steps.some(s => !s.text || !s.text.trim());
   if (steps_missing_text) {
     recipe_message_text.className = 'msg error';
-    recipe_message_text.textContent = 'Chaque étape doit avoir une description.';
+    recipe_message_text.textContent = I18N.t('publish.error_step_description');
     return;
   }
 
   recipe_message_text.className = 'msg';
-  recipe_message_text.textContent = 'Envoi des photos et vidéos...';
+  recipe_message_text.textContent = I18N.t('publish.uploading_media');
 
   let final_cover_url = existing_cover_image_url || null;
   if (cover_image_file) {
@@ -2283,7 +2300,7 @@ recipe_form.addEventListener('submit', async (e) => {
     });
   }
 
-  recipe_message_text.textContent = editing_recipe_id ? 'Mise à jour...' : 'Publication...';
+  recipe_message_text.textContent = editing_recipe_id ? I18N.t('profile.updating') : I18N.t('publish.publishing');
 
   const payload = {
     author_id: current_user.id,
@@ -2310,14 +2327,14 @@ recipe_form.addEventListener('submit', async (e) => {
 
   if (error) {
     recipe_message_text.className = 'msg error';
-    recipe_message_text.textContent = 'Erreur : ' + error.message;
+    recipe_message_text.textContent = I18N.t('common.error_prefix') + error.message;
     return;
   }
 
   recipe_message_text.className = 'msg';
   recipe_message_text.textContent = was_editing
-    ? 'Recette mise à jour !'
-    : 'Recette publiée ! +20 XP gagnés.';
+    ? I18N.t('publish.updated_success')
+    : I18N.t('publish.published_success');
   reset_publish_form();
 
   const target_recipe_id = editing_recipe_id;
@@ -2347,7 +2364,7 @@ function recipe_share_url(recipe_id) {
 function open_publish_success_modal(recipe) {
   if (!publish_success_modal) return;
   const share_url = recipe_share_url(recipe.id);
-  const share_text = `J'ai publié "${recipe.title}" sur Dishful 🍽️ Viens voir et partage tes propres recettes !`;
+  const share_text = I18N.t('publish_success.share_text', { title: recipe.title });
 
   document.getElementById('publish_success_recipe_card').innerHTML = `
     ${recipe.cover_image
@@ -2369,10 +2386,10 @@ function open_publish_success_modal(recipe) {
     const btn = document.getElementById('share_copy_btn');
     try {
       await navigator.clipboard.writeText(share_url);
-      btn.innerHTML = '<i class="fa-solid fa-check"></i> Copié !';
-      setTimeout(() => { btn.innerHTML = '<i class="fa-solid fa-link"></i> Copier le lien'; }, 1800);
+      btn.innerHTML = `<i class="fa-solid fa-check"></i> ${escape_html(I18N.t('publish_success.copied'))}`;
+      setTimeout(() => { btn.innerHTML = `<i class="fa-solid fa-link"></i> ${escape_html(I18N.t('publish_success.copy_link'))}`; }, 1800);
     } catch {
-      window.prompt('Copie ce lien :', share_url);
+      window.prompt(I18N.t('publish_success.copy_prompt'), share_url);
     }
   };
   document.getElementById('publish_success_view_btn').onclick = () => {
@@ -2413,11 +2430,11 @@ document.getElementById('confirm_deletion_request_btn')?.addEventListener('click
     reason: reason || null
   }]);
   if (error) {
-    show_toast('Erreur : ' + error.message, 'fa-triangle-exclamation');
+    show_toast(I18N.t('common.error_prefix') + error.message, 'fa-triangle-exclamation');
     return;
   }
   deletion_request_modal.classList.add('hidden');
-  show_toast("Demande envoyée. L'équipe Dishful va l'examiner.", 'fa-paper-plane');
+  show_toast(I18N.t('deletion.sent_msg'), 'fa-paper-plane');
 });
 
 function reset_publish_form() {
@@ -2458,7 +2475,7 @@ async function upload_single_file(file, user_id, prefix) {
 // =====================================================================
 async function load_recipes() {
   const grid_el = document.getElementById('recipe_grid');
-  if (grid_el) grid_el.innerHTML = dishful_loading_html('Chargement des recettes...');
+  if (grid_el) grid_el.innerHTML = dishful_loading_html(I18N.t('feed.loading_recipes'));
   const { data, error } = await supabase
     .from('recipes')
     .select('*, profiles ( username, donation_link, avatar_url )')
@@ -2503,12 +2520,12 @@ function render_recipes() {
   });
 
   const count_el = document.getElementById('feed_results_count');
-  if (count_el) count_el.textContent = `${list.length} recette${list.length !== 1 ? 's' : ''}`;
+  if (count_el) count_el.textContent = I18N.t('feed.results_count', { count: list.length });
 
   if (list.length === 0) {
     grid.innerHTML = all_recipes.length === 0
-      ? `<p class="empty-state">Aucune recette pour l'instant. Sois le·la premier·ère à publier !</p>`
-      : `<p class="empty-state">Aucune recette ne correspond à ta recherche/tes filtres.</p>`;
+      ? `<p class="empty-state">${escape_html(I18N.t('feed.empty_be_first'))}</p>`
+      : `<p class="empty-state">${escape_html(I18N.t('feed.empty_filtered'))}</p>`;
     return;
   }
   grid.innerHTML = list.map(r => recipe_card_html(r)).join('');
@@ -2555,8 +2572,8 @@ document.querySelectorAll('.feed-subtab-btn').forEach(btn => {
 async function load_feed_week_trending() {
   const grid = document.getElementById('feed_week_grid');
   if (!grid) return;
-  if (!supabase) { grid.innerHTML = `<p class="empty-state">Supabase indisponible.</p>`; return; }
-  grid.innerHTML = dishful_loading_html('Chargement des tendances de la semaine...');
+  if (!supabase) { grid.innerHTML = `<p class="empty-state">${escape_html(I18N.t('profile.supabase_unavailable'))}</p>`; return; }
+  grid.innerHTML = dishful_loading_html(I18N.t('feed.loading_week_trends'));
 
   const since = week_ago_iso();
   const [{ data: likes_week }, { data: views_week }, { data: comments_week }] = await Promise.all([
@@ -2579,7 +2596,7 @@ async function load_feed_week_trending() {
     .map(x => x.recipe);
 
   if (!ranked.length) {
-    grid.innerHTML = `<p class="empty-state">Pas encore assez d'activité cette semaine pour établir un classement. Reviens bientôt, ou découvre l'onglet "Tout" en attendant !</p>`;
+    grid.innerHTML = `<p class="empty-state">${escape_html(I18N.t('feed.not_enough_activity'))}</p>`;
     return;
   }
   grid.innerHTML = ranked.map(r => recipe_card_html(r)).join('');
@@ -2619,7 +2636,7 @@ function render_feed_ideas() {
     .map(x => x.recipe);
 
   if (!ranked.length) {
-    grid.innerHTML = `<p class="empty-state">Pas encore de recette dans cette catégorie pour l'instant.</p>`;
+    grid.innerHTML = `<p class="empty-state">${escape_html(I18N.t('feed.no_recipes_category'))}</p>`;
     return;
   }
   grid.innerHTML = ranked.map(r => recipe_card_html(r)).join('');
@@ -2647,7 +2664,7 @@ const search_excluded_allergens = new Set();
 function render_search_category_filters() {
   const container = document.getElementById('search_category_filters');
   if (!container) return;
-  container.innerHTML = [['', 'Toutes'], ...CATEGORIES.map(c => [c, c])].map(([val, label]) =>
+  container.innerHTML = [['', I18N.t('common.all')], ...CATEGORIES.map(c => [c, I18N.td('categories', c)])].map(([val, label]) =>
     `<button type="button" class="filter-chip ${search_category === (val || null) ? 'active' : ''}" data-cat="${escape_attr(val)}">${escape_html(label)}</button>`
   ).join('');
   container.querySelectorAll('.filter-chip').forEach(btn => {
@@ -2660,9 +2677,9 @@ function render_search_category_filters() {
 function render_search_difficulty_filters() {
   const container = document.getElementById('search_difficulty_filters');
   if (!container) return;
-  const options = [['', 'Toutes'], ['facile', 'Facile'], ['moyen', 'Moyen'], ['difficile', 'Difficile']];
+  const options = [['', I18N.t('common.all')], ['facile', I18N.t('publish.difficulty_easy')], ['moyen', I18N.t('publish.difficulty_medium')], ['difficile', I18N.t('publish.difficulty_hard')]];
   container.innerHTML = options.map(([val, label]) =>
-    `<button type="button" class="filter-chip ${search_difficulty === (val || null) ? 'active' : ''}" data-diff="${val}">${label}</button>`
+    `<button type="button" class="filter-chip ${search_difficulty === (val || null) ? 'active' : ''}" data-diff="${val}">${escape_html(label)}</button>`
   ).join('');
   container.querySelectorAll('.filter-chip').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -2675,7 +2692,7 @@ function render_search_allergen_filters() {
   const container = document.getElementById('search_allergen_filters');
   if (!container) return;
   container.innerHTML = Object.entries(ALLERGEN_INFO).map(([key, info]) =>
-    `<button type="button" class="filter-chip allergen-filter-chip ${search_excluded_allergens.has(key) ? 'active' : ''}" data-allergen="${key}"><i class="fa-solid ${info.icon}"></i> ${escape_html(info.label)}</button>`
+    `<button type="button" class="filter-chip allergen-filter-chip ${search_excluded_allergens.has(key) ? 'active' : ''}" data-allergen="${key}"><i class="fa-solid ${info.icon}"></i> ${escape_html(I18N.td('allergens', info.label))}</button>`
   ).join('');
   container.querySelectorAll('.filter-chip').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -2738,12 +2755,12 @@ function run_search() {
   }
 
   const count_el = document.getElementById('search_results_count');
-  if (count_el) count_el.textContent = `${results.length} recette${results.length !== 1 ? 's' : ''}`;
+  if (count_el) count_el.textContent = I18N.t('search.results_count', { count: results.length });
 
   if (!results.length) {
     grid.innerHTML = all_recipes.length === 0
-      ? `<p class="empty-state">Aucune recette pour l'instant. Sois le·la premier·ère à publier !</p>`
-      : `<p class="empty-state">Aucune recette ne correspond à ces critères. Essaie d'élargir ta recherche.</p>`;
+      ? `<p class="empty-state">${escape_html(I18N.t('feed.empty_be_first'))}</p>`
+      : `<p class="empty-state">${escape_html(I18N.t('search.empty'))}</p>`;
     return;
   }
   grid.innerHTML = results.map(r => recipe_card_html(r)).join('');
@@ -2763,22 +2780,22 @@ document.getElementById('reset_search_btn')?.addEventListener('click', () => {
 });
 
 function show_translate_stub() {
-  alert("Traduction automatique : fonctionnalité prête côté interface, mais elle nécessite de connecter une clé API de traduction (DeepL ou Google Cloud Translation) côté serveur. Dis-moi si tu veux qu'on la branche.");
+  alert(I18N.t('common.translate_stub'));
 }
 
 function recipe_card_html(r) {
   const primary_cat = (r.categories && r.categories[0]) || 'Plat';
-  const author_name = r.profiles ? r.profiles.username : 'Anonyme';
+  const author_name = r.profiles ? r.profiles.username : I18N.t('common.anonymous');
   const donation_link = r.profiles ? r.profiles.donation_link : null;
   const author_avatar_url = r.profiles ? r.profiles.avatar_url : null;
   const author_initial = (author_name || '?')[0].toUpperCase();
   const is_liked = liked_recipe_ids.has(r.id);
   const tag_chips = [...(r.categories||[]), ...(r.tags||[])]
-    .map(t => `<span class="tag-chip">${escape_html(t)}</span>`).join('');
+    .map(t => `<span class="tag-chip">${escape_html(I18N.td(CATEGORIES.includes(t) ? 'categories' : 'tags', t))}</span>`).join('');
   const cover_image = r.cover_image || (r.images && r.images[0]) || null;
   const flag_html = r.country_code ? (country_flag_from_code(r.country_code) || '🌍') : '';
   const total_time = compute_recipe_total_time(r);
-  const difficulty_label = (r.difficulty || 'moyen');
+  const difficulty_label = I18N.td('difficulty', r.difficulty || 'moyen');
 
   return `
   <article class="recipe-card" data-recipe-id="${r.id}">
@@ -2786,11 +2803,11 @@ function recipe_card_html(r) {
       <button type="button" class="recipe-card-author" data-author-id="${escape_attr(r.author_id)}">
         <span class="avatar recipe-card-avatar">${author_avatar_url ? `<img src="${escape_attr(author_avatar_url)}" alt="">` : author_initial}</span>
         <span class="recipe-card-author-info">
-          <span class="recipe-card-author-name">${escape_html(author_name)}${official_badge_html(r.author_id)}</span>
+          <span class="recipe-card-author-name">${escape_html(author_name)}${official_badge_html(r.author_id)}${ceo_badge_html(r.author_id)}</span>
           <span class="recipe-card-author-sub">${r.country ? flag_html + ' ' + escape_html(r.country) + ' · ' : ''}${format_relative_date(r.created_at)}</span>
         </span>
       </button>
-      <span class="stripe-badge cat-${escape_html(primary_cat)}">${escape_html(primary_cat)}</span>
+      <span class="stripe-badge cat-${escape_html(primary_cat)}">${escape_html(I18N.td('categories', primary_cat))}</span>
     </div>
 
     <div class="recipe-card-media">
@@ -2809,15 +2826,15 @@ function recipe_card_html(r) {
       <div class="recipe-card-stats-row">
         ${total_time ? `<span class="recipe-card-stat"><i class="fa-solid fa-stopwatch"></i> ${total_time} min</span>` : ''}
         <span class="recipe-card-stat"><i class="fa-solid fa-gauge"></i> ${escape_html(difficulty_label)}</span>
-        ${r.servings ? `<span class="recipe-card-stat"><i class="fa-solid fa-users"></i> ${r.servings} pers.</span>` : ''}
+        ${r.servings ? `<span class="recipe-card-stat"><i class="fa-solid fa-users"></i> ${r.servings} ${escape_html(I18N.t('common.servings'))}</span>` : ''}
         ${r.views_count ? `<span class="recipe-card-stat"><i class="fa-solid fa-eye"></i> ${r.views_count}</span>` : ''}
       </div>
       <div class="chips-row">${tag_chips}</div>
       <div class="recipe-actions">
         <button class="action-btn like-btn ${is_liked ? 'liked' : ''}"><i class="fa-solid fa-heart"></i> <span class="like-count">${r.likes_count || 0}</span></button>
         <span class="action-btn"><i class="fa-regular fa-comment"></i> ${r.comments_count || 0}</span>
-        <button class="translate-btn"><i class="fa-solid fa-language"></i> Traduire</button>
-        ${donation_link ? `<a class="donate-btn" href="${escape_attr(donation_link)}" target="_blank" rel="noopener"><i class="fa-solid fa-hand-holding-heart"></i> Faire un don</a>` : ''}
+        <button class="translate-btn"><i class="fa-solid fa-language"></i> ${escape_html(I18N.t('common.translate_btn'))}</button>
+        ${donation_link ? `<a class="donate-btn" href="${escape_attr(donation_link)}" target="_blank" rel="noopener"><i class="fa-solid fa-hand-holding-heart"></i> ${escape_html(I18N.t('common.donate_btn'))}</a>` : ''}
       </div>
     </div>
   </article>`;
@@ -2846,19 +2863,20 @@ function escape_html(str) {
 function escape_attr(str) { return escape_html(str); }
 
 // Date relative façon fil d'actualité ("il y a 2 j") plutôt qu'une date brute.
+const DATE_LOCALE_BY_LANG = { fr: 'fr-FR', en: 'en-GB', pt: 'pt-PT', es: 'es-ES' };
 function format_relative_date(iso) {
   if (!iso) return '';
   const diff_ms = Date.now() - new Date(iso).getTime();
   const min = Math.floor(diff_ms / 60000);
-  if (min < 1) return "à l'instant";
-  if (min < 60) return `il y a ${min} min`;
+  if (min < 1) return I18N.t('time.just_now');
+  if (min < 60) return I18N.t('time.minutes_ago', { count: min });
   const hours = Math.floor(min / 60);
-  if (hours < 24) return `il y a ${hours} h`;
+  if (hours < 24) return I18N.t('time.hours_ago', { count: hours });
   const days = Math.floor(hours / 24);
-  if (days < 7) return `il y a ${days} j`;
+  if (days < 7) return I18N.t('time.days_ago', { count: days });
   const weeks = Math.floor(days / 7);
-  if (weeks < 5) return `il y a ${weeks} sem.`;
-  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+  if (weeks < 5) return I18N.t('time.weeks_ago', { count: weeks });
+  return new Date(iso).toLocaleDateString(DATE_LOCALE_BY_LANG[I18N.getLang()] || 'fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 // Petite notification flottante réutilisable (confirmation d'ajout, etc.)
@@ -3179,7 +3197,7 @@ async function render_profile_tab() {
 
   // En-tête profil
   const display_name = `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
-  document.getElementById("profile_display_name").textContent = display_name || "Utilisateur";
+  document.getElementById("profile_display_name").textContent = display_name || I18N.t('common.unknown_user');
   document.getElementById("profile_username_text").textContent = profile.username ? `@${profile.username}` : "@username";
 
   // Niveau et XP : niveau N nécessite (N-1)*100 XP, et se termine à N*100 XP.
@@ -3190,8 +3208,8 @@ async function render_profile_tab() {
   const xp_in_current_level = xp_points - xp_for_current_level;
   const xp_percentage = Math.min(Math.max((xp_in_current_level / 100) * 100, 0), 100);
 
-  document.getElementById("profile_level").textContent = `Niv. ${user_level}`;
-  document.getElementById("profile_xp_text").textContent = `${xp_in_current_level} / 100 XP (niveau ${user_level}) · ${xp_points} XP au total`;
+  document.getElementById("profile_level").textContent = I18N.t('profile.level_short_display', { n: user_level });
+  document.getElementById("profile_xp_text").textContent = I18N.t('profile.level_progress', { xp: xp_in_current_level, level: user_level, total: xp_points });
   document.getElementById("profile_xp_fill").style.width = `${xp_percentage}%`;
 
   // Email de connexion (vient de auth.users, pas de la table profiles)
@@ -3227,7 +3245,7 @@ const profile_form = document.getElementById("profile_form");
       if (!supabase) return;
 
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return alert("Veuillez vous connecter.");
+      if (!user) return alert(I18N.t('common.login_required'));
 
     const nationality_code_val = document.getElementById("profile_nationality").value;
     const nationality_country = country_list.find(c => c.code === nationality_code_val);
@@ -3250,9 +3268,9 @@ const profile_form = document.getElementById("profile_form");
         .eq("id", user.id);
 
       if (error) {
-        alert("Erreur : " + error.message);
+        alert(I18N.t('common.error_prefix') + error.message);
       } else {
-        alert("Profil mis à jour !");
+        alert(I18N.t('profile.saved_profile_msg'));
         await refresh_session();
       }
     });
@@ -3271,7 +3289,7 @@ async function upload_profile_image(file, image_type) {
 
   const { error } = await supabase.storage.from("avatars").upload(file_path, file);
   if (error) {
-    alert("Erreur envoi image : " + error.message);
+    alert(I18N.t('common.error_upload_image') + error.message);
     return null;
   }
 
@@ -3331,17 +3349,17 @@ async function render_badges_tab() {
   if (active_badge) {
     equipped_box.innerHTML = `
       <div class="badge_icon">${active_badge.icon}</div>
-      <div class="badge_name">${active_badge.name}</div>
+      <div class="badge_name">${escape_html(I18N.td('badges', active_badge.name))}</div>
     `;
-    document.getElementById("equipped_badge_display").textContent = `${active_badge.icon} ${active_badge.name}`;
+    document.getElementById("equipped_badge_display").textContent = `${active_badge.icon} ${I18N.td('badges', active_badge.name)}`;
   } else {
-    equipped_box.innerHTML = `<span>Aucun badge équipé</span>`;
+    equipped_box.innerHTML = `<span>${escape_html(I18N.t('profile.no_badge_equipped'))}</span>`;
     document.getElementById("equipped_badge_display").textContent = "";
   }
 
-  render_badge_grid("recipe_badges_grid", recipe_badge_list, total_published, equipped_badge_id, "recettes", true);
-  render_badge_grid("like_badges_grid", like_badge_list, total_likes, equipped_badge_id, "likes", true);
-  render_badge_grid("level_badges_grid", level_badge_list, user_level, equipped_badge_id, "niveaux", true);
+  render_badge_grid("recipe_badges_grid", recipe_badge_list, total_published, equipped_badge_id, I18N.t('profile.unit_recipes'), true);
+  render_badge_grid("like_badges_grid", like_badge_list, total_likes, equipped_badge_id, I18N.t('profile.unit_likes'), true);
+  render_badge_grid("level_badges_grid", level_badge_list, user_level, equipped_badge_id, I18N.t('profile.unit_levels'), true);
 }
 
 // `interactive` doit rester à false sur un profil PUBLIC (celui de quelqu'un d'autre) :
@@ -3359,16 +3377,16 @@ function render_badge_grid(container_id, badges, current_count, equipped_id, lab
     else if (is_unlocked) card_class += " unlocked";
     else card_class += " locked";
 
-    let btn_label = "Verrouillé";
-    if (is_equipped) btn_label = "Équipé";
-    else if (is_unlocked) btn_label = interactive ? "Équiper" : "Débloqué";
+    let btn_label = I18N.t('common.locked');
+    if (is_equipped) btn_label = I18N.t('common.equipped');
+    else if (is_unlocked) btn_label = interactive ? I18N.t('common.equip') : I18N.t('common.unlocked');
 
     return `
       <div class="${card_class}" data-badge-id="${badge.id}" data-unlocked="${is_unlocked}">
         <div class="badge_icon">${badge.icon}</div>
-        <div class="badge_name">${badge.name}</div>
-        <div class="badge_desc">${badge.count} ${label} (${Math.min(current_count, badge.count)}/${badge.count})</div>
-        <button type="button" class="badge_status_btn">${btn_label}</button>
+        <div class="badge_name">${escape_html(I18N.td('badges', badge.name))}</div>
+        <div class="badge_desc">${badge.count} ${escape_html(label)} (${Math.min(current_count, badge.count)}/${badge.count})</div>
+        <button type="button" class="badge_status_btn">${escape_html(btn_label)}</button>
       </div>
     `;
   }).join("");
@@ -3416,7 +3434,7 @@ function render_mini_recipes_grid(container_id, recipes) {
   if (!container) return;
 
   if (recipes.length === 0) {
-    container.innerHTML = `<p class="empty-state">Aucune recette trouvée.</p>`;
+    container.innerHTML = `<p class="empty-state">${escape_html(I18N.t('common.no_recipe_found'))}</p>`;
     return;
   }
 
@@ -3427,7 +3445,7 @@ function render_mini_recipes_grid(container_id, recipes) {
         <div class="mini_card_img" style="background-image: url('${escape_attr(cover_image)}')"></div>
         <div class="mini_card_info">
           <h4>${escape_html(r.title)}</h4>
-          <span class="mini_card_meta">${r.country ? r.country : "Recette"} · ❤️ ${r.likes_count || 0}</span>
+          <span class="mini_card_meta">${r.country ? escape_html(r.country) : escape_html(I18N.t('common.recipe'))} · ❤️ ${r.likes_count || 0}</span>
         </div>
       </div>
     `;
@@ -3447,11 +3465,11 @@ function populate_saved_filters(saved_recipes) {
   const countries = [...new Set(saved_recipes.map((r) => r.country).filter(Boolean))];
   const tags = [...new Set(saved_recipes.flatMap((r) => [...(r.categories || []), ...(r.tags || [])]))];
 
-  country_select.innerHTML = `<option value="">Tous les pays</option>` +
+  country_select.innerHTML = `<option value="">${escape_html(I18N.t('common.all_countries'))}</option>` +
     countries.map((c) => `<option value="${escape_attr(c)}">${escape_html(c)}</option>`).join("");
 
-  tag_select.innerHTML = `<option value="">Tous les tags</option>` +
-    tags.map((t) => `<option value="${escape_attr(t)}">${escape_html(t)}</option>`).join("");
+  tag_select.innerHTML = `<option value="">${escape_html(I18N.t('profile.all_tags'))}</option>` +
+    tags.map((t) => `<option value="${escape_attr(t)}">${escape_html(I18N.td(CATEGORIES.includes(t) ? 'categories' : 'tags', t))}</option>`).join("");
 
   const handle_filter_change = () => apply_saved_recipes_filter(saved_recipes);
   country_select.onchange = handle_filter_change;
@@ -3524,8 +3542,8 @@ async function get_profiles_lookup() {
 async function load_leaderboard() {
   const container = document.getElementById('leaderboard_list');
   if (!container) return;
-  if (!supabase) { container.innerHTML = `<p class="empty-state">Supabase indisponible.</p>`; return; }
-  container.innerHTML = dishful_loading_html('Chargement du classement...');
+  if (!supabase) { container.innerHTML = `<p class="empty-state">${escape_html(I18N.t('profile.supabase_unavailable'))}</p>`; return; }
+  container.innerHTML = dishful_loading_html(I18N.t('leaderboard.loading'));
 
   if (leaderboard_period === 'week') {
     await load_weekly_chefs_ranking(container);
@@ -3538,8 +3556,8 @@ async function load_leaderboard() {
     .order('xp_points', { ascending: false })
     .limit(50);
 
-  if (error) { container.innerHTML = `<p class="empty-state">Erreur : ${escape_html(error.message)}</p>`; return; }
-  if (!data || data.length === 0) { container.innerHTML = `<p class="empty-state">Personne dans le classement pour l'instant.</p>`; return; }
+  if (error) { container.innerHTML = `<p class="empty-state">${escape_html(I18N.t('common.error_prefix') + error.message)}</p>`; return; }
+  if (!data || data.length === 0) { container.innerHTML = `<p class="empty-state">${escape_html(I18N.t('leaderboard.nobody_yet'))}</p>`; return; }
 
   container.innerHTML = data.map((p, i) => {
     const xp_in_level = p.xp_points % 100;
@@ -3553,13 +3571,13 @@ async function load_leaderboard() {
         <span class="leaderboard-rank">${i + 1}</span>
         <div class="avatar leaderboard-avatar">${avatar_html}</div>
         <div class="leaderboard-identity">
-          <span class="leaderboard-name">${escape_html(display_name)}${is_me ? ' <span class="its-me-badge"><i class="fa-solid fa-star"></i> C\'est moi</span>' : ''}</span>
+          <span class="leaderboard-name">${escape_html(display_name)}${is_me ? ` <span class="its-me-badge"><i class="fa-solid fa-star"></i> ${escape_html(I18N.t('leaderboard.its_me'))}</span>` : ''}</span>
           <span class="leaderboard-username">@${escape_html(p.username || '')}</span>
         </div>
         <div class="leaderboard-level">
           <div class="leaderboard-level-row">
-            <span class="leaderboard-level-badge">Niv. ${p.user_level}</span>
-            <span class="leaderboard-xp-text">${p.xp_points} XP au total</span>
+            <span class="leaderboard-level-badge">${escape_html(I18N.t('profile.level_short_display', { n: p.user_level }))}</span>
+            <span class="leaderboard-xp-text">${escape_html(I18N.t('leaderboard.xp_total', { xp: p.xp_points }))}</span>
           </div>
           <div class="xp_bar"><div class="xp_fill" style="width:${xp_in_level}%;"></div></div>
         </div>
@@ -3611,7 +3629,7 @@ async function load_weekly_chefs_ranking(container) {
     .slice(0, 50);
 
   if (ranked.length === 0) {
-    container.innerHTML = `<p class="empty-state">Personne n'a gagné d'XP cette semaine pour l'instant.</p>`;
+    container.innerHTML = `<p class="empty-state">${escape_html(I18N.t('leaderboard.nobody_xp_week'))}</p>`;
     return;
   }
 
@@ -3627,11 +3645,11 @@ async function load_weekly_chefs_ranking(container) {
         <span class="leaderboard-rank">${i + 1}</span>
         <div class="avatar leaderboard-avatar">${avatar_html}</div>
         <div class="leaderboard-identity">
-          <span class="leaderboard-name">${escape_html(display_name)}${is_me ? ' <span class="its-me-badge"><i class="fa-solid fa-star"></i> C\'est moi</span>' : ''}</span>
+          <span class="leaderboard-name">${escape_html(display_name)}${is_me ? ` <span class="its-me-badge"><i class="fa-solid fa-star"></i> ${escape_html(I18N.t('leaderboard.its_me'))}</span>` : ''}</span>
           <span class="leaderboard-username">@${escape_html(p.username || '')}</span>
         </div>
         <div class="leaderboard-level">
-          <span class="leaderboard-xp-text"><i class="fa-solid fa-bolt" style="color:var(--rust);"></i> +${entry.xp} XP cette semaine</span>
+          <span class="leaderboard-xp-text"><i class="fa-solid fa-bolt" style="color:var(--rust);"></i> ${escape_html(I18N.t('leaderboard.xp_week', { xp: entry.xp }))}</span>
         </div>
       </div>
     `;
@@ -3682,13 +3700,13 @@ document.querySelectorAll('.leaderboard-scope-btn').forEach(btn => {
     const hint = document.getElementById(`leaderboard_${kind}_hint`);
     if (scope === 'chefs') {
       if (hint) hint.textContent = kind === 'liked'
-        ? "Les chefs qui cumulent le plus de cœurs sur l'ensemble de leurs recettes."
-        : "Les chefs qui cumulent le plus d'étoiles sur l'ensemble de leurs recettes.";
+        ? I18N.t('leaderboard.hearts_chefs_hint')
+        : I18N.t('leaderboard.stars_chefs_hint');
       load_user_aggregate_ranking(kind);
     } else {
       if (hint) hint.textContent = kind === 'liked'
-        ? 'Les recettes qui récoltent le plus de cœurs.'
-        : 'Les recettes les mieux notées par la communauté.';
+        ? I18N.t('leaderboard.liked_hint')
+        : I18N.t('leaderboard.rated_hint');
       load_recipe_ranking(kind);
     }
   });
@@ -3699,8 +3717,8 @@ document.querySelectorAll('.leaderboard-scope-btn').forEach(btn => {
 async function load_user_aggregate_ranking(kind) {
   const container = document.getElementById(kind === 'liked' ? 'leaderboard_liked_list' : 'leaderboard_rated_list');
   if (!container) return;
-  if (!supabase) { container.innerHTML = `<p class="empty-state">Supabase indisponible.</p>`; return; }
-  container.innerHTML = dishful_loading_html('Chargement...');
+  if (!supabase) { container.innerHTML = `<p class="empty-state">${escape_html(I18N.t('profile.supabase_unavailable'))}</p>`; return; }
+  container.innerHTML = dishful_loading_html(I18N.t('common.loading'));
 
   if (leaderboard_period === 'week') {
     await load_weekly_user_aggregate_ranking(kind, container);
@@ -3711,8 +3729,8 @@ async function load_user_aggregate_ranking(kind) {
     .from('recipes')
     .select('author_id, likes_count, rating_avg, rating_count, profiles(username, avatar_url, first_name, last_name)');
 
-  if (error) { container.innerHTML = `<p class="empty-state">Erreur : ${escape_html(error.message)}</p>`; return; }
-  if (!data || data.length === 0) { container.innerHTML = `<p class="empty-state">Aucune donnée pour l'instant.</p>`; return; }
+  if (error) { container.innerHTML = `<p class="empty-state">${escape_html(I18N.t('common.error_prefix') + error.message)}</p>`; return; }
+  if (!data || data.length === 0) { container.innerHTML = `<p class="empty-state">${escape_html(I18N.t('leaderboard.no_data_yet'))}</p>`; return; }
 
   const totals = new Map(); // author_id -> { profile, hearts, stars, recipe_count }
   data.forEach(r => {
@@ -3772,7 +3790,7 @@ async function load_weekly_user_aggregate_ranking(kind, container) {
 
 function render_chef_aggregate_rows(container, ranked, kind, is_weekly) {
   if (ranked.length === 0) {
-    container.innerHTML = `<p class="empty-state">Personne dans ce classement pour l'instant.</p>`;
+    container.innerHTML = `<p class="empty-state">${escape_html(I18N.t('leaderboard.nobody_ranking_yet'))}</p>`;
     return;
   }
 
@@ -3780,20 +3798,20 @@ function render_chef_aggregate_rows(container, ranked, kind, is_weekly) {
     const p = entry.profile || {};
     const rank_class = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
     const is_me = current_user && current_user.id === entry.author_id;
-    const display_name = [p.first_name, p.last_name].filter(Boolean).join(' ') || p.username || 'Utilisateur';
+    const display_name = [p.first_name, p.last_name].filter(Boolean).join(' ') || p.username || I18N.t('common.unknown_user');
     const initials = (p.first_name ? p.first_name[0] : (p.username || '?')[0]).toUpperCase();
     const avatar_html = p.avatar_url ? `<img src="${escape_attr(p.avatar_url)}" alt="">` : initials;
-    const recipe_word = `${entry.recipe_count} recette${entry.recipe_count > 1 ? 's' : ''}`;
-    const period_word = is_weekly ? ' cette semaine' : ' cumulés';
+    const recipe_word = I18N.t('leaderboard.recipe_count', { count: entry.recipe_count });
+    const period_word = is_weekly ? I18N.t('leaderboard.period_week') : I18N.t('leaderboard.period_cumulative');
     const stat_html = kind === 'liked'
-      ? `<span class="leaderboard-xp-text"><i class="fa-solid fa-heart" style="color:var(--rust);"></i> ${entry.hearts} cœurs${period_word} sur ${recipe_word}</span>`
-      : `<span class="leaderboard-xp-text"><i class="fa-solid fa-star" style="color:#D9A62E;"></i> ${Math.round(entry.stars * 10) / 10} étoiles${period_word} sur ${recipe_word}</span>`;
+      ? `<span class="leaderboard-xp-text"><i class="fa-solid fa-heart" style="color:var(--rust);"></i> ${escape_html(I18N.t('leaderboard.hearts_stat', { count: entry.hearts, period: period_word, recipes: recipe_word }))}</span>`
+      : `<span class="leaderboard-xp-text"><i class="fa-solid fa-star" style="color:#D9A62E;"></i> ${escape_html(I18N.t('leaderboard.stars_stat', { count: Math.round(entry.stars * 10) / 10, period: period_word, recipes: recipe_word }))}</span>`;
     return `
       <div class="leaderboard-row ${rank_class} ${is_me ? 'is-me' : ''}" data-user-id="${escape_attr(entry.author_id)}">
         <span class="leaderboard-rank">${i + 1}</span>
         <div class="avatar leaderboard-avatar">${avatar_html}</div>
         <div class="leaderboard-identity">
-          <span class="leaderboard-name">${escape_html(display_name)}${is_me ? ' <span class="its-me-badge"><i class="fa-solid fa-star"></i> C\'est moi</span>' : ''}</span>
+          <span class="leaderboard-name">${escape_html(display_name)}${is_me ? ` <span class="its-me-badge"><i class="fa-solid fa-star"></i> ${escape_html(I18N.t('leaderboard.its_me'))}</span>` : ''}</span>
           <span class="leaderboard-username">@${escape_html(p.username || '')}</span>
         </div>
         <div class="leaderboard-level">${stat_html}</div>
@@ -3808,19 +3826,19 @@ function render_chef_aggregate_rows(container, ranked, kind, is_weekly) {
 
 function recipe_ranking_row_html(r, rank, kind) {
   const cover = r.cover_image || (r.images && r.images[0]) || null;
-  const author = r.profiles ? r.profiles.username : 'Anonyme';
+  const author = r.profiles ? r.profiles.username : I18N.t('common.anonymous');
   const rank_class = rank === 0 ? 'gold' : rank === 1 ? 'silver' : rank === 2 ? 'bronze' : '';
   const is_me = current_user && r.author_id === current_user.id;
   const stat_html = kind === 'rated'
-    ? `<span class="leaderboard-xp-text"><i class="fa-solid fa-star" style="color:#D9A62E;"></i> ${Number(r.rating_avg || 0).toFixed(1)} (${r.rating_count || 0} avis)</span>`
-    : `<span class="leaderboard-xp-text"><i class="fa-solid fa-heart" style="color:var(--rust);"></i> ${r.likes_count || 0} cœurs</span>`;
+    ? `<span class="leaderboard-xp-text"><i class="fa-solid fa-star" style="color:#D9A62E;"></i> ${Number(r.rating_avg || 0).toFixed(1)} (${r.rating_count || 0} ${escape_html(I18N.t('recipe_detail.reviews'))})</span>`
+    : `<span class="leaderboard-xp-text"><i class="fa-solid fa-heart" style="color:var(--rust);"></i> ${escape_html(I18N.t('leaderboard.hearts_count', { count: r.likes_count || 0 }))}</span>`;
   return `
     <div class="leaderboard-row ${rank_class} ${is_me ? 'is-me' : ''}" data-recipe-id="${escape_attr(r.id)}">
       <span class="leaderboard-rank">${rank + 1}</span>
       ${cover ? `<img class="leaderboard-avatar" style="border-radius:10px;object-fit:cover;" src="${escape_attr(cover)}" alt="">` : `<div class="avatar leaderboard-avatar">🍽️</div>`}
       <div class="leaderboard-identity" style="min-width:160px;">
         <span class="leaderboard-name">${escape_html(r.title)}</span>
-        <span class="leaderboard-username">par @${escape_html(author)}${is_me ? ' <span class="its-me-badge"><i class="fa-solid fa-star"></i> C\'est moi</span>' : ''}</span>
+        <span class="leaderboard-username">${escape_html(I18N.t('leaderboard.by_author', { author }))}${is_me ? ` <span class="its-me-badge"><i class="fa-solid fa-star"></i> ${escape_html(I18N.t('leaderboard.its_me'))}</span>` : ''}</span>
       </div>
       <div class="leaderboard-level">${stat_html}</div>
     </div>
@@ -3830,8 +3848,8 @@ function recipe_ranking_row_html(r, rank, kind) {
 async function load_recipe_ranking(kind) {
   const container = document.getElementById(kind === 'liked' ? 'leaderboard_liked_list' : 'leaderboard_rated_list');
   if (!container) return;
-  if (!supabase) { container.innerHTML = `<p class="empty-state">Supabase indisponible.</p>`; return; }
-  container.innerHTML = dishful_loading_html('Chargement...');
+  if (!supabase) { container.innerHTML = `<p class="empty-state">${escape_html(I18N.t('profile.supabase_unavailable'))}</p>`; return; }
+  container.innerHTML = dishful_loading_html(I18N.t('common.loading'));
 
   if (leaderboard_period === 'week') {
     await load_weekly_recipe_ranking(kind, container);
@@ -3844,11 +3862,11 @@ async function load_recipe_ranking(kind) {
     : query.not('rating_avg', 'is', null).order('rating_avg', { ascending: false }).limit(50);
 
   const { data, error } = await query;
-  if (error) { container.innerHTML = `<p class="empty-state">Erreur : ${escape_html(error.message)}</p>`; return; }
+  if (error) { container.innerHTML = `<p class="empty-state">${escape_html(I18N.t('common.error_prefix') + error.message)}</p>`; return; }
   if (!data || data.length === 0) {
     container.innerHTML = kind === 'liked'
-      ? `<p class="empty-state">Aucune recette pour l'instant.</p>`
-      : `<p class="empty-state">Aucune recette notée pour l'instant.</p>`;
+      ? `<p class="empty-state">${escape_html(I18N.t('leaderboard.no_recipes_yet'))}</p>`
+      : `<p class="empty-state">${escape_html(I18N.t('leaderboard.no_rated_recipes_yet'))}</p>`;
     return;
   }
   container.innerHTML = data.map((r, i) => recipe_ranking_row_html(r, i, kind)).join('');
@@ -3891,8 +3909,8 @@ async function load_weekly_recipe_ranking(kind, container) {
 
   if (rows.length === 0) {
     container.innerHTML = kind === 'liked'
-      ? `<p class="empty-state">Aucun cœur cette semaine pour l'instant.</p>`
-      : `<p class="empty-state">Aucune note cette semaine pour l'instant.</p>`;
+      ? `<p class="empty-state">${escape_html(I18N.t('leaderboard.no_hearts_week'))}</p>`
+      : `<p class="empty-state">${escape_html(I18N.t('leaderboard.no_ratings_week'))}</p>`;
     return;
   }
   container.innerHTML = rows.map((r, i) => recipe_ranking_row_html(r, i, kind)).join('');
@@ -3916,14 +3934,14 @@ async function show_recipe_detail_page(recipe_id) {
   if (!recipe) {
     // pas encore en cache (lien direct, etc.) : on l'affiche pendant le chargement
     switch_tab("recipe-detail");
-    container.innerHTML = dishful_loading_html('Chargement de la recette...');
-    if (!supabase) { container.innerHTML = `<p class="empty-state">Supabase indisponible.</p>`; return; }
+    container.innerHTML = dishful_loading_html(I18N.t('recipe_detail.loading_recipe'));
+    if (!supabase) { container.innerHTML = `<p class="empty-state">${escape_html(I18N.t('profile.supabase_unavailable'))}</p>`; return; }
     const { data, error } = await supabase
       .from('recipes')
       .select('*, profiles ( username, donation_link, avatar_url )')
       .eq('id', recipe_id)
       .single();
-    if (error || !data) { container.innerHTML = `<p class="empty-state">Recette introuvable.</p>`; return; }
+    if (error || !data) { container.innerHTML = `<p class="empty-state">${escape_html(I18N.t('recipe_detail.recipe_not_found'))}</p>`; return; }
     recipe = data;
     all_recipes.push(recipe);
   }
@@ -3940,7 +3958,7 @@ async function show_recipe_detail_page(recipe_id) {
         if (counted_as_new_view) {
           recipe.views_count = (recipe.views_count || 0) + 1;
           const views_el = document.getElementById('recipe_views_count_text');
-          if (views_el) views_el.textContent = `${recipe.views_count} vue${recipe.views_count > 1 ? 's' : ''}`;
+          if (views_el) views_el.textContent = `${recipe.views_count} ${I18N.t('recipe_detail.views')}`;
         }
       });
   }
@@ -3967,15 +3985,15 @@ async function show_recipe_detail_page(recipe_id) {
     const display = document.getElementById('cooking_timer_display');
     const btn = document.getElementById('cooking_timer_btn');
     if (display) display.classList.remove('cooking_timer_done');
-    if (btn) btn.innerHTML = '<i class="fa-solid fa-pause"></i> En cours...';
+    if (btn) btn.innerHTML = `<i class="fa-solid fa-pause"></i> ${escape_html(I18N.t('recipe_detail.timer_running'))}`;
     cooking_timer_interval = setInterval(() => {
       cooking_timer_remaining--;
       if (display) display.textContent = format_timer(Math.max(cooking_timer_remaining, 0));
       if (cooking_timer_remaining <= 0) {
         stop_cooking_timer();
         if (display) display.classList.add('cooking_timer_done');
-        if (btn) btn.innerHTML = '<i class="fa-solid fa-check"></i> Terminé !';
-        alert('Minuteur terminé !');
+        if (btn) btn.innerHTML = `<i class="fa-solid fa-check"></i> ${escape_html(I18N.t('recipe_detail.timer_finished'))}`;
+        alert(I18N.t('recipe_detail.timer_done'));
       }
     }, 1000);
   }
@@ -3984,7 +4002,7 @@ async function show_recipe_detail_page(recipe_id) {
     const steps = recipe.steps || [];
     const dots = document.getElementById('cooking_progress_dots');
     dots.innerHTML = steps.map((_, i) =>
-      `<button type="button" class="cooking_dot ${i === cooking_current_index ? 'active' : ''} ${i < cooking_current_index ? 'done' : ''}" data-index="${i}" aria-label="Aller à l'étape ${i + 1}"></button>`
+      `<button type="button" class="cooking_dot ${i === cooking_current_index ? 'active' : ''} ${i < cooking_current_index ? 'done' : ''}" data-index="${i}" aria-label="${escape_attr(I18N.t('recipe_detail.go_to_step', { n: i + 1 }))}"></button>`
     ).join('');
     dots.querySelectorAll('.cooking_dot').forEach(dot => {
       dot.addEventListener('click', () => {
@@ -3999,7 +4017,8 @@ async function show_recipe_detail_page(recipe_id) {
     if (steps.length === 0) return;
     const step = steps[cooking_current_index];
     const ratio = current_servings / base_servings;
-    const type_info = STEP_TYPES[step.type] || STEP_TYPES.prep;
+    const type_key = STEP_TYPES[step.type] ? step.type : 'prep';
+    const type_info = STEP_TYPES[type_key];
 
     const media_html = step.image_url
       ? `<img class="cooking_step_media" src="${escape_attr(step.image_url)}" alt="">`
@@ -4009,29 +4028,29 @@ async function show_recipe_detail_page(recipe_id) {
 
     const ing_html = (step.ingredients || []).map(ing => {
       const scaled = ing.amount !== '' && ing.amount != null ? Math.round(Number(ing.amount) * ratio * 100) / 100 : '';
-      return `<span class="tag-chip">${scaled}${escape_html(unit_label(ing.unit))} ${escape_html(ing.name || '')}</span>`;
+      return `<span class="tag-chip">${scaled}${escape_html(unit_label(ing.unit))} ${escape_html(I18N.td('foods', ing.name || ''))}</span>`;
     }).join('');
-    const tool_html = (step.tools || []).map(t => `<span class="tag-chip tool-tag-chip">${t.emoji || '🔧'} ${escape_html(t.name)}</span>`).join('');
+    const tool_html = (step.tools || []).map(t => `<span class="tag-chip tool-tag-chip">${t.emoji || '🔧'} ${escape_html(I18N.td('tools', t.name))}</span>`).join('');
 
     document.getElementById('cooking_step_card').innerHTML = `
-      <div class="cooking_step_type"><i class="fa-solid ${type_info.icon}"></i> ${type_info.label}${step.oven_temp ? ' · ' + step.oven_temp + '°C' : ''}</div>
+      <div class="cooking_step_type"><i class="fa-solid ${type_info.icon}"></i> ${escape_html(I18N.td('step_types', type_key))}${step.oven_temp ? ' · ' + step.oven_temp + '°C' : ''}</div>
       ${media_html}
       <p class="cooking_step_text">${escape_html(step.text || '')}</p>
-      ${ing_html ? `<div class="cooking_step_section"><h5><i class="fa-solid fa-carrot"></i> Ingrédients</h5><div class="step_ing_tags">${ing_html}</div></div>` : ''}
-      ${tool_html ? `<div class="cooking_step_section"><h5><i class="fa-solid fa-kitchen-set"></i> Outils</h5><div class="step_ing_tags">${tool_html}</div></div>` : ''}
+      ${ing_html ? `<div class="cooking_step_section"><h5><i class="fa-solid fa-carrot"></i> ${escape_html(I18N.t('recipe_detail.ingredients_title'))}</h5><div class="step_ing_tags">${ing_html}</div></div>` : ''}
+      ${tool_html ? `<div class="cooking_step_section"><h5><i class="fa-solid fa-kitchen-set"></i> ${escape_html(I18N.t('recipe_detail.tools_title'))}</h5><div class="step_ing_tags">${tool_html}</div></div>` : ''}
       ${step_output_product_html(step)}
       ${step.time_min ? `
         <div class="cooking_timer_block">
           <span class="cooking_timer_display" id="cooking_timer_display">${format_timer(step.time_min * 60)}</span>
-          <button type="button" id="cooking_timer_btn" class="btn-primary"><i class="fa-solid fa-play"></i> Démarrer le minuteur</button>
+          <button type="button" id="cooking_timer_btn" class="btn-primary"><i class="fa-solid fa-play"></i> ${escape_html(I18N.t('recipe_detail.start_timer'))}</button>
         </div>` : ''}
     `;
 
-    document.getElementById('cooking_step_counter').textContent = `Étape ${cooking_current_index + 1} / ${steps.length}`;
+    document.getElementById('cooking_step_counter').textContent = I18N.t('recipe_detail.step_counter', { current: cooking_current_index + 1, total: steps.length });
     document.getElementById('cooking_prev_btn').disabled = cooking_current_index === 0;
     document.getElementById('cooking_next_btn').innerHTML = cooking_current_index === steps.length - 1
-      ? '<i class="fa-solid fa-check"></i> Terminé'
-      : 'Suivant <i class="fa-solid fa-arrow-right"></i>';
+      ? `<i class="fa-solid fa-check"></i> ${escape_html(I18N.t('recipe_detail.finished'))}`
+      : `${escape_html(I18N.t('publish.next'))} <i class="fa-solid fa-arrow-right"></i>`;
 
     render_cooking_progress_dots();
     stop_cooking_timer();
@@ -4041,22 +4060,23 @@ async function show_recipe_detail_page(recipe_id) {
 
   function render_step_html(step, ratio) {
     if (typeof step === 'string') return `<li><p>${escape_html(step)}</p></li>`;
-    const type_info = STEP_TYPES[step.type] || STEP_TYPES.prep;
+    const type_key = STEP_TYPES[step.type] ? step.type : 'prep';
+    const type_info = STEP_TYPES[type_key];
     const step_media = step.image_url
       ? `<img class="step_media_preview" src="${escape_attr(step.image_url)}" alt="">`
       : step.video_url
         ? `<video class="step_media_preview" src="${escape_attr(step.video_url)}" controls></video>`
         : step.external_url
-          ? `<a href="${escape_attr(step.external_url)}" target="_blank" rel="noopener" class="step_external_link"><i class="fa-solid fa-link"></i> Média externe</a>`
+          ? `<a href="${escape_attr(step.external_url)}" target="_blank" rel="noopener" class="step_external_link"><i class="fa-solid fa-link"></i> ${escape_html(I18N.t('recipe_detail.external_media'))}</a>`
           : '';
     const scaled_ings = (step.ingredients || []).map(ing => {
       const scaled_amount = ing.amount !== '' && ing.amount != null ? Math.round(Number(ing.amount) * ratio * 100) / 100 : '';
-      return `<span class="tag-chip">${scaled_amount}${escape_html(unit_label(ing.unit))} ${escape_html(ing.name || '')}</span>`;
+      return `<span class="tag-chip">${scaled_amount}${escape_html(unit_label(ing.unit))} ${escape_html(I18N.td('foods', ing.name || ''))}</span>`;
     }).join('');
-    const tool_chips = (step.tools || []).map(t => `<span class="tag-chip tool-tag-chip">${t.emoji || '🔧'} ${escape_html(t.name)}</span>`).join('');
+    const tool_chips = (step.tools || []).map(t => `<span class="tag-chip tool-tag-chip">${t.emoji || '🔧'} ${escape_html(I18N.td('tools', t.name))}</span>`).join('');
     return `<li>
-      <span class="step_type_badge"><i class="fa-solid ${type_info.icon}"></i> ${type_info.label}${step.oven_temp ? ' · ' + step.oven_temp + '°C' : ''}</span>
-      ${step.time_min ? `<span class="step_time_badge"><i class="fa-solid fa-stopwatch"></i> ${step.time_min} min</span>` : ''}
+      <span class="step_type_badge"><i class="fa-solid ${type_info.icon}"></i> ${escape_html(I18N.td('step_types', type_key))}${step.oven_temp ? ' · ' + step.oven_temp + '°C' : ''}</span>
+      ${step.time_min ? `<span class="step_time_badge"><i class="fa-solid fa-stopwatch"></i> ${step.time_min} ${escape_html(I18N.t('common.minutes_short'))}</span>` : ''}
       <p>${escape_html(step.text || '')}</p>
       ${step_detail_blocks_html(scaled_ings, tool_chips)}
       ${step_output_product_html(step)}
@@ -4076,8 +4096,8 @@ async function show_recipe_detail_page(recipe_id) {
     if (steps.length <= STEPS_PER_PAGE) { nav.innerHTML = ''; return; }
     nav.innerHTML = steps.map((step, i) => {
       const page_of_step = Math.floor(i / STEPS_PER_PAGE);
-      const type_info = STEP_TYPES[step.type] || STEP_TYPES.prep;
-      return `<button type="button" class="steps_jump_pill ${page_of_step === normal_steps_page ? 'active' : ''}" data-index="${i}" title="Étape ${i + 1} · ${type_info.label}">${i + 1}</button>`;
+      const type_key = STEP_TYPES[step.type] ? step.type : 'prep';
+      return `<button type="button" class="steps_jump_pill ${page_of_step === normal_steps_page ? 'active' : ''}" data-index="${i}" title="${escape_attr(I18N.t('recipe_detail.step_title_tooltip', { n: i + 1, type: I18N.td('step_types', type_key) }))}">${i + 1}</button>`;
     }).join('');
     nav.querySelectorAll('.steps_jump_pill').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -4106,7 +4126,7 @@ async function show_recipe_detail_page(recipe_id) {
     const pagination = document.getElementById("steps_pagination");
     if (steps.length > STEPS_PER_PAGE) {
       pagination.classList.remove("hidden");
-      document.getElementById("steps_page_counter").textContent = `Page ${normal_steps_page + 1} / ${total_pages}`;
+      document.getElementById("steps_page_counter").textContent = I18N.t('recipe_detail.page_counter', { current: normal_steps_page + 1, total: total_pages });
       document.getElementById("steps_page_prev_btn").disabled = normal_steps_page === 0;
       document.getElementById("steps_page_next_btn").disabled = normal_steps_page === total_pages - 1;
     } else {
@@ -4125,7 +4145,7 @@ async function show_recipe_detail_page(recipe_id) {
       .map(ing => typeof ing === 'string' ? { name: ing, emoji: '🍽️' } : ing)
       .filter(ing => steps_total_qty.has(ing.name));
     document.getElementById("ingredients_ul").innerHTML =
-      render_product_list_html(used_ingredients, steps_total_qty, 'Aucun ingrédient utilisé dans les étapes');
+      render_product_list_html(used_ingredients, steps_total_qty, I18N.t('recipe_detail.no_ingredients_used'));
 
     // La numérotation/le texte des étapes est mis à l'échelle séparément
     render_steps_page();
@@ -4143,22 +4163,22 @@ async function show_recipe_detail_page(recipe_id) {
     } : totals;
 
     document.getElementById('nutrition_stats_grid').innerHTML = `
-      <div class="nutrition_stat"><span class="nutrition_stat_value">${Math.round(per_serving.kcal)}</span><span class="nutrition_stat_label">kcal / portion</span></div>
-      <div class="nutrition_stat"><span class="nutrition_stat_value">${Math.round(per_serving.protein)} g</span><span class="nutrition_stat_label">Protéines</span></div>
-      <div class="nutrition_stat"><span class="nutrition_stat_value">${Math.round(per_serving.carbs)} g</span><span class="nutrition_stat_label">Glucides</span></div>
-      <div class="nutrition_stat"><span class="nutrition_stat_value">${Math.round(per_serving.fat)} g</span><span class="nutrition_stat_label">Lipides</span></div>
+      <div class="nutrition_stat"><span class="nutrition_stat_value">${Math.round(per_serving.kcal)}</span><span class="nutrition_stat_label">${escape_html(I18N.t('recipe_detail.kcal_per_serving'))}</span></div>
+      <div class="nutrition_stat"><span class="nutrition_stat_value">${Math.round(per_serving.protein)} g</span><span class="nutrition_stat_label">${escape_html(I18N.t('recipe_detail.protein'))}</span></div>
+      <div class="nutrition_stat"><span class="nutrition_stat_value">${Math.round(per_serving.carbs)} g</span><span class="nutrition_stat_label">${escape_html(I18N.t('recipe_detail.carbs'))}</span></div>
+      <div class="nutrition_stat"><span class="nutrition_stat_value">${Math.round(per_serving.fat)} g</span><span class="nutrition_stat_label">${escape_html(I18N.t('recipe_detail.fat'))}</span></div>
     `;
 
     const allergen_list = [...totals.allergens];
     const allergen_row = document.getElementById('allergen_row');
     if (allergen_list.length) {
-      allergen_row.innerHTML = `<span class="allergen_row_label"><i class="fa-solid fa-triangle-exclamation"></i> Allergènes potentiels :</span>` +
+      allergen_row.innerHTML = `<span class="allergen_row_label"><i class="fa-solid fa-triangle-exclamation"></i> ${escape_html(I18N.t('recipe_detail.allergens_potential'))}</span>` +
         allergen_list.map(a => {
           const info = ALLERGEN_INFO[a];
-          return `<span class="allergen_chip"><i class="fa-solid ${info.icon}"></i> ${escape_html(info.label)}</span>`;
+          return `<span class="allergen_chip"><i class="fa-solid ${info.icon}"></i> ${escape_html(I18N.td('allergens', info.label))}</span>`;
         }).join('');
     } else {
-      allergen_row.innerHTML = `<span class="allergen_row_label allergen_none"><i class="fa-solid fa-circle-check"></i> Aucun des 12 allergènes suivis détecté dans les aliments renseignés</span>`;
+      allergen_row.innerHTML = `<span class="allergen_row_label allergen_none"><i class="fa-solid fa-circle-check"></i> ${escape_html(I18N.t('recipe_detail.no_allergens_detected'))}</span>`;
     }
   }
 
@@ -4177,60 +4197,67 @@ async function show_recipe_detail_page(recipe_id) {
       <div class="recipe_header">
         <div class="title_row">
           <h2>${escape_html(recipe.title)}</h2>
-          <span class="country_badge">${recipe.country_code ? (country_flag_from_code(recipe.country_code) || '🌍') + ' ' : ''}${escape_html(recipe.country || 'Origine inconnue')}</span>
+          <span class="country_badge">${recipe.country_code ? (country_flag_from_code(recipe.country_code) || '🌍') + ' ' : ''}${escape_html(recipe.country || I18N.t('recipe_detail.unknown_origin'))}</span>
         </div>
         ${recipe.description ? `<p class="recipe_description">${escape_html(recipe.description)}</p>` : ''}
 
         <div class="author_row">
-          <span>Par <a href="#" id="author_profile_link" class="author_link">${escape_html(recipe.profiles?.username || 'Anonyme')}</a>${official_badge_html(recipe.author_id)}</span>
+          <span>${escape_html(I18N.t('recipe_detail.author_by'))} <a href="#" id="author_profile_link" class="author_link">${escape_html(recipe.profiles?.username || I18N.t('common.anonymous'))}</a>${official_badge_html(recipe.author_id)}${ceo_badge_html(recipe.author_id)}</span>
           <div class="author_row_actions">
             ${current_user && current_user.id === recipe.author_id ? `
-              <button id="edit_recipe_btn" class="secondary_btn"><i class="fa-solid fa-pen"></i> Modifier</button>
-              <button id="request_delete_recipe_btn" class="secondary_btn danger"><i class="fa-solid fa-trash-can"></i> Demander la suppression</button>
+              <button id="edit_recipe_btn" class="secondary_btn"><i class="fa-solid fa-pen"></i> ${escape_html(I18N.t('common.edit'))}</button>
+              <button id="request_delete_recipe_btn" class="secondary_btn danger"><i class="fa-solid fa-trash-can"></i> ${escape_html(I18N.t('recipe_detail.report_delete'))}</button>
             ` : ''}
-            <button id="toggle_cooking_mode_btn" class="secondary_btn"><i class="fa-solid fa-book-open"></i> Mode Cuisine</button>
+            <button id="toggle_cooking_mode_btn" class="secondary_btn"><i class="fa-solid fa-book-open"></i> ${escape_html(I18N.t('recipe_detail.cook_mode'))}</button>
           </div>
         </div>
 
         <div class="recipe_meta_bar">
-          ${recipe.rating_count ? `<div><i class="fa-solid fa-star" style="color:#D9A62E;"></i> ${Number(recipe.rating_avg).toFixed(1)} (${recipe.rating_count} avis)</div>` : ''}
-          <div><i class="fa-solid fa-eye"></i> <span id="recipe_views_count_text">${recipe.views_count || 0} vue${(recipe.views_count || 0) > 1 ? 's' : ''}</span></div>
-          <div><i class="fa-regular fa-clock"></i> Temps total : ${(recipe.steps || []).reduce((sum, s) => sum + (typeof s === 'object' ? (Number(s.time_min) || 0) : 0), 0)} min</div>
-          <div><i class="fa-solid fa-gauge"></i> ${escape_html((recipe.difficulty || 'moyen').charAt(0).toUpperCase() + (recipe.difficulty || 'moyen').slice(1))}</div>
+          ${recipe.rating_count ? `<div><i class="fa-solid fa-star" style="color:#D9A62E;"></i> ${Number(recipe.rating_avg).toFixed(1)} (${recipe.rating_count} ${escape_html(I18N.t('recipe_detail.reviews'))})</div>` : ''}
+          <div><i class="fa-solid fa-eye"></i> <span id="recipe_views_count_text">${recipe.views_count || 0} ${escape_html(I18N.t('recipe_detail.views'))}</span></div>
+          <div><i class="fa-regular fa-clock"></i> ${escape_html(I18N.t('publish.total_time'))} ${(recipe.steps || []).reduce((sum, s) => sum + (typeof s === 'object' ? (Number(s.time_min) || 0) : 0), 0)} ${escape_html(I18N.t('common.minutes_short'))}</div>
+          <div><i class="fa-solid fa-gauge"></i> ${escape_html(I18N.td('difficulty', recipe.difficulty || 'moyen'))}</div>
           <div class="servings_calculator">
-            <i class="fa-solid fa-user-group"></i> 
+            <i class="fa-solid fa-user-group"></i>
             <button id="btn_minus_servings">-</button>
-            <span id="servings_count_display">${current_servings}</span> pers.
+            <span id="servings_count_display">${current_servings}</span> ${escape_html(I18N.t('common.servings'))}
             <button id="btn_plus_servings">+</button>
           </div>
         </div>
       </div>
 
-      <div class="prep_before_start">
-        <h3 class="prep_before_start_title"><i class="fa-solid fa-list-check"></i> Avant de commencer</h3>
-        <p class="sub-hint prep_before_start_hint">Ce qu'il te faut rassembler (ingrédients à acheter, matériel à sortir) avant de te lancer.</p>
-        <div class="prep_before_start_columns">
-          <div class="prep_column">
-            <h4><i class="fa-solid fa-carrot"></i> Ingrédients</h4>
-            <div id="ingredients_ul"></div>
-          </div>
-          ${(recipe.tools && recipe.tools.length) ? `
+      <div class="recipe-info-tabs" id="recipe_info_tabs">
+        <button type="button" class="recipe-info-tab-btn active" data-info-tab="ingredients"><i class="fa-solid fa-list-check"></i> ${escape_html(I18N.t('recipe_detail.tab_before_start'))}</button>
+        <button type="button" class="recipe-info-tab-btn" data-info-tab="nutrition"><i class="fa-solid fa-chart-simple"></i> ${escape_html(I18N.t('recipe_detail.tab_nutrition'))}</button>
+      </div>
+
+      <div class="recipe-info-panel" id="recipe_info_panel_ingredients">
+        <div class="prep_before_start">
+          <p class="sub-hint prep_before_start_hint">${escape_html(I18N.t('recipe_detail.gather_hint'))}</p>
+          <div class="prep_before_start_columns">
             <div class="prep_column">
-              <h4><i class="fa-solid fa-kitchen-set"></i> Ustensiles</h4>
-              ${render_product_list_html(recipe.tools, null, 'Aucun outil requis')}
+              <h4><i class="fa-solid fa-carrot"></i> ${escape_html(I18N.t('recipe_detail.ingredients_title'))}</h4>
+              <div id="ingredients_ul"></div>
             </div>
-          ` : ''}
+            ${(recipe.tools && recipe.tools.length) ? `
+              <div class="prep_column">
+                <h4><i class="fa-solid fa-kitchen-set"></i> ${escape_html(I18N.t('recipe_detail.tools_title'))}</h4>
+                ${render_product_list_html(recipe.tools, null, I18N.t('recipe_detail.no_tools_required'))}
+              </div>
+            ` : ''}
+          </div>
         </div>
       </div>
 
-      <div class="nutrition_section" id="nutrition_section">
-        <h3><i class="fa-solid fa-chart-simple"></i> Valeurs nutritionnelles</h3>
-        <p class="sub-hint">Estimation approximative par portion, selon les aliments et quantités renseignés — pas une valeur certifiée.</p>
-        <div class="nutrition_stats_grid" id="nutrition_stats_grid"></div>
-        <div class="allergen_row" id="allergen_row"></div>
+      <div class="recipe-info-panel hidden" id="recipe_info_panel_nutrition">
+        <div class="nutrition_section" id="nutrition_section">
+          <p class="sub-hint">${escape_html(I18N.t('recipe_detail.nutrition_estimate_hint'))}</p>
+          <div class="nutrition_stats_grid" id="nutrition_stats_grid"></div>
+          <div class="allergen_row" id="allergen_row"></div>
+        </div>
       </div>
 
-      <h3>Préparation</h3>
+      <h3>${escape_html(I18N.t('recipe_detail.steps_title'))}</h3>
 
       <div id="steps_normal_view">
         <div class="steps_jump_nav" id="steps_jump_nav"></div>
@@ -4246,24 +4273,24 @@ async function show_recipe_detail_page(recipe_id) {
         <div class="cooking_progress_dots" id="cooking_progress_dots"></div>
         <div id="cooking_step_card"></div>
         <div class="cooking_nav">
-          <button id="cooking_prev_btn" class="btn-secondary"><i class="fa-solid fa-arrow-left"></i> Précédent</button>
+          <button id="cooking_prev_btn" class="btn-secondary"><i class="fa-solid fa-arrow-left"></i> ${escape_html(I18N.t('publish.prev'))}</button>
           <span id="cooking_step_counter" class="cooking_step_counter"></span>
-          <button id="cooking_next_btn" class="btn-primary cooking_next_btn">Suivant <i class="fa-solid fa-arrow-right"></i></button>
+          <button id="cooking_next_btn" class="btn-primary cooking_next_btn">${escape_html(I18N.t('publish.next'))} <i class="fa-solid fa-arrow-right"></i></button>
         </div>
       </div>
 
       <div class="recipe_footer_actions">
         <button id="like_recipe_btn" class="action-btn like-btn ${liked_recipe_ids.has(recipe.id) ? 'liked' : ''}">
-          <i class="fa-solid fa-heart"></i> ${recipe.likes_count || 0} Likes
+          <i class="fa-solid fa-heart"></i> ${recipe.likes_count || 0} ${escape_html(I18N.t('recipe_detail.likes'))}
         </button>
-        <p class="recipe_footer_actions_hint">Cette recette t'a plu ? Laisse un like et un commentaire ci-dessous.</p>
+        <p class="recipe_footer_actions_hint">${escape_html(I18N.t('recipe_detail.footer_hint'))}</p>
       </div>
 
       <section class="comments_section">
-        <h3>Commentaires</h3>
+        <h3>${escape_html(I18N.t('recipe_detail.comments_title'))}</h3>
         <div class="comment_form">
           <div class="comment_rating_picker" id="comment_rating_picker" data-value="0">
-            <span class="comment_rating_label">Ta note (optionnel) :</span>
+            <span class="comment_rating_label">${escape_html(I18N.t('recipe_detail.rating_label'))}</span>
             <span class="comment_rating_stars">
               <i class="fa-regular fa-star" data-star="1"></i>
               <i class="fa-regular fa-star" data-star="2"></i>
@@ -4272,15 +4299,22 @@ async function show_recipe_detail_page(recipe_id) {
               <i class="fa-regular fa-star" data-star="5"></i>
             </span>
           </div>
-          <textarea id="comment_input_field" placeholder="Laissez vos impressions..."></textarea>
-          <button id="send_comment_btn">Publier</button>
+          <textarea id="comment_input_field" placeholder="${escape_attr(I18N.t('recipe_detail.comment_placeholder'))}"></textarea>
+          <button id="send_comment_btn">${escape_html(I18N.t('recipe_detail.comment_send'))}</button>
         </div>
-        <div id="recipe_comments_list">${dishful_loading_html('Chargement des commentaires...')}</div>
+        <div id="recipe_comments_list">${dishful_loading_html(I18N.t('recipe_detail.loading_comments'))}</div>
       </section>
     </article>
   `;
 
   // Événements
+  document.querySelectorAll('.recipe-info-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.recipe-info-tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('.recipe-info-panel').forEach(p => p.classList.toggle('hidden', p.id !== `recipe_info_panel_${btn.dataset.infoTab}`));
+    });
+  });
+
   document.getElementById("btn_minus_servings").onclick = () => {
     if (current_servings > 1) { current_servings--; update_servings_ui(); }
   };
@@ -4391,7 +4425,7 @@ function render_stars_html(rating) {
 async function load_recipe_comments(recipe_id) {
   const container = document.getElementById("recipe_comments_list");
   if (!container) return;
-  if (!supabase) { container.innerHTML = '<div class="comment-item">Impossible de charger les commentaires (Supabase indisponible).</div>'; return; }
+  if (!supabase) { container.innerHTML = `<div class="comment-item">${escape_html(I18N.t('recipe_detail.comments_load_error'))}</div>`; return; }
 
   const { data: comments, error } = await supabase
     .from("comments")
@@ -4400,14 +4434,14 @@ async function load_recipe_comments(recipe_id) {
     .order("created_at", { ascending: false });
 
   if (error || !comments || comments.length === 0) {
-    container.innerHTML = "<p>Aucun commentaire pour l'instant. Soyez le premier !</p>";
+    container.innerHTML = `<p>${escape_html(I18N.t('recipe_detail.no_comments_yet'))}</p>`;
     return;
   }
 
   container.innerHTML = comments.map((c) => `
     <div class="comment_item">
       <div class="comment_item_header">
-        <strong>${escape_html(c.profiles?.username || "Anonyme")}</strong>
+        <strong>${escape_html(c.profiles?.username || I18N.t('common.anonymous'))}</strong>
         ${render_stars_html(c.rating)}
       </div>
       <p>${escape_html(c.content)}</p>
@@ -4455,8 +4489,8 @@ function load_recipe_into_publish_form(recipe) {
   recipe_form.reset();
   document.querySelectorAll('#recipe_form .chip.checked').forEach(c => c.classList.remove('checked'));
 
-  document.getElementById('publish_form_title').textContent = 'Modifier la recette';
-  document.querySelector('#recipe_form button[type="submit"]').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Enregistrer les modifications';
+  document.getElementById('publish_form_title').textContent = I18N.t('publish.title_edit');
+  document.querySelector('#recipe_form button[type="submit"]').innerHTML = `<i class="fa-solid fa-floppy-disk"></i> ${escape_html(I18N.t('publish.submit_edit'))}`;
 
   document.getElementById('recipe_title_input').value = recipe.title || '';
   if (document.getElementById('recipe_description_input')) document.getElementById('recipe_description_input').value = recipe.description || '';
@@ -4549,12 +4583,12 @@ async function show_public_profile_page(user_id) {
   if (!supabase) return;
   switch_tab('public-profile');
 
-  document.getElementById('public_profile_display_name').textContent = 'Chargement...';
+  document.getElementById('public_profile_display_name').textContent = I18N.t('common.loading');
   document.getElementById('public_profile_username_text').textContent = '';
   document.getElementById('public_profile_bio').textContent = '';
   document.getElementById('public_profile_avatar').textContent = '';
   document.getElementById('public_profile_banner_preview').style.backgroundImage = '';
-  document.getElementById('public_published_recipes').innerHTML = dishful_loading_html('Chargement du profil...');
+  document.getElementById('public_published_recipes').innerHTML = dishful_loading_html(I18N.t('profile.loading_profile'));
 
   const [{ data: profile, error }, { data: user_recipes }] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', user_id).single(),
@@ -4562,7 +4596,7 @@ async function show_public_profile_page(user_id) {
   ]);
 
   if (error || !profile) {
-    document.getElementById('public_profile_display_name').textContent = 'Utilisateur introuvable';
+    document.getElementById('public_profile_display_name').textContent = I18N.t('common.user_not_found');
     document.getElementById('public_published_recipes').innerHTML = '';
     return;
   }
@@ -4571,11 +4605,12 @@ async function show_public_profile_page(user_id) {
   const total_published = recipes.length;
   const total_likes = recipes.reduce((acc, r) => acc + (r.likes_count || 0), 0);
 
-  const display_name = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || profile.username || 'Utilisateur';
+  const display_name = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || profile.username || I18N.t('common.unknown_user');
   document.getElementById('public_profile_display_name').textContent = display_name;
+  document.getElementById('public_profile_identity_badges').innerHTML = official_badge_html(user_id) + ceo_badge_html(user_id);
   document.getElementById('public_profile_username_text').textContent = profile.username ? `@${profile.username}` : '';
   const bio_el = document.getElementById('public_profile_bio');
-  bio_el.textContent = profile.bio || 'Pas de description.';
+  bio_el.textContent = profile.bio || I18N.t('profile.no_bio');
   bio_el.classList.toggle('empty-hint', !profile.bio);
 
   const avatar_el = document.getElementById('public_profile_avatar');
@@ -4590,8 +4625,8 @@ async function show_public_profile_page(user_id) {
   const xp_for_current_level = (user_level - 1) * 100;
   const xp_in_current_level = xp_points - xp_for_current_level;
   const xp_percentage = Math.min(Math.max((xp_in_current_level / 100) * 100, 0), 100);
-  document.getElementById('public_profile_level').textContent = `Niv. ${user_level}`;
-  document.getElementById('public_profile_xp_text').textContent = `${xp_in_current_level} / 100 XP · ${xp_points} XP au total`;
+  document.getElementById('public_profile_level').textContent = I18N.t('profile.level_short_display', { n: user_level });
+  document.getElementById('public_profile_xp_text').textContent = I18N.t('profile.level_progress', { xp: xp_in_current_level, level: user_level, total: xp_points });
   document.getElementById('public_profile_xp_fill').style.width = `${xp_percentage}%`;
 
   const equipped_badge_id = profile.equipped_badge || null;
@@ -4599,16 +4634,16 @@ async function show_public_profile_page(user_id) {
   const active_badge = all_badges.find((b) => b.id === equipped_badge_id);
   const equipped_box = document.getElementById('public_equipped_badge_box');
   if (active_badge) {
-    equipped_box.innerHTML = `<div class="badge_icon">${active_badge.icon}</div><div class="badge_name">${active_badge.name}</div>`;
-    document.getElementById('public_profile_equipped_badge_display').textContent = `${active_badge.icon} ${active_badge.name}`;
+    equipped_box.innerHTML = `<div class="badge_icon">${active_badge.icon}</div><div class="badge_name">${escape_html(I18N.td('badges', active_badge.name))}</div>`;
+    document.getElementById('public_profile_equipped_badge_display').textContent = `${active_badge.icon} ${I18N.td('badges', active_badge.name)}`;
   } else {
-    equipped_box.innerHTML = `<span>Aucun badge équipé</span>`;
+    equipped_box.innerHTML = `<span>${escape_html(I18N.t('profile.no_badge_equipped'))}</span>`;
     document.getElementById('public_profile_equipped_badge_display').textContent = '';
   }
 
-  render_badge_grid('public_recipe_badges_grid', recipe_badge_list, total_published, equipped_badge_id, 'recettes', false);
-  render_badge_grid('public_like_badges_grid', like_badge_list, total_likes, equipped_badge_id, 'likes', false);
-  render_badge_grid('public_level_badges_grid', level_badge_list, user_level, equipped_badge_id, 'niveaux', false);
+  render_badge_grid('public_recipe_badges_grid', recipe_badge_list, total_published, equipped_badge_id, I18N.t('profile.unit_recipes'), false);
+  render_badge_grid('public_like_badges_grid', like_badge_list, total_likes, equipped_badge_id, I18N.t('profile.unit_likes'), false);
+  render_badge_grid('public_level_badges_grid', level_badge_list, user_level, equipped_badge_id, I18N.t('profile.unit_levels'), false);
 
   render_mini_recipes_grid('public_published_recipes', recipes);
 }
@@ -4638,11 +4673,11 @@ function validate_current_step(step_number) {
   if (step_number === 1) {
     const title_val = document.getElementById("recipe_title_input").value.trim();
     if (!title_val) {
-      alert("Veuillez saisir un titre pour la recette.");
+      alert(I18N.t('publish.error_title'));
       return false;
     }
     if (!cover_image_file && !existing_cover_image_url) {
-      alert("Ajoute une photo de couverture pour ta recette.");
+      alert(I18N.t('publish.error_cover'));
       return false;
     }
   }
@@ -4650,25 +4685,25 @@ function validate_current_step(step_number) {
   if (step_number === 2) {
     const checked_cats = document.querySelectorAll("#category_chips input:checked");
     if (checked_cats.length === 0) {
-      alert("Veuillez sélectionner au moins une catégorie.");
+      alert(I18N.t('publish.error_category'));
       return false;
     }
     if (!country_select.value) {
-      alert("Veuillez sélectionner un pays d'origine.");
+      alert(I18N.t('publish.error_country'));
       return false;
     }
   }
 
   if (step_number === 3) {
     if (ingredient_pool.length === 0) {
-      alert("Ajoute au moins un ingrédient.");
+      alert(I18N.t('publish.error_ingredients'));
       return false;
     }
   }
 
   if (step_number === 4) {
     if (recipe_steps.length === 0) {
-      alert("Ajoute au moins une étape.");
+      alert(I18N.t('publish.error_steps'));
       return false;
     }
   }
@@ -4699,9 +4734,30 @@ document.querySelector('[data-tab="publish"]').addEventListener("click", () => {
 // =====================================================================
 // 11. BOOT
 // =====================================================================
+// La traduction se charge en parallèle (fetch async) pendant que ce fichier s'exécute :
+// tout ce qui est rendu en JS de façon synchrone plus haut (filtres, chips, listes vides...)
+// est donc rendu une première fois AVANT que I18N ait fini de charger, avec un simple
+// repli sur la clé brute. On corrige ça en relançant ce rendu une fois I18N prêt — pas
+// besoin d'attendre I18N avant tout le reste du fichier, juste de rattraper cette poignée
+// d'affichages une fois la traduction disponible.
+I18N.ready.then(() => {
+  render_category_filters();
+  render_tag_filters();
+  render_difficulty_filters();
+  render_time_filters();
+  render_ingredient_pool_chips();
+  render_steps_compact_list();
+  render_search_category_filters();
+  render_search_difficulty_filters();
+  render_search_allergen_filters();
+  populate_nationality_select();
+  render_user_zone();
+});
+
 (async function boot() {
   if (!supabase) return;
   try {
+    await I18N.ready;
     await refresh_session();
     await load_recipes();
     // Lien direct partagé (?recipe=...) : ouvre directement la recette concernée.

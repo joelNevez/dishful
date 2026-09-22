@@ -16,16 +16,27 @@
   <button type="button" class="brand brand-btn" id="brand_home_btn">
     <i class="fa-solid fa-utensils brand-icon"></i>
     <span class="display">Dishful</span>
-    <span class="tagline">partage et cuisine</span>
+    <span class="tagline" data-i18n="nav.tagline">partage et cuisine</span>
   </button>
   <nav class="tabs">
-    <button data-tab="feed" class="active"><i class="fa-solid fa-fire"></i> Feed</button>
-    <button data-tab="search"><i class="fa-solid fa-magnifying-glass"></i> Recherche</button>
-    <button data-tab="publish"><i class="fa-solid fa-plus"></i> Publier</button>
-    <button data-tab="leaderboard"><i class="fa-solid fa-trophy"></i> Classement</button>
+    <button data-tab="feed" class="active"><i class="fa-solid fa-fire"></i> <span data-i18n="nav.feed">Feed</span></button>
+    <button data-tab="search"><i class="fa-solid fa-magnifying-glass"></i> <span data-i18n="nav.search">Recherche</span></button>
+    <button data-tab="publish"><i class="fa-solid fa-plus"></i> <span data-i18n="nav.publish">Publier</span></button>
+    <button data-tab="leaderboard"><i class="fa-solid fa-trophy"></i> <span data-i18n="nav.leaderboard">Classement</span></button>
   </nav>
+  <div class="lang-switcher" id="lang_switcher">
+    <button type="button" class="lang-switcher-toggle" id="lang_switcher_toggle" data-i18n-aria="nav.change_language" aria-label="Changer de langue">
+      <span id="lang_switcher_current">🇫🇷</span> <i class="fa-solid fa-chevron-down"></i>
+    </button>
+    <div class="lang-switcher-menu" id="lang_switcher_menu">
+      <button type="button" class="lang-switcher-btn" data-lang="fr"><span>🇫🇷</span> Français</button>
+      <button type="button" class="lang-switcher-btn" data-lang="en"><span>🇬🇧</span> English</button>
+      <button type="button" class="lang-switcher-btn" data-lang="pt"><span>🇵🇹</span> Português</button>
+      <button type="button" class="lang-switcher-btn" data-lang="es"><span>🇪🇸</span> Español</button>
+    </div>
+  </div>
   <div class="user-zone" id="user_zone">
-    <button id="open_auth_btn" class="text-btn"><i class="fa-solid fa-right-to-bracket"></i> Se connecter</button>
+    <button id="open_auth_btn" class="text-btn"><i class="fa-solid fa-right-to-bracket"></i> <span data-i18n="nav.login">Se connecter</span></button>
   </div>
 </header>
 
@@ -34,56 +45,56 @@
   <!-- ---------------- FEED ---------------- -->
   <section id="tab-feed">
     <div class="feed-header">
-      <h1>Les dernières recettes</h1>
+      <h1 data-i18n="feed.title">Les dernières recettes</h1>
     </div>
 
     <div class="feed-subtabs" id="feed_subtabs">
-      <button type="button" class="feed-subtab-btn active" data-feedtab="all"><i class="fa-solid fa-grip"></i> Tout</button>
-      <button type="button" class="feed-subtab-btn" data-feedtab="week"><i class="fa-solid fa-fire"></i> Cette semaine</button>
-      <button type="button" class="feed-subtab-btn" data-feedtab="ideas"><i class="fa-solid fa-lightbulb"></i> Idées de la semaine</button>
+      <button type="button" class="feed-subtab-btn active" data-feedtab="all"><i class="fa-solid fa-grip"></i> <span data-i18n="feed.tab_all">Tout</span></button>
+      <button type="button" class="feed-subtab-btn" data-feedtab="week"><i class="fa-solid fa-fire"></i> <span data-i18n="feed.tab_week">Cette semaine</span></button>
+      <button type="button" class="feed-subtab-btn" data-feedtab="ideas"><i class="fa-solid fa-lightbulb"></i> <span data-i18n="feed.tab_ideas">Idées de la semaine</span></button>
     </div>
 
     <div id="feed_panel_all" class="feed-subtab-panel">
       <div class="feed-search-bar">
         <i class="fa-solid fa-magnifying-glass"></i>
-        <input type="text" id="feed_search_input" placeholder="Rechercher un titre, un ingrédient, un auteur...">
-        <button type="button" id="toggle_feed_filters_btn" class="filter-toggle-btn"><i class="fa-solid fa-sliders"></i> Filtres <span id="active_filters_badge" class="active-filters-badge hidden">0</span></button>
+        <input type="text" id="feed_search_input" data-i18n-placeholder="feed.search_placeholder" placeholder="Rechercher un titre, un ingrédient, un auteur...">
+        <button type="button" id="toggle_feed_filters_btn" class="filter-toggle-btn"><i class="fa-solid fa-sliders"></i> <span data-i18n="feed.filters_btn">Filtres</span> <span id="active_filters_badge" class="active-filters-badge hidden">0</span></button>
       </div>
 
       <div class="feed-filters-panel hidden" id="feed_filters_panel">
         <div class="filter-block">
-          <label><i class="fa-solid fa-tags"></i> Catégorie</label>
+          <label><i class="fa-solid fa-tags"></i> <span data-i18n="feed.filter_category">Catégorie</span></label>
           <div class="filter-row" id="category_filters"></div>
         </div>
         <div class="filter-block">
-          <label><i class="fa-solid fa-hashtag"></i> Tags</label>
+          <label><i class="fa-solid fa-hashtag"></i> <span data-i18n="feed.filter_tags">Tags</span></label>
           <div class="filter-row" id="tag_filters"></div>
         </div>
         <div class="filter-row-split">
           <div class="filter-block">
-            <label><i class="fa-solid fa-globe"></i> Pays</label>
-            <select id="filter_country_select"><option value="">Tous les pays</option></select>
+            <label><i class="fa-solid fa-globe"></i> <span data-i18n="feed.filter_country">Pays</span></label>
+            <select id="filter_country_select"><option value="" data-i18n="common.all_countries">Tous les pays</option></select>
           </div>
           <div class="filter-block">
-            <label><i class="fa-solid fa-gauge"></i> Difficulté</label>
+            <label><i class="fa-solid fa-gauge"></i> <span data-i18n="feed.filter_difficulty">Difficulté</span></label>
             <div class="filter-row" id="difficulty_filters"></div>
           </div>
         </div>
         <div class="filter-block">
-          <label><i class="fa-solid fa-stopwatch"></i> Temps maximum</label>
+          <label><i class="fa-solid fa-stopwatch"></i> <span data-i18n="feed.filter_time">Temps maximum</span></label>
           <div class="filter-row" id="time_filters"></div>
         </div>
         <div class="filter-block">
-          <label><i class="fa-solid fa-arrow-down-wide-short"></i> Trier par</label>
+          <label><i class="fa-solid fa-arrow-down-wide-short"></i> <span data-i18n="feed.filter_sort">Trier par</span></label>
           <select id="feed_sort_select">
-            <option value="newest">Les plus récentes</option>
-            <option value="popular">Les plus aimées</option>
-            <option value="commented">Les plus commentées</option>
-            <option value="quickest">Les plus rapides</option>
-            <option value="best_rated">Les mieux notées</option>
+            <option value="newest" data-i18n="feed.sort_newest">Les plus récentes</option>
+            <option value="popular" data-i18n="feed.sort_popular">Les plus aimées</option>
+            <option value="commented" data-i18n="feed.sort_commented">Les plus commentées</option>
+            <option value="quickest" data-i18n="feed.sort_quickest">Les plus rapides</option>
+            <option value="best_rated" data-i18n="feed.sort_best_rated">Les mieux notées</option>
           </select>
         </div>
-        <button type="button" id="reset_filters_btn" class="text-btn"><i class="fa-solid fa-arrow-rotate-left"></i> Réinitialiser les filtres</button>
+        <button type="button" id="reset_filters_btn" class="text-btn"><i class="fa-solid fa-arrow-rotate-left"></i> <span data-i18n="feed.reset_filters">Réinitialiser les filtres</span></button>
       </div>
 
       <div class="feed-results-count" id="feed_results_count"></div>
@@ -91,16 +102,16 @@
     </div>
 
     <div id="feed_panel_week" class="feed-subtab-panel hidden">
-      <p class="sub-hint"><i class="fa-solid fa-fire"></i> Les recettes qui cartonnent cette semaine (vues, likes, avis reçus depuis 7 jours).</p>
+      <p class="sub-hint"><i class="fa-solid fa-fire"></i> <span data-i18n="feed.week_hint">Les recettes qui cartonnent cette semaine (vues, likes, avis reçus depuis 7 jours).</span></p>
       <div class="recipe-grid" id="feed_week_grid"></div>
     </div>
 
     <div id="feed_panel_ideas" class="feed-subtab-panel hidden">
       <div class="feed-ideas-toggle" id="feed_ideas_toggle">
-        <button type="button" class="feed-ideas-btn active" data-mealtime="diner"><i class="fa-solid fa-utensils"></i> Pour le dîner</button>
-        <button type="button" class="feed-ideas-btn" data-mealtime="apres_midi"><i class="fa-solid fa-cookie-bite"></i> Pour l'après-midi</button>
+        <button type="button" class="feed-ideas-btn active" data-mealtime="diner"><i class="fa-solid fa-utensils"></i> <span data-i18n="feed.ideas_dinner">Pour le dîner</span></button>
+        <button type="button" class="feed-ideas-btn" data-mealtime="apres_midi"><i class="fa-solid fa-cookie-bite"></i> <span data-i18n="feed.ideas_afternoon">Pour l'après-midi</span></button>
       </div>
-      <p class="sub-hint">Une sélection qui change chaque semaine — reviens la semaine prochaine pour de nouvelles idées !</p>
+      <p class="sub-hint" data-i18n="feed.ideas_hint">Une sélection qui change chaque semaine — reviens la semaine prochaine pour de nouvelles idées !</p>
       <div class="recipe-grid" id="feed_ideas_grid"></div>
     </div>
   </section>
@@ -108,50 +119,50 @@
   <!-- ---------------- RECHERCHE (recette parfaite selon objectifs) ---------------- -->
   <section id="tab-search" class="hidden">
     <div class="feed-header">
-      <h1><i class="fa-solid fa-magnifying-glass"></i> Recherche</h1>
+      <h1><i class="fa-solid fa-magnifying-glass"></i> <span data-i18n="search.title">Recherche</span></h1>
     </div>
-    <p class="sub-hint">Trouve la recette parfaite selon tes objectifs — calories, protéines, catégorie, allergènes à éviter...</p>
+    <p class="sub-hint" data-i18n="search.hint">Trouve la recette parfaite selon tes objectifs — calories, protéines, catégorie, allergènes à éviter...</p>
 
     <div class="search-filters-card">
       <div class="filter-block">
-        <label><i class="fa-solid fa-tags"></i> Catégorie</label>
+        <label><i class="fa-solid fa-tags"></i> <span data-i18n="search.category">Catégorie</span></label>
         <div class="filter-row" id="search_category_filters"></div>
       </div>
       <div class="filter-row-split">
         <div class="filter-block">
-          <label><i class="fa-solid fa-gauge"></i> Difficulté</label>
+          <label><i class="fa-solid fa-gauge"></i> <span data-i18n="search.difficulty">Difficulté</span></label>
           <div class="filter-row" id="search_difficulty_filters"></div>
         </div>
         <div class="filter-block">
-          <label><i class="fa-solid fa-globe"></i> Pays</label>
-          <select id="search_country_select"><option value="">Tous les pays</option></select>
+          <label><i class="fa-solid fa-globe"></i> <span data-i18n="search.country">Pays</span></label>
+          <select id="search_country_select"><option value="" data-i18n="common.all_countries">Tous les pays</option></select>
         </div>
       </div>
       <div class="filter-row-split">
         <div class="filter-block">
-          <label><i class="fa-solid fa-fire"></i> Calories par portion</label>
+          <label><i class="fa-solid fa-fire"></i> <span data-i18n="search.kcal">Calories par portion</span></label>
           <div class="search-range-row">
-            <input type="number" id="search_kcal_min" placeholder="Min" min="0">
+            <input type="number" id="search_kcal_min" data-i18n-placeholder="search.kcal_min_placeholder" placeholder="Min" min="0">
             <span>—</span>
-            <input type="number" id="search_kcal_max" placeholder="Max" min="0">
+            <input type="number" id="search_kcal_max" data-i18n-placeholder="search.kcal_max_placeholder" placeholder="Max" min="0">
             <span class="search-range-unit">kcal</span>
           </div>
         </div>
         <div class="filter-block">
-          <label><i class="fa-solid fa-dumbbell"></i> Protéines minimum</label>
+          <label><i class="fa-solid fa-dumbbell"></i> <span data-i18n="search.protein_min">Protéines minimum</span></label>
           <div class="search-range-row">
-            <input type="number" id="search_protein_min" placeholder="Ex : 20" min="0">
-            <span class="search-range-unit">g / portion</span>
+            <input type="number" id="search_protein_min" data-i18n-placeholder="search.protein_placeholder" placeholder="Ex : 20" min="0">
+            <span class="search-range-unit" data-i18n="search.protein_unit">g / portion</span>
           </div>
         </div>
       </div>
       <div class="filter-block">
-        <label><i class="fa-solid fa-triangle-exclamation"></i> Exclure les allergènes</label>
+        <label><i class="fa-solid fa-triangle-exclamation"></i> <span data-i18n="search.allergens">Exclure les allergènes</span></label>
         <div class="filter-row" id="search_allergen_filters"></div>
       </div>
       <div class="search-filters-actions">
-        <button type="button" id="run_search_btn" class="btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Rechercher</button>
-        <button type="button" id="reset_search_btn" class="text-btn"><i class="fa-solid fa-arrow-rotate-left"></i> Réinitialiser</button>
+        <button type="button" id="run_search_btn" class="btn-primary"><i class="fa-solid fa-magnifying-glass"></i> <span data-i18n="search.run">Rechercher</span></button>
+        <button type="button" id="reset_search_btn" class="text-btn"><i class="fa-solid fa-arrow-rotate-left"></i> <span data-i18n="search.reset">Réinitialiser</span></button>
       </div>
     </div>
 
@@ -161,44 +172,44 @@
 
   <!-- Vue Page Recette Dédiée -->
   <section id="tab-recipe-detail" class="recipe_detail_container hidden">
-    <button id="back_to_feed_btn" class="text-btn"><i class="fa-solid fa-arrow-left"></i> Retour</button>
+    <button id="back_to_feed_btn" class="text-btn"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="common.back">Retour</span></button>
     <div id="single_recipe_content"></div>
   </section>
 
   <!-- ---------------- CLASSEMENT ---------------- -->
   <section id="tab-leaderboard" class="hidden">
     <div class="feed-header">
-      <h1><i class="fa-solid fa-trophy"></i> Classement</h1>
+      <h1><i class="fa-solid fa-trophy"></i> <span data-i18n="leaderboard.title">Classement</span></h1>
       <div class="leaderboard-period-toggle" id="leaderboard_period_toggle">
-        <button type="button" class="leaderboard-period-btn active" data-period="all">Toujours</button>
-        <button type="button" class="leaderboard-period-btn" data-period="week"><i class="fa-solid fa-calendar-week"></i> Cette semaine</button>
+        <button type="button" class="leaderboard-period-btn active" data-period="all"><span data-i18n="leaderboard.period_all">Toujours</span></button>
+        <button type="button" class="leaderboard-period-btn" data-period="week"><i class="fa-solid fa-calendar-week"></i> <span data-i18n="leaderboard.period_week">Cette semaine</span></button>
       </div>
     </div>
 
     <div class="leaderboard-subtabs">
-      <button type="button" class="leaderboard-subtab-btn active" data-lb="chefs"><i class="fa-solid fa-fire"></i> Chefs (XP)</button>
-      <button type="button" class="leaderboard-subtab-btn" data-lb="liked"><i class="fa-solid fa-heart"></i> Recettes aimées</button>
-      <button type="button" class="leaderboard-subtab-btn" data-lb="rated"><i class="fa-solid fa-star"></i> Recettes notées</button>
+      <button type="button" class="leaderboard-subtab-btn active" data-lb="chefs"><i class="fa-solid fa-fire"></i> <span data-i18n="leaderboard.tab_chefs">Chefs (XP)</span></button>
+      <button type="button" class="leaderboard-subtab-btn" data-lb="liked"><i class="fa-solid fa-heart"></i> <span data-i18n="leaderboard.tab_liked">Recettes aimées</span></button>
+      <button type="button" class="leaderboard-subtab-btn" data-lb="rated"><i class="fa-solid fa-star"></i> <span data-i18n="leaderboard.tab_rated">Recettes notées</span></button>
     </div>
 
     <div id="leaderboard_chefs_panel" class="leaderboard-panel">
-      <p class="sub-hint">Les chefs les plus actifs de Dishful, classés par expérience.</p>
+      <p class="sub-hint" data-i18n="leaderboard.chefs_hint">Les chefs les plus actifs de Dishful, classés par expérience.</p>
       <div id="leaderboard_list" class="leaderboard-list"></div>
     </div>
     <div id="leaderboard_liked_panel" class="leaderboard-panel hidden">
       <div class="leaderboard-scope-toggle" data-lb-scope-for="liked">
-        <button type="button" class="leaderboard-scope-btn active" data-scope="recipes">Recettes</button>
-        <button type="button" class="leaderboard-scope-btn" data-scope="chefs">Chefs</button>
+        <button type="button" class="leaderboard-scope-btn active" data-scope="recipes"><span data-i18n="leaderboard.scope_recipes">Recettes</span></button>
+        <button type="button" class="leaderboard-scope-btn" data-scope="chefs"><span data-i18n="leaderboard.scope_chefs">Chefs</span></button>
       </div>
-      <p class="sub-hint" id="leaderboard_liked_hint">Les recettes qui récoltent le plus de cœurs.</p>
+      <p class="sub-hint" id="leaderboard_liked_hint" data-i18n="leaderboard.liked_hint">Les recettes qui récoltent le plus de cœurs.</p>
       <div id="leaderboard_liked_list" class="leaderboard-list"></div>
     </div>
     <div id="leaderboard_rated_panel" class="leaderboard-panel hidden">
       <div class="leaderboard-scope-toggle" data-lb-scope-for="rated">
-        <button type="button" class="leaderboard-scope-btn active" data-scope="recipes">Recettes</button>
-        <button type="button" class="leaderboard-scope-btn" data-scope="chefs">Chefs</button>
+        <button type="button" class="leaderboard-scope-btn active" data-scope="recipes"><span data-i18n="leaderboard.scope_recipes">Recettes</span></button>
+        <button type="button" class="leaderboard-scope-btn" data-scope="chefs"><span data-i18n="leaderboard.scope_chefs">Chefs</span></button>
       </div>
-      <p class="sub-hint" id="leaderboard_rated_hint">Les recettes les mieux notées par la communauté.</p>
+      <p class="sub-hint" id="leaderboard_rated_hint" data-i18n="leaderboard.rated_hint">Les recettes les mieux notées par la communauté.</p>
       <div id="leaderboard_rated_list" class="leaderboard-list"></div>
     </div>
   </section>
@@ -207,144 +218,144 @@
   <!-- PUBLISH SECTION -->
   <section id="tab-publish" class="hidden">
     <div class="publish-card">
-      <h1 id="publish_form_title">Publier une recette</h1>
-      <p class="sub">+20 XP à la publication, +2 XP par like reçu.</p>
+      <h1 id="publish_form_title" data-i18n="publish.title">Publier une recette</h1>
+      <p class="sub" data-i18n="publish.xp_hint">+20 XP à la publication, +2 XP par like reçu.</p>
 
       <div class="wizard-steps-nav">
-        <button type="button" class="wizard-step-btn active" data-step="1"><i class="fa-solid fa-pen"></i> 1. Essentiel</button>
-        <button type="button" class="wizard-step-btn" data-step="2"><i class="fa-solid fa-sliders"></i> 2. Détails</button>
-        <button type="button" class="wizard-step-btn" data-step="3"><i class="fa-solid fa-carrot"></i> 3. Ingrédients</button>
-        <button type="button" class="wizard-step-btn" data-step="4"><i class="fa-solid fa-list-ol"></i> 4. Étapes</button>
-        <button type="button" class="wizard-step-btn" data-step="5"><i class="fa-solid fa-images"></i> 5. Photos</button>
-        <button type="button" class="wizard-step-btn" data-step="6"><i class="fa-solid fa-eye"></i> 6. Aperçu</button>
+        <button type="button" class="wizard-step-btn active" data-step="1"><i class="fa-solid fa-pen"></i> <span data-i18n="publish.step1">1. Essentiel</span></button>
+        <button type="button" class="wizard-step-btn" data-step="2"><i class="fa-solid fa-sliders"></i> <span data-i18n="publish.step2">2. Détails</span></button>
+        <button type="button" class="wizard-step-btn" data-step="3"><i class="fa-solid fa-carrot"></i> <span data-i18n="publish.step3">3. Ingrédients</span></button>
+        <button type="button" class="wizard-step-btn" data-step="4"><i class="fa-solid fa-list-ol"></i> <span data-i18n="publish.step4">4. Étapes</span></button>
+        <button type="button" class="wizard-step-btn" data-step="5"><i class="fa-solid fa-images"></i> <span data-i18n="publish.step5">5. Photos</span></button>
+        <button type="button" class="wizard-step-btn" data-step="6"><i class="fa-solid fa-eye"></i> <span data-i18n="publish.step6">6. Aperçu</span></button>
       </div>
 
       <form id="recipe_form">
 
         <!-- ÉTAPE 1 : L'ESSENTIEL -->
         <div class="wizard-step-panel" id="publish_step_1">
-          <label class="field-label"><i class="fa-solid fa-heading"></i> Titre de la recette *</label>
-          <input type="text" id="recipe_title_input" placeholder="Ex : Tarte tatin de mamie" required>
+          <label class="field-label"><i class="fa-solid fa-heading"></i> <span data-i18n="publish.title_label">Titre de la recette *</span></label>
+          <input type="text" id="recipe_title_input" data-i18n-placeholder="publish.title_placeholder" placeholder="Ex : Tarte tatin de mamie" required>
 
-          <label class="field-label"><i class="fa-solid fa-align-left"></i> Description (optionnel)</label>
-          <textarea id="recipe_description_input" rows="2" placeholder="Présentation, anecdote..."></textarea>
+          <label class="field-label"><i class="fa-solid fa-align-left"></i> <span data-i18n="publish.description_label">Description (optionnel)</span></label>
+          <textarea id="recipe_description_input" rows="2" data-i18n-placeholder="publish.description_placeholder" placeholder="Présentation, anecdote..."></textarea>
 
-          <label class="field-label"><i class="fa-solid fa-camera"></i> Photo de couverture *</label>
-          <p class="sub-hint">La photo qui donnera envie aux gens de cliquer sur ta recette.</p>
+          <label class="field-label"><i class="fa-solid fa-camera"></i> <span data-i18n="publish.cover_label">Photo de couverture *</span></label>
+          <p class="sub-hint" data-i18n="publish.cover_hint">La photo qui donnera envie aux gens de cliquer sur ta recette.</p>
           <input type="file" id="recipe_cover_input" accept="image/*" class="hidden_file_input">
           <label for="recipe_cover_input" class="cover-photo-dropzone" id="cover_photo_dropzone">
             <i class="fa-solid fa-camera"></i>
-            <span>Choisir une photo</span>
+            <span data-i18n="publish.cover_choose">Choisir une photo</span>
           </label>
 
           <div class="wizard-actions">
             <div></div>
-            <button type="button" class="btn-secondary next-step-btn" data-next="2">Suivant <i class="fa-solid fa-arrow-right"></i></button>
+            <button type="button" class="btn-secondary next-step-btn" data-next="2"><span data-i18n="publish.next">Suivant</span> <i class="fa-solid fa-arrow-right"></i></button>
           </div>
         </div>
 
         <!-- ÉTAPE 2 : DÉTAILS -->
         <div class="wizard-step-panel hidden" id="publish_step_2">
-          <label class="field-label"><i class="fa-solid fa-tags"></i> Catégories *</label>
+          <label class="field-label"><i class="fa-solid fa-tags"></i> <span data-i18n="publish.categories_label">Catégories *</span></label>
           <div class="chip-group" id="category_chips"></div>
 
           <div class="form_row">
             <div class="form_group">
-              <label><i class="fa-solid fa-users"></i> Portions (pers.) *</label>
+              <label><i class="fa-solid fa-users"></i> <span data-i18n="publish.servings_label">Portions (pers.) *</span></label>
               <input type="number" id="recipe_servings_input" value="4" min="1" required />
             </div>
             <div class="form_group">
-              <label><i class="fa-solid fa-gauge"></i> Difficulté</label>
+              <label><i class="fa-solid fa-gauge"></i> <span data-i18n="publish.difficulty_label">Difficulté</span></label>
               <select id="recipe_difficulty_select">
-                <option value="facile">Facile</option>
-                <option value="moyen" selected>Moyen</option>
-                <option value="difficile">Difficile</option>
+                <option value="facile" data-i18n="publish.difficulty_easy">Facile</option>
+                <option value="moyen" selected data-i18n="publish.difficulty_medium">Moyen</option>
+                <option value="difficile" data-i18n="publish.difficulty_hard">Difficile</option>
               </select>
             </div>
           </div>
 
           <div class="form_group">
-            <label><i class="fa-solid fa-globe"></i> Pays d'origine *</label>
+            <label><i class="fa-solid fa-globe"></i> <span data-i18n="publish.country_label">Pays d'origine *</span></label>
             <select id="recipe_country_select" required>
-              <option value="">Sélectionner un pays...</option>
+              <option value="" data-i18n="publish.country_placeholder">Sélectionner un pays...</option>
             </select>
           </div>
 
-          <label class="field-label"><i class="fa-solid fa-hashtag"></i> Tags (mode / occasion)</label>
+          <label class="field-label"><i class="fa-solid fa-hashtag"></i> <span data-i18n="publish.tags_label">Tags (mode / occasion)</span></label>
           <div class="chip-group" id="tag_chips"></div>
-          <input type="text" id="custom_tags_input" placeholder="Tags additionnels séparés par des virgules">
+          <input type="text" id="custom_tags_input" data-i18n-placeholder="publish.tags_placeholder" placeholder="Tags additionnels séparés par des virgules">
 
           <div class="wizard-actions">
-            <button type="button" class="btn-secondary prev-step-btn" data-prev="1"><i class="fa-solid fa-arrow-left"></i> Précédent</button>
-            <button type="button" class="btn-secondary next-step-btn" data-next="3">Suivant <i class="fa-solid fa-arrow-right"></i></button>
+            <button type="button" class="btn-secondary prev-step-btn" data-prev="1"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="publish.prev">Précédent</span></button>
+            <button type="button" class="btn-secondary next-step-btn" data-next="3"><span data-i18n="publish.next">Suivant</span> <i class="fa-solid fa-arrow-right"></i></button>
           </div>
         </div>
 
         <!-- ÉTAPE 3 : INGRÉDIENTS (pool, sans quantité) -->
         <div class="wizard-step-panel hidden" id="publish_step_3">
-          <label class="field-label"><i class="fa-solid fa-carrot"></i> Quels ingrédients utilises-tu ? *</label>
-          <p class="sub-hint">Choisis simplement les aliments de ta recette. Les quantités se règlent étape par étape, à l'écran suivant.</p>
+          <label class="field-label"><i class="fa-solid fa-carrot"></i> <span data-i18n="publish.ingredients_label">Quels ingrédients utilises-tu ? *</span></label>
+          <p class="sub-hint" data-i18n="publish.ingredients_hint">Choisis simplement les aliments de ta recette. Les quantités se règlent étape par étape, à l'écran suivant.</p>
 
           <div class="ingredient-pool-chips" id="ingredient_pool_chips"></div>
-          <button type="button" id="open_ingredient_picker_btn" class="add-row-btn"><i class="fa-solid fa-plus"></i> Ajouter un ingrédient</button>
+          <button type="button" id="open_ingredient_picker_btn" class="add-row-btn"><i class="fa-solid fa-plus"></i> <span data-i18n="publish.add_ingredient">Ajouter un ingrédient</span></button>
 
           <div class="wizard-actions">
-            <button type="button" class="btn-secondary prev-step-btn" data-prev="2"><i class="fa-solid fa-arrow-left"></i> Précédent</button>
-            <button type="button" class="btn-secondary next-step-btn" data-next="4">Suivant <i class="fa-solid fa-arrow-right"></i></button>
+            <button type="button" class="btn-secondary prev-step-btn" data-prev="2"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="publish.prev">Précédent</span></button>
+            <button type="button" class="btn-secondary next-step-btn" data-next="4"><span data-i18n="publish.next">Suivant</span> <i class="fa-solid fa-arrow-right"></i></button>
           </div>
         </div>
 
         <!-- ÉTAPE 4 : ÉTAPES (liste compacte + modal d'édition) -->
         <!-- ÉTAPE 4 : ÉTAPES (les outils se choisissent maintenant à l'intérieur de chaque étape) -->
         <div class="wizard-step-panel hidden" id="publish_step_4">
-          <label class="field-label"><i class="fa-solid fa-list-ol"></i> Étapes de préparation *</label>
-          <p class="sub-hint">Le temps total est calculé automatiquement à partir du temps de chaque étape.</p>
-          <div class="total-time-pill"><i class="fa-solid fa-stopwatch"></i> Temps total estimé : <span id="total_time_value">0</span> min</div>
+          <label class="field-label"><i class="fa-solid fa-list-ol"></i> <span data-i18n="publish.steps_label">Étapes de préparation *</span></label>
+          <p class="sub-hint" data-i18n="publish.steps_hint">Le temps total est calculé automatiquement à partir du temps de chaque étape.</p>
+          <div class="total-time-pill"><i class="fa-solid fa-stopwatch"></i> <span data-i18n="publish.total_time">Temps total estimé :</span> <span id="total_time_value">0</span> <span data-i18n="publish.total_time_unit">min</span></div>
 
           <div class="steps-compact-list" id="steps_compact_list"></div>
-          <button type="button" id="open_step_editor_btn" class="add-row-btn"><i class="fa-solid fa-plus"></i> Ajouter une étape</button>
+          <button type="button" id="open_step_editor_btn" class="add-row-btn"><i class="fa-solid fa-plus"></i> <span data-i18n="publish.add_step">Ajouter une étape</span></button>
 
           <div class="wizard-actions">
-            <button type="button" class="btn-secondary prev-step-btn" data-prev="3"><i class="fa-solid fa-arrow-left"></i> Précédent</button>
-            <button type="button" class="btn-secondary next-step-btn" data-next="5">Suivant <i class="fa-solid fa-arrow-right"></i></button>
+            <button type="button" class="btn-secondary prev-step-btn" data-prev="3"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="publish.prev">Précédent</span></button>
+            <button type="button" class="btn-secondary next-step-btn" data-next="5"><span data-i18n="publish.next">Suivant</span> <i class="fa-solid fa-arrow-right"></i></button>
           </div>
         </div>
 
         <!-- ÉTAPE 5 : PHOTOS SUPPLÉMENTAIRES & VIDÉO -->
         <div class="wizard-step-panel hidden" id="publish_step_5">
-          <label class="field-label"><i class="fa-solid fa-images"></i> Photos supplémentaires (optionnel)</label>
-          <p class="sub-hint">La photo de couverture est déjà réglée. Ajoute ici d'autres photos pour donner encore plus envie.</p>
+          <label class="field-label"><i class="fa-solid fa-images"></i> <span data-i18n="publish.photos_label">Photos supplémentaires (optionnel)</span></label>
+          <p class="sub-hint" data-i18n="publish.photos_hint">La photo de couverture est déjà réglée. Ajoute ici d'autres photos pour donner encore plus envie.</p>
           <div class="custom-file-upload">
             <input type="file" id="recipe_images_input" accept="image/*" multiple class="hidden_file_input">
-            <label for="recipe_images_input" class="upload-btn"><i class="fa-solid fa-cloud-arrow-up"></i> Choisir des images</label>
-            <span id="recipe_images_preview_text" class="file-name-indicator">Aucun fichier choisi</span>
+            <label for="recipe_images_input" class="upload-btn"><i class="fa-solid fa-cloud-arrow-up"></i> <span data-i18n="publish.choose_images">Choisir des images</span></label>
+            <span id="recipe_images_preview_text" class="file-name-indicator" data-i18n="publish.no_file_chosen">Aucun fichier choisi</span>
           </div>
           <div class="image-thumb-grid" id="image_thumb_grid"></div>
 
-          <label class="field-label"><i class="fa-solid fa-video"></i> Vidéo principale (optionnel)</label>
+          <label class="field-label"><i class="fa-solid fa-video"></i> <span data-i18n="publish.video_label">Vidéo principale (optionnel)</span></label>
           <div class="file-or-url-group">
             <div class="custom-file-upload">
               <input type="file" id="recipe_video_file_input" accept="video/*" class="hidden_file_input">
-              <label for="recipe_video_file_input" class="upload-btn"><i class="fa-solid fa-film"></i> Choisir vidéo</label>
+              <label for="recipe_video_file_input" class="upload-btn"><i class="fa-solid fa-film"></i> <span data-i18n="publish.choose_video">Choisir vidéo</span></label>
             </div>
-            <input type="url" id="recipe_video_url_input" placeholder="Ou lien (YouTube, Vimeo, MP4...)">
+            <input type="url" id="recipe_video_url_input" data-i18n-placeholder="publish.video_url_placeholder" placeholder="Ou lien (YouTube, Vimeo, MP4...)">
           </div>
 
           <div class="wizard-actions">
-            <button type="button" class="btn-secondary prev-step-btn" data-prev="4"><i class="fa-solid fa-arrow-left"></i> Précédent</button>
-            <button type="button" class="btn-secondary next-step-btn" data-next="6">Aperçu <i class="fa-solid fa-arrow-right"></i></button>
+            <button type="button" class="btn-secondary prev-step-btn" data-prev="4"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="publish.prev">Précédent</span></button>
+            <button type="button" class="btn-secondary next-step-btn" data-next="6"><span data-i18n="publish.preview">Aperçu</span> <i class="fa-solid fa-arrow-right"></i></button>
           </div>
         </div>
 
         <!-- ÉTAPE 6 : APERÇU -->
         <div class="wizard-step-panel hidden" id="publish_step_6">
-          <label class="field-label"><i class="fa-solid fa-eye"></i> Aperçu de ta recette</label>
-          <p class="sub-hint">Vérifie que tout est bon avant de publier.</p>
+          <label class="field-label"><i class="fa-solid fa-eye"></i> <span data-i18n="publish.preview_label">Aperçu de ta recette</span></label>
+          <p class="sub-hint" data-i18n="publish.preview_hint">Vérifie que tout est bon avant de publier.</p>
           <div id="recipe_preview_container"></div>
 
           <div class="wizard-actions">
-            <button type="button" class="btn-secondary prev-step-btn" data-prev="5"><i class="fa-solid fa-arrow-left"></i> Précédent</button>
-            <button type="submit" class="btn-primary"><i class="fa-solid fa-paper-plane"></i> Publier la recette</button>
+            <button type="button" class="btn-secondary prev-step-btn" data-prev="5"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="publish.prev">Précédent</span></button>
+            <button type="submit" class="btn-primary"><i class="fa-solid fa-paper-plane"></i> <span data-i18n="publish.submit">Publier la recette</span></button>
           </div>
         </div>
 
@@ -358,28 +369,28 @@
     <div class="ingredient-picker-layout">
       <div class="modal-card modal-card-wide">
         <button id="close_ingredient_picker_btn" class="close-btn">&times;</button>
-        <h2><i class="fa-solid fa-carrot"></i> Ajouter un ingrédient</h2>
-        <input type="text" id="ingredient_search_input" placeholder="Rechercher un aliment...">
+        <h2><i class="fa-solid fa-carrot"></i> <span data-i18n="modal.ingredient_picker.title">Ajouter un ingrédient</span></h2>
+        <input type="text" id="ingredient_search_input" data-i18n-placeholder="modal.ingredient_picker.search_placeholder" placeholder="Rechercher un aliment...">
         <div class="food-category-tabs" id="food_category_tabs"></div>
         <div class="food-picker-grid" id="food_picker_grid"></div>
 
         <button type="button" id="confirm_add_ingredients_btn" class="btn-primary confirm-add-btn" disabled>
-          <i class="fa-solid fa-check"></i> Ajouter <span id="confirm_add_ingredients_count" class="count-pastille">0</span>
+          <i class="fa-solid fa-check"></i> <span data-i18n="modal.ingredient_picker.add">Ajouter</span> <span id="confirm_add_ingredients_count" class="count-pastille">0</span>
         </button>
 
         <div class="custom-ingredient-zone">
-          <button type="button" id="toggle_custom_ingredient_btn" class="add-row-btn"><i class="fa-solid fa-plus"></i> Aliment pas dans la liste</button>
+          <button type="button" id="toggle_custom_ingredient_btn" class="add-row-btn"><i class="fa-solid fa-plus"></i> <span data-i18n="modal.ingredient_picker.custom_btn">Aliment pas dans la liste</span></button>
           <div class="custom-ingredient-popover hidden" id="custom_ingredient_popover">
-            <input type="text" id="custom_ingredient_input" placeholder="Nom de l'aliment...">
-            <button type="button" id="create_custom_ingredient_btn" class="btn-primary"><i class="fa-solid fa-check"></i> Créer</button>
+            <input type="text" id="custom_ingredient_input" data-i18n-placeholder="modal.ingredient_picker.custom_placeholder" placeholder="Nom de l'aliment...">
+            <button type="button" id="create_custom_ingredient_btn" class="btn-primary"><i class="fa-solid fa-check"></i> <span data-i18n="modal.ingredient_picker.create">Créer</span></button>
           </div>
         </div>
       </div>
 
       <aside class="ingredient-selection-cloud" id="ingredient_selection_cloud">
-        <h3><i class="fa-solid fa-basket-shopping"></i> Ta sélection</h3>
+        <h3><i class="fa-solid fa-basket-shopping"></i> <span data-i18n="modal.ingredient_picker.selection_title">Ta sélection</span></h3>
         <div class="cloud-bubbles" id="cloud_bubbles">
-          <p class="cloud-empty-hint">Clique sur des aliments pour les voir apparaître ici.</p>
+          <p class="cloud-empty-hint" data-i18n="modal.ingredient_picker.selection_empty">Clique sur des aliments pour les voir apparaître ici.</p>
         </div>
       </aside>
     </div>
@@ -389,25 +400,25 @@
   <div id="step_editor_modal" class="modal hidden">
     <div class="modal-card modal-card-xwide">
       <button id="close_step_editor_btn" class="close-btn">&times;</button>
-      <h2 id="step_editor_title"><i class="fa-solid fa-list-ol"></i> Ajouter une étape</h2>
+      <h2 id="step_editor_title"><i class="fa-solid fa-list-ol"></i> <span data-i18n="modal.step_editor.title_add">Ajouter une étape</span></h2>
 
-      <label class="field-label">Type d'étape</label>
+      <label class="field-label" data-i18n="modal.step_editor.type_label">Type d'étape</label>
       <div class="step-type-selector" id="step_type_selector">
-        <button type="button" class="step-type-btn active" data-type="prep"><i class="fa-solid fa-utensils"></i> Préparation</button>
-        <button type="button" class="step-type-btn" data-type="oven"><i class="fa-solid fa-fire-burner"></i> Four</button>
-        <button type="button" class="step-type-btn" data-type="stovetop"><i class="fa-solid fa-fire"></i> Cuisson (plaque)</button>
-        <button type="button" class="step-type-btn" data-type="fryer"><i class="fa-solid fa-oil-can"></i> Friture</button>
-        <button type="button" class="step-type-btn" data-type="rest"><i class="fa-solid fa-snowflake"></i> Repos / Frigo</button>
+        <button type="button" class="step-type-btn active" data-type="prep"><i class="fa-solid fa-utensils"></i> <span data-i18n="modal.step_editor.type_prep">Préparation</span></button>
+        <button type="button" class="step-type-btn" data-type="oven"><i class="fa-solid fa-fire-burner"></i> <span data-i18n="modal.step_editor.type_oven">Four</span></button>
+        <button type="button" class="step-type-btn" data-type="stovetop"><i class="fa-solid fa-fire"></i> <span data-i18n="modal.step_editor.type_stovetop">Cuisson (plaque)</span></button>
+        <button type="button" class="step-type-btn" data-type="fryer"><i class="fa-solid fa-oil-can"></i> <span data-i18n="modal.step_editor.type_fryer">Friture</span></button>
+        <button type="button" class="step-type-btn" data-type="rest"><i class="fa-solid fa-snowflake"></i> <span data-i18n="modal.step_editor.type_rest">Repos / Frigo</span></button>
       </div>
 
       <div class="step-editor-grid-2col">
         <div class="step-editor-section">
-          <label class="field-label"><i class="fa-solid fa-align-left"></i> Description de l'étape *</label>
-          <textarea id="step_editor_text" rows="5" placeholder="Décris cette étape..."></textarea>
+          <label class="field-label"><i class="fa-solid fa-align-left"></i> <span data-i18n="modal.step_editor.description_label">Description de l'étape *</span></label>
+          <textarea id="step_editor_text" rows="5" data-i18n-placeholder="modal.step_editor.description_placeholder" placeholder="Décris cette étape..."></textarea>
 
           <div class="form_row">
             <div class="form_group">
-              <label id="step_editor_time_label">Temps (min)</label>
+              <label id="step_editor_time_label" data-i18n="modal.step_editor.time_label">Temps (min)</label>
               <div class="time-clock-dial" data-target="step_editor_time">
                 <svg class="time-clock-dial-svg" viewBox="0 0 220 220" data-target="step_editor_time">
                   <circle class="time-clock-face" cx="110" cy="110" r="98"></circle>
@@ -418,26 +429,26 @@
                 </svg>
               </div>
               <div class="time-picker" data-target="step_editor_time">
-                <button type="button" class="time-picker-btn time-picker-minus" aria-label="Moins 1 min"><i class="fa-solid fa-minus"></i></button>
+                <button type="button" class="time-picker-btn time-picker-minus" data-i18n-aria="modal.step_editor.minus_aria" aria-label="Moins 1 min"><i class="fa-solid fa-minus"></i></button>
                 <div class="time-picker-display">
                   <input type="number" id="step_editor_time" min="0" placeholder="0">
                   <span class="time-picker-unit">min</span>
                 </div>
-                <button type="button" class="time-picker-btn time-picker-plus" aria-label="Plus 1 min"><i class="fa-solid fa-plus"></i></button>
+                <button type="button" class="time-picker-btn time-picker-plus" data-i18n-aria="modal.step_editor.plus_aria" aria-label="Plus 1 min"><i class="fa-solid fa-plus"></i></button>
               </div>
             </div>
             <div class="form_group hidden" id="step_editor_temp_group">
-              <label><i class="fa-solid fa-temperature-half"></i> Température (°C)</label>
-              <input type="number" id="step_editor_temp" min="0" placeholder="Ex : 180">
+              <label><i class="fa-solid fa-temperature-half"></i> <span data-i18n="modal.step_editor.temp_label">Température (°C)</span></label>
+              <input type="number" id="step_editor_temp" min="0" data-i18n-placeholder="modal.step_editor.temp_placeholder" placeholder="Ex : 180">
             </div>
           </div>
 
           <div class="field-label-row">
             <label class="field-label" style="margin:0;">
-              <i class="fa-solid fa-wand-magic-sparkles"></i> Cette étape crée un nouvel ingrédient
+              <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="modal.step_editor.creates_ingredient">Cette étape crée un nouvel ingrédient</span>
               <span class="info-tooltip">
-                <button type="button" class="info-icon-btn" id="step_editor_output_info_btn" aria-label="En savoir plus"><i class="fa-solid fa-circle-info"></i></button>
-                <span class="info-tooltip-bubble">Suggestion automatique selon l'étape, les ingrédients et les outils choisis — modifie le nom si besoin, ou décoche pour ignorer.</span>
+                <button type="button" class="info-icon-btn" id="step_editor_output_info_btn" data-i18n-aria="common.learn_more" aria-label="En savoir plus"><i class="fa-solid fa-circle-info"></i></button>
+                <span class="info-tooltip-bubble" data-i18n="modal.step_editor.creates_ingredient_tooltip">Suggestion automatique selon l'étape, les ingrédients et les outils choisis — modifie le nom si besoin, ou décoche pour ignorer.</span>
               </span>
             </label>
             <label class="toggle-switch">
@@ -446,46 +457,46 @@
             </label>
           </div>
           <div id="step_editor_output_product_wrap">
-            <input type="text" id="step_editor_output_product" placeholder="Ex : Frites coupées">
+            <input type="text" id="step_editor_output_product" data-i18n-placeholder="modal.step_editor.output_placeholder" placeholder="Ex : Frites coupées">
           </div>
         </div>
 
         <div class="step-editor-section">
-          <label class="field-label"><i class="fa-solid fa-photo-film"></i> Média (optionnel)</label>
+          <label class="field-label"><i class="fa-solid fa-photo-film"></i> <span data-i18n="modal.step_editor.media_label">Média (optionnel)</span></label>
           <div id="step_editor_existing_media"></div>
           <div class="step_media_grid">
             <div class="custom-file-upload">
               <input type="file" id="step_editor_image_input" accept="image/*" class="hidden_file_input">
-              <label for="step_editor_image_input" class="upload-btn mini"><i class="fa-solid fa-image"></i> Photo</label>
+              <label for="step_editor_image_input" class="upload-btn mini"><i class="fa-solid fa-image"></i> <span data-i18n="modal.step_editor.photo">Photo</span></label>
             </div>
             <div class="custom-file-upload">
               <input type="file" id="step_editor_video_input" accept="video/*" class="hidden_file_input">
-              <label for="step_editor_video_input" class="upload-btn mini"><i class="fa-solid fa-video"></i> Vidéo</label>
+              <label for="step_editor_video_input" class="upload-btn mini"><i class="fa-solid fa-video"></i> <span data-i18n="modal.step_editor.video">Vidéo</span></label>
             </div>
-            <input type="url" id="step_editor_external_url" placeholder="Ou lien externe">
+            <input type="url" id="step_editor_external_url" data-i18n-placeholder="modal.step_editor.external_url_placeholder" placeholder="Ou lien externe">
           </div>
         </div>
       </div>
 
       <div class="step-editor-grid-2col align-stretch">
         <div class="step-editor-section">
-          <label class="field-label"><i class="fa-solid fa-carrot"></i> Ingrédients utilisés</label>
-          <p class="sub-hint hidden" id="step_editor_no_ingredients_hint">Ajoute d'abord des ingrédients à l'étape 3 du formulaire.</p>
+          <label class="field-label"><i class="fa-solid fa-carrot"></i> <span data-i18n="modal.step_editor.ingredients_used">Ingrédients utilisés</span></label>
+          <p class="sub-hint hidden" id="step_editor_no_ingredients_hint" data-i18n="modal.step_editor.no_ingredients_hint">Ajoute d'abord des ingrédients à l'étape 3 du formulaire.</p>
           <div class="step-linked-ingredients-list" id="step_editor_linked_list"></div>
-          <button type="button" id="toggle_step_ing_picker_btn" class="add-row-btn"><i class="fa-solid fa-plus"></i> Ajouter un ingrédient</button>
+          <button type="button" id="toggle_step_ing_picker_btn" class="add-row-btn"><i class="fa-solid fa-plus"></i> <span data-i18n="modal.step_editor.add_ingredient">Ajouter un ingrédient</span></button>
         </div>
 
         <div class="step-editor-section">
-          <label class="field-label"><i class="fa-solid fa-kitchen-set"></i> Outils nécessaires</label>
-          <p class="sub-hint">Suggéré automatiquement selon le type d'étape.</p>
+          <label class="field-label"><i class="fa-solid fa-kitchen-set"></i> <span data-i18n="modal.step_editor.tools_needed">Outils nécessaires</span></label>
+          <p class="sub-hint" data-i18n="modal.step_editor.tools_hint">Suggéré automatiquement selon le type d'étape.</p>
           <div class="step-linked-ingredients-list" id="step_editor_tools_list"></div>
-          <button type="button" id="toggle_step_tool_picker_btn" class="add-row-btn"><i class="fa-solid fa-plus"></i> Ajouter un outil</button>
+          <button type="button" id="toggle_step_tool_picker_btn" class="add-row-btn"><i class="fa-solid fa-plus"></i> <span data-i18n="modal.step_editor.add_tool">Ajouter un outil</span></button>
         </div>
       </div>
 
       <div class="wizard-actions">
-        <button type="button" id="delete_step_editor_btn" class="btn-secondary danger hidden"><i class="fa-solid fa-trash"></i> Supprimer</button>
-        <button type="button" id="save_step_editor_btn" class="btn-primary"><i class="fa-solid fa-check"></i> Enregistrer l'étape</button>
+        <button type="button" id="delete_step_editor_btn" class="btn-secondary danger hidden"><i class="fa-solid fa-trash"></i> <span data-i18n="modal.step_editor.delete">Supprimer</span></button>
+        <button type="button" id="save_step_editor_btn" class="btn-primary"><i class="fa-solid fa-check"></i> <span data-i18n="modal.step_editor.save">Enregistrer l'étape</span></button>
       </div>
     </div>
   </div>
@@ -494,31 +505,31 @@
   <div id="step_ingredient_picker_modal" class="modal hidden">
     <div class="modal-card modal-card-wide">
       <button id="close_step_ingredient_picker_btn" class="close-btn">&times;</button>
-      <h2><i class="fa-solid fa-carrot"></i> Ingrédients de l'étape</h2>
+      <h2><i class="fa-solid fa-carrot"></i> <span data-i18n="modal.step_ing_picker.title">Ingrédients de l'étape</span></h2>
 
       <div class="step-picker-tabs" id="step_ing_picker_tabs">
-        <span class="step-picker-tab-indicator active" data-tab="choose"><i class="fa-solid fa-magnifying-glass"></i> 1. Choisir</span>
-        <span class="step-picker-tab-indicator" data-tab="qty"><i class="fa-solid fa-scale-balanced"></i> 2. Quantités</span>
+        <span class="step-picker-tab-indicator active" data-tab="choose"><i class="fa-solid fa-magnifying-glass"></i> <span data-i18n="modal.step_ing_picker.tab_choose">1. Choisir</span></span>
+        <span class="step-picker-tab-indicator" data-tab="qty"><i class="fa-solid fa-scale-balanced"></i> <span data-i18n="modal.step_ing_picker.tab_qty">2. Quantités</span></span>
       </div>
 
       <div class="step-picker-tab-panel" id="step_ing_picker_panel_choose">
-        <input type="text" id="step_ing_picker_search" placeholder="Rechercher parmi les ingrédients de la recette...">
+        <input type="text" id="step_ing_picker_search" data-i18n-placeholder="modal.step_ing_picker.search_placeholder" placeholder="Rechercher parmi les ingrédients de la recette...">
         <div class="food-picker-grid" id="step_ing_picker_grid"></div>
       </div>
 
       <div class="step-picker-tab-panel hidden" id="step_ing_picker_panel_qty">
-        <p class="sub-hint">Précise la quantité de chaque ingrédient sélectionné pour cette étape.</p>
+        <p class="sub-hint" data-i18n="modal.step_ing_picker.qty_hint">Précise la quantité de chaque ingrédient sélectionné pour cette étape.</p>
         <div class="step-linked-ingredients-list" id="step_ing_picker_qty_list"></div>
       </div>
 
       <div class="step-picker-footer" id="step_ing_picker_footer_choose">
         <button type="button" id="step_ing_picker_next_btn" class="btn-primary confirm-add-btn" disabled>
-          Suivant : préciser les quantités <span id="step_ing_picker_count" class="count-pastille">0</span> <i class="fa-solid fa-arrow-right"></i>
+          <span data-i18n="modal.step_ing_picker.next">Suivant : préciser les quantités</span> <span id="step_ing_picker_count" class="count-pastille">0</span> <i class="fa-solid fa-arrow-right"></i>
         </button>
       </div>
       <div class="step-picker-footer hidden" id="step_ing_picker_footer_qty">
-        <button type="button" id="step_ing_picker_back_btn" class="btn-secondary"><i class="fa-solid fa-arrow-left"></i> Modifier la sélection</button>
-        <button type="button" id="step_ing_picker_confirm_btn" class="btn-primary confirm-add-btn"><i class="fa-solid fa-check"></i> Ajouter à l'étape</button>
+        <button type="button" id="step_ing_picker_back_btn" class="btn-secondary"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="modal.step_ing_picker.back">Modifier la sélection</span></button>
+        <button type="button" id="step_ing_picker_confirm_btn" class="btn-primary confirm-add-btn"><i class="fa-solid fa-check"></i> <span data-i18n="modal.step_ing_picker.confirm">Ajouter à l'étape</span></button>
       </div>
     </div>
   </div>
@@ -527,11 +538,11 @@
   <div id="step_tool_picker_modal" class="modal hidden">
     <div class="modal-card modal-card-wide">
       <button id="close_step_tool_picker_btn" class="close-btn">&times;</button>
-      <h2><i class="fa-solid fa-kitchen-set"></i> Outils de l'étape</h2>
-      <input type="text" id="step_tool_picker_search" placeholder="Rechercher un outil...">
+      <h2><i class="fa-solid fa-kitchen-set"></i> <span data-i18n="modal.step_tool_picker.title">Outils de l'étape</span></h2>
+      <input type="text" id="step_tool_picker_search" data-i18n-placeholder="modal.step_tool_picker.search_placeholder" placeholder="Rechercher un outil...">
       <div class="food-picker-grid" id="step_tool_picker_grid"></div>
       <button type="button" id="step_tool_picker_confirm_btn" class="btn-primary confirm-add-btn" disabled>
-        <i class="fa-solid fa-check"></i> Ajouter à l'étape <span id="step_tool_picker_count" class="count-pastille">0</span>
+        <i class="fa-solid fa-check"></i> <span data-i18n="modal.step_tool_picker.confirm">Ajouter à l'étape</span> <span id="step_tool_picker_count" class="count-pastille">0</span>
       </button>
     </div>
   </div>
@@ -541,11 +552,11 @@
     <div class="profile_header_wrapper">
       <div class="profile_banner" id="profile_banner_preview">
         <label for="banner_upload_input" class="banner_upload_btn">
-          <i class="fa-solid fa-camera"></i> Changer la bannière
+          <i class="fa-solid fa-camera"></i> <span data-i18n="profile.change_banner">Changer la bannière</span>
         </label>
         <input type="file" id="banner_upload_input" accept="image/*" class="hidden_file_input">
       </div>
-      
+
       <div class="profile_header_content">
         <div class="profile_avatar_box">
           <div class="avatar_wrapper">
@@ -566,107 +577,107 @@
           <div class="xp_bar"><div id="profile_xp_fill" class="xp_fill"></div></div>
           <span id="profile_xp_text">0 / 100 XP</span>
         </div>
-        <button id="logout_btn_profile" class="text-btn"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</button>
+        <button id="logout_btn_profile" class="text-btn"><i class="fa-solid fa-right-from-bracket"></i> <span data-i18n="profile.logout">Déconnexion</span></button>
       </div>
     </div>
 
     <div class="profile_tabs_nav">
-      <button class="tab_btn active" data-tab="tab_info">Informations</button>
-      <button class="tab_btn" data-tab="tab_badges">Badges & Succès</button>
-      <button class="tab_btn" data-tab="tab_recipes">Mes Recettes</button>
+      <button class="tab_btn active" data-tab="tab_info"><span data-i18n="profile.tab_info">Informations</span></button>
+      <button class="tab_btn" data-tab="tab_badges"><span data-i18n="profile.tab_badges">Badges & Succès</span></button>
+      <button class="tab_btn" data-tab="tab_recipes"><span data-i18n="profile.tab_recipes">Mes Recettes</span></button>
     </div>
 
     <div id="tab_info" class="tab_content active">
       <form id="profile_form">
-        <h3>Réglages du profil</h3>
+        <h3 data-i18n="profile.settings_title">Réglages du profil</h3>
         <div class="form_group">
-          <label><i class="fa-solid fa-envelope"></i> Email de connexion</label>
+          <label><i class="fa-solid fa-envelope"></i> <span data-i18n="profile.email_label">Email de connexion</span></label>
           <div class="email-field-row">
             <input type="email" id="profile_email_display" disabled />
-            <button type="button" id="change_email_btn" class="btn-secondary">Changer</button>
+            <button type="button" id="change_email_btn" class="btn-secondary" data-i18n="profile.change">Changer</button>
           </div>
           <div id="change_email_form" class="change-email-form hidden">
-            <input type="email" id="new_email_input" placeholder="Nouvelle adresse email">
-            <button type="button" id="confirm_email_change_btn" class="btn-primary">Confirmer</button>
+            <input type="email" id="new_email_input" data-i18n-placeholder="profile.new_email_placeholder" placeholder="Nouvelle adresse email">
+            <button type="button" id="confirm_email_change_btn" class="btn-primary" data-i18n="profile.confirm">Confirmer</button>
           </div>
           <p class="msg" id="email_change_msg"></p>
         </div>
         <div class="form_group">
-          <label>Nom d'utilisateur</label>
-          <input type="text" id="profile_username_input" placeholder="@username" required />
+          <label data-i18n="profile.username_label">Nom d'utilisateur</label>
+          <input type="text" id="profile_username_input" data-i18n-placeholder="profile.username_placeholder" placeholder="@username" required />
         </div>
         <div class="form_row">
           <div class="form_group">
-            <label>Prénom</label>
+            <label data-i18n="profile.first_name_label">Prénom</label>
             <input type="text" id="profile_first_name" />
           </div>
           <div class="form_group">
-            <label>Nom</label>
+            <label data-i18n="profile.last_name_label">Nom</label>
             <input type="text" id="profile_last_name" />
           </div>
         </div>
         <div class="form_group">
-          <label>Nationalité</label>
+          <label data-i18n="profile.nationality_label">Nationalité</label>
           <select id="profile_nationality" required>
-            <option value="">Sélectionner un pays</option>
+            <option value="" data-i18n="profile.nationality_placeholder">Sélectionner un pays</option>
           </select>
         </div>
         <div class="form_group">
-          <label>Description</label>
+          <label data-i18n="profile.description_label">Description</label>
           <textarea id="profile_bio" rows="3"></textarea>
         </div>
         <div class="form_group">
-          <label>Lien pour recevoir des dons (Stripe, Ko-fi, PayPal...)</label>
+          <label data-i18n="profile.donation_label">Lien pour recevoir des dons (Stripe, Ko-fi, PayPal...)</label>
           <input type="url" id="profile_donation_input" placeholder="https://ko-fi.com/..." />
         </div>
 
         <div class="form_security_section">
-          <h3>Sécurité</h3>
+          <h3 data-i18n="profile.security_title">Sécurité</h3>
           <div class="form_group">
-            <label><i class="fa-solid fa-lock"></i> Mot de passe</label>
+            <label><i class="fa-solid fa-lock"></i> <span data-i18n="profile.password_label">Mot de passe</span></label>
             <div class="email-field-row">
               <input type="password" id="profile_password_display" value="••••••••" disabled />
-              <button type="button" id="change_password_btn" class="btn-secondary">Changer</button>
+              <button type="button" id="change_password_btn" class="btn-secondary" data-i18n="profile.change">Changer</button>
             </div>
             <div id="change_password_form" class="change-email-form hidden">
-              <input type="password" id="new_password_input" placeholder="Nouveau mot de passe (6 caractères min.)">
-              <button type="button" id="confirm_password_change_btn" class="btn-primary">Confirmer</button>
+              <input type="password" id="new_password_input" data-i18n-placeholder="profile.new_password_placeholder" placeholder="Nouveau mot de passe (6 caractères min.)">
+              <button type="button" id="confirm_password_change_btn" class="btn-primary" data-i18n="profile.confirm">Confirmer</button>
             </div>
             <p class="msg" id="password_change_msg"></p>
           </div>
         </div>
 
-        <button type="submit" class="btn-primary">Enregistrer</button>
+        <button type="submit" class="btn-primary" data-i18n="profile.save">Enregistrer</button>
       </form>
     </div>
 
     <div id="tab_badges" class="tab_content">
-      <h3>Badge équipé</h3>
+      <h3 data-i18n="profile.equipped_badge">Badge équipé</h3>
       <div id="equipped_badge_box" class="badge_equipped_box">
-        <span>Aucun badge équipé</span>
+        <span data-i18n="profile.no_badge_equipped">Aucun badge équipé</span>
       </div>
 
-      <h3>Badges de Niveau</h3>
+      <h3 data-i18n="profile.level_badges">Badges de Niveau</h3>
       <div id="level_badges_grid" class="badges_grid"></div>
 
-      <h3>Succès de publication (Recettes)</h3>
+      <h3 data-i18n="profile.recipe_badges">Succès de publication (Recettes)</h3>
       <div id="recipe_badges_grid" class="badges_grid"></div>
 
-      <h3>Succès d'appréciation (Likes reçus)</h3>
+      <h3 data-i18n="profile.like_badges">Succès d'appréciation (Likes reçus)</h3>
       <div id="like_badges_grid" class="badges_grid"></div>
     </div>
 
     <div id="tab_recipes" class="tab_content">
-      <h3>Mes recettes publiées</h3>
+      <h3 data-i18n="profile.published_recipes">Mes recettes publiées</h3>
       <div id="user_published_recipes" class="recipes_grid mini_grid"></div>
 
-      <h3>Mes recettes sauvegardées</h3>
+      <h3 data-i18n="profile.saved_recipes">Mes recettes sauvegardées</h3>
       <div class="saved_filters_row">
         <select id="saved_filter_country">
-          <option value="">Tous les pays</option>
+          <option value="" data-i18n="common.all_countries">Tous les pays</option>
         </select>
         <select id="saved_filter_tag">
-          <option value="">Tous les tags</option>
+          <option value="" data-i18n="profile.all_tags">Tous les tags</option>
         </select>
       </div>
 
@@ -676,7 +687,7 @@
 
   <!-- ---------------- PROFIL PUBLIC (celui d'un autre utilisateur) ---------------- -->
   <section id="tab-public-profile" class="profile_container hidden">
-    <button id="back_to_feed_from_profile_btn" class="text-btn"><i class="fa-solid fa-arrow-left"></i> Retour</button>
+    <button id="back_to_feed_from_profile_btn" class="text-btn"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="common.back">Retour</span></button>
 
     <div class="profile_header_wrapper" style="margin-top:14px;">
       <div class="profile_banner" id="public_profile_banner_preview"></div>
@@ -688,6 +699,7 @@
           </div>
           <div class="profile_identity">
             <h2 id="public_profile_display_name">Utilisateur</h2>
+            <span id="public_profile_identity_badges"></span>
             <span id="public_profile_username_text">@username</span>
             <span id="public_profile_equipped_badge_display" class="badge_tag"></span>
           </div>
@@ -703,28 +715,28 @@
     <p class="sub-hint" id="public_profile_bio" style="margin:14px 0;"></p>
 
     <div class="profile_tabs_nav">
-      <button class="tab_btn active" data-ptab="public_tab_badges">Badges & Succès</button>
-      <button class="tab_btn" data-ptab="public_tab_recipes">Recettes publiées</button>
+      <button class="tab_btn active" data-ptab="public_tab_badges"><span data-i18n="public_profile.tab_badges">Badges & Succès</span></button>
+      <button class="tab_btn" data-ptab="public_tab_recipes"><span data-i18n="public_profile.tab_recipes">Recettes publiées</span></button>
     </div>
 
     <div id="public_tab_badges" class="tab_content active">
-      <h3>Badge équipé</h3>
+      <h3 data-i18n="profile.equipped_badge">Badge équipé</h3>
       <div id="public_equipped_badge_box" class="badge_equipped_box">
-        <span>Aucun badge équipé</span>
+        <span data-i18n="profile.no_badge_equipped">Aucun badge équipé</span>
       </div>
 
-      <h3>Badges de Niveau</h3>
+      <h3 data-i18n="profile.level_badges">Badges de Niveau</h3>
       <div id="public_level_badges_grid" class="badges_grid"></div>
 
-      <h3>Succès de publication (Recettes)</h3>
+      <h3 data-i18n="profile.recipe_badges">Succès de publication (Recettes)</h3>
       <div id="public_recipe_badges_grid" class="badges_grid"></div>
 
-      <h3>Succès d'appréciation (Likes reçus)</h3>
+      <h3 data-i18n="profile.like_badges">Succès d'appréciation (Likes reçus)</h3>
       <div id="public_like_badges_grid" class="badges_grid"></div>
     </div>
 
     <div id="public_tab_recipes" class="tab_content">
-      <h3>Recettes publiées</h3>
+      <h3 data-i18n="public_profile.published_recipes">Recettes publiées</h3>
       <div id="public_published_recipes" class="recipes_grid mini_grid"></div>
     </div>
   </section>
@@ -735,7 +747,7 @@
 <div id="image_crop_modal" class="modal hidden">
   <div class="modal-card crop-modal-card">
     <button id="close_crop_modal_btn" type="button" class="close-btn">&times;</button>
-    <h2><i class="fa-solid fa-crop-simple"></i> Ajuster la photo</h2>
+    <h2><i class="fa-solid fa-crop-simple"></i> <span data-i18n="crop.title">Ajuster la photo</span></h2>
     <div class="crop-viewport" id="crop_viewport">
       <img id="crop_image" src="" alt="" draggable="false">
     </div>
@@ -744,10 +756,10 @@
       <input type="range" id="crop_zoom_range" min="100" max="300" value="100" step="1">
       <i class="fa-solid fa-magnifying-glass-plus"></i>
     </div>
-    <p class="sub-hint" style="text-align:center;">Fais glisser l'image pour la repositionner.</p>
+    <p class="sub-hint" style="text-align:center;" data-i18n="crop.hint">Fais glisser l'image pour la repositionner.</p>
     <div class="wizard-actions">
-      <button type="button" class="btn-secondary" id="crop_cancel_btn">Annuler</button>
-      <button type="button" class="btn-primary" id="crop_confirm_btn"><i class="fa-solid fa-check"></i> Valider</button>
+      <button type="button" class="btn-secondary" id="crop_cancel_btn" data-i18n="crop.cancel">Annuler</button>
+      <button type="button" class="btn-primary" id="crop_confirm_btn"><i class="fa-solid fa-check"></i> <span data-i18n="crop.confirm">Valider</span></button>
     </div>
   </div>
 </div>
@@ -757,48 +769,48 @@
   <div class="modal-card">
     <button id="close_auth_btn" class="close-btn">&times;</button>
     <h2 class="display" style="color:var(--rust);font-style:italic;">Dishful</h2>
-    <p class="sub" style="margin-top:4px;">Partage tes recettes, prends du niveau.</p>
+    <p class="sub" style="margin-top:4px;" data-i18n="auth.tagline">Partage tes recettes, prends du niveau.</p>
 
     <div class="auth-tabs">
-      <button id="auth_tab_login" class="active"><i class="fa-solid fa-right-to-bracket"></i> Se connecter</button>
-      <button id="auth_tab_signup"><i class="fa-solid fa-user-plus"></i> Créer un compte</button>
+      <button id="auth_tab_login" class="active"><i class="fa-solid fa-right-to-bracket"></i> <span data-i18n="auth.login_tab">Se connecter</span></button>
+      <button id="auth_tab_signup"><i class="fa-solid fa-user-plus"></i> <span data-i18n="auth.signup_tab">Créer un compte</span></button>
     </div>
 
     <form id="login_form">
       <div class="input-icon-wrap">
         <i class="fa-solid fa-envelope"></i>
-        <input type="email" id="login_email_input" placeholder="Email" required>
+        <input type="email" id="login_email_input" data-i18n-placeholder="auth.email_placeholder" placeholder="Email" required>
       </div>
       <div class="input-icon-wrap">
         <i class="fa-solid fa-lock"></i>
-        <input type="password" id="login_password_input" placeholder="Mot de passe" required>
+        <input type="password" id="login_password_input" data-i18n-placeholder="auth.password_placeholder" placeholder="Mot de passe" required>
       </div>
-      <button type="submit" class="btn-primary"><i class="fa-solid fa-right-to-bracket"></i> Se connecter</button>
+      <button type="submit" class="btn-primary"><i class="fa-solid fa-right-to-bracket"></i> <span data-i18n="auth.login_submit">Se connecter</span></button>
     </form>
 
     <form id="signup_form" class="hidden">
       <div class="input-icon-wrap">
         <i class="fa-solid fa-signature"></i>
-        <input type="text" id="first_name_input" placeholder="Prénom" required>
+        <input type="text" id="first_name_input" data-i18n-placeholder="auth.first_name_placeholder" placeholder="Prénom" required>
       </div>
       <div class="input-icon-wrap">
         <i class="fa-solid fa-signature"></i>
-        <input type="text" id="last_name_input" placeholder="Nom" required>
+        <input type="text" id="last_name_input" data-i18n-placeholder="auth.last_name_placeholder" placeholder="Nom" required>
       </div>
       <div class="input-icon-wrap">
         <i class="fa-solid fa-earth-europe"></i>
-        <input type="text" id="nationality_input" placeholder="Nationalité">
+        <input type="text" id="nationality_input" data-i18n-placeholder="auth.nationality_placeholder" placeholder="Nationalité">
       </div>
       <div class="input-icon-wrap">
         <i class="fa-solid fa-envelope"></i>
-        <input type="email" id="email_input" placeholder="Email" required>
+        <input type="email" id="email_input" data-i18n-placeholder="auth.email_placeholder" placeholder="Email" required>
       </div>
       <div class="input-icon-wrap">
         <i class="fa-solid fa-lock"></i>
-        <input type="password" id="password_input" placeholder="Mot de passe (min. 6 caractères)" required>
+        <input type="password" id="password_input" data-i18n-placeholder="auth.password_signup_placeholder" placeholder="Mot de passe (min. 6 caractères)" required>
       </div>
-      <p class="signup-hint"><i class="fa-solid fa-circle-info"></i> Ton nom d'utilisateur se choisit ensuite, dans ton profil.</p>
-      <button type="submit" class="btn-primary"><i class="fa-solid fa-user-plus"></i> Créer le compte</button>
+      <p class="signup-hint"><i class="fa-solid fa-circle-info"></i> <span data-i18n="auth.signup_hint">Ton nom d'utilisateur se choisit ensuite, dans ton profil.</span></p>
+      <button type="submit" class="btn-primary"><i class="fa-solid fa-user-plus"></i> <span data-i18n="auth.signup_submit">Créer le compte</span></button>
     </form>
 
     <p class="msg" id="message_text"></p>
@@ -810,8 +822,8 @@
   <div class="modal-card publish-success-card">
     <button id="close_publish_success_btn" class="close-btn">&times;</button>
     <div class="publish-success-icon"><i class="fa-solid fa-circle-check"></i></div>
-    <h2 class="display" style="color:var(--basil-deep);">Recette publiée !</h2>
-    <p class="sub">+20 XP gagnés. Partage-la pour donner envie à d'autres de cuisiner et publier leurs recettes.</p>
+    <h2 class="display" style="color:var(--basil-deep);" data-i18n="publish_success.title">Recette publiée !</h2>
+    <p class="sub" data-i18n="publish_success.hint">+20 XP gagnés. Partage-la pour donner envie à d'autres de cuisiner et publier leurs recettes.</p>
 
     <div class="publish-success-recipe-card" id="publish_success_recipe_card"></div>
 
@@ -819,12 +831,12 @@
       <button type="button" class="share-btn share-btn-x" id="share_x_btn"><i class="fa-brands fa-x-twitter"></i> X</button>
       <button type="button" class="share-btn share-btn-facebook" id="share_facebook_btn"><i class="fa-brands fa-facebook"></i> Facebook</button>
       <button type="button" class="share-btn share-btn-whatsapp" id="share_whatsapp_btn"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
-      <button type="button" class="share-btn share-btn-copy" id="share_copy_btn"><i class="fa-solid fa-link"></i> Copier le lien</button>
+      <button type="button" class="share-btn share-btn-copy" id="share_copy_btn"><i class="fa-solid fa-link"></i> <span data-i18n="publish_success.copy_link">Copier le lien</span></button>
     </div>
 
     <div class="wizard-actions" style="margin-top:18px;">
-      <button type="button" class="btn-secondary" id="publish_success_close_btn">Fermer</button>
-      <button type="button" class="btn-primary" id="publish_success_view_btn">Voir ma recette <i class="fa-solid fa-arrow-right"></i></button>
+      <button type="button" class="btn-secondary" id="publish_success_close_btn" data-i18n="publish_success.close">Fermer</button>
+      <button type="button" class="btn-primary" id="publish_success_view_btn"><span data-i18n="publish_success.view">Voir ma recette</span> <i class="fa-solid fa-arrow-right"></i></button>
     </div>
   </div>
 </div>
@@ -833,16 +845,17 @@
 <div id="deletion_request_modal" class="modal hidden">
   <div class="modal-card">
     <button id="close_deletion_request_btn" type="button" class="close-btn">&times;</button>
-    <h2><i class="fa-solid fa-trash-can" style="color:var(--rust);"></i> Demander la suppression</h2>
-    <p class="sub">Ta recette ne sera pas supprimée tout de suite : la demande est transmise à l'équipe Dishful, qui la traitera.</p>
-    <textarea id="deletion_request_reason" rows="3" placeholder="Raison (optionnel)"></textarea>
+    <h2><i class="fa-solid fa-trash-can" style="color:var(--rust);"></i> <span data-i18n="deletion.title">Demander la suppression</span></h2>
+    <p class="sub" data-i18n="deletion.hint">Ta recette ne sera pas supprimée tout de suite : la demande est transmise à l'équipe Dishful, qui la traitera.</p>
+    <textarea id="deletion_request_reason" rows="3" data-i18n-placeholder="deletion.reason_placeholder" placeholder="Raison (optionnel)"></textarea>
     <div class="wizard-actions">
-      <button type="button" class="btn-secondary" id="cancel_deletion_request_btn">Annuler</button>
-      <button type="button" class="btn-secondary danger" id="confirm_deletion_request_btn"><i class="fa-solid fa-paper-plane"></i> Envoyer la demande</button>
+      <button type="button" class="btn-secondary" id="cancel_deletion_request_btn" data-i18n="deletion.cancel">Annuler</button>
+      <button type="button" class="btn-secondary danger" id="confirm_deletion_request_btn"><i class="fa-solid fa-paper-plane"></i> <span data-i18n="deletion.confirm">Envoyer la demande</span></button>
     </div>
   </div>
 </div>
 
+<script src="i18n.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
