@@ -1514,15 +1514,17 @@ function open_step_editor(index) {
   step_editor_image_file = null;
   step_editor_video_file = null;
   const is_editing = index !== null;
-  const step = is_editing ? recipe_steps[index] : { type: 'prep', text: '', time_min: '', oven_temp: '', ingredients: [], tools: [], image_url: null, video_url: null, external_url: '' };
+  const step = is_editing ? recipe_steps[index] : { type: 'prep', text: '', time_min: '', oven_temp: '', ingredients: [], tools: [], image_url: null, video_url: null, external_url: '', output_product: '' };
 
   document.getElementById('step_editor_title').innerHTML = is_editing
     ? `<i class="fa-solid fa-list-ol"></i> Modifier l'étape ${index + 1}`
     : `<i class="fa-solid fa-list-ol"></i> Ajouter une étape`;
   document.getElementById('step_editor_text').value = step.text || '';
   document.getElementById('step_editor_time').value = step.time_min || '';
+  sync_time_picker_presets('step_editor_time');
   document.getElementById('step_editor_temp').value = step.oven_temp || '';
   document.getElementById('step_editor_external_url').value = step.external_url || '';
+  document.getElementById('step_editor_output_product').value = step.output_product || '';
   document.getElementById('delete_step_editor_btn').classList.toggle('hidden', !is_editing);
 
   set_step_editor_type(step.type || 'prep');
@@ -1583,6 +1585,8 @@ document.getElementById('save_step_editor_btn').addEventListener('click', () => 
   const text = document.getElementById('step_editor_text').value.trim();
   if (!text) { alert('Ajoute une description pour cette étape.'); return; }
 
+  const output_product = document.getElementById('step_editor_output_product').value.trim();
+
   const previous = step_editor_index !== null ? recipe_steps[step_editor_index] : {};
   const step_data = {
     type: step_editor_current_type,
@@ -1594,12 +1598,20 @@ document.getElementById('save_step_editor_btn').addEventListener('click', () => 
     image_url: previous.image_url || null,
     video_url: previous.video_url || null,
     external_url: document.getElementById('step_editor_external_url').value.trim() || null,
+    output_product: output_product || null,
     _image_file: step_editor_image_file,
     _video_file: step_editor_video_file
   };
 
   if (step_editor_index !== null) recipe_steps[step_editor_index] = step_data;
   else recipe_steps.push(step_data);
+
+  // Le produit obtenu rejoint le pool d'ingrédients, prêt à être lié à une étape suivante
+  // (ex : "Frites coupées" à l'étape 1, réutilisé à l'étape 2 pour la friture).
+  if (output_product && !ingredient_pool.some(p => p.name.toLowerCase() === output_product.toLowerCase())) {
+    add_ingredient_to_pool(output_product, '✨');
+    show_toast(`"${output_product}" ajouté aux ingrédients, réutilisable dans les étapes suivantes.`, 'fa-wand-magic-sparkles');
+  }
 
   render_steps_compact_list();
   step_editor_modal.classList.add('hidden');
@@ -1785,7 +1797,8 @@ recipe_form.addEventListener('submit', async (e) => {
       tools: step.tools || [],
       image_url: step_image_url,
       video_url: step_video_url,
-      external_url: step.external_url || null
+      external_url: step.external_url || null,
+      output_product: step.output_product || null
     });
   }
 
@@ -2115,6 +2128,48 @@ function show_toast(message, icon) {
   clearTimeout(toast_hide_timeout);
   toast_hide_timeout = setTimeout(() => el.classList.remove('visible'), 2600);
 }
+
+// Sélecteur de temps interactif : boutons -/+ et raccourcis (1, 5, 10, 15...) plutôt que
+// de taper un nombre de minutes à la main. Pilote un <input type="number"> existant, donc
+// tout le code qui lit sa valeur ailleurs continue de fonctionner sans changement.
+function sync_time_picker_presets(target_id) {
+  const presets = document.querySelector(`.time-picker-presets[data-target="${target_id}"]`);
+  const input = document.getElementById(target_id);
+  if (!presets || !input) return;
+  const current = String(parseInt(input.value) || 0);
+  presets.querySelectorAll('button[data-min]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.min === current);
+  });
+}
+function init_time_pickers() {
+  document.querySelectorAll('.time-picker').forEach(picker => {
+    const target_id = picker.dataset.target;
+    const input = document.getElementById(target_id);
+    if (!input) return;
+    const adjust = (delta) => {
+      const current = parseInt(input.value) || 0;
+      input.value = Math.max(0, current + delta);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      sync_time_picker_presets(target_id);
+    };
+    picker.querySelector('.time-picker-minus')?.addEventListener('click', () => adjust(-5));
+    picker.querySelector('.time-picker-plus')?.addEventListener('click', () => adjust(5));
+  });
+  document.querySelectorAll('.time-picker-presets').forEach(presets => {
+    const target_id = presets.dataset.target;
+    const input = document.getElementById(target_id);
+    if (!input) return;
+    presets.querySelectorAll('button[data-min]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        input.value = btn.dataset.min;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        sync_time_picker_presets(target_id);
+      });
+    });
+    input.addEventListener('input', () => sync_time_picker_presets(target_id));
+  });
+}
+init_time_pickers();
 
 // =====================================================================
 // 9bis. RECADRAGE D'IMAGE (zoom + déplacement) — réutilisé partout où on
@@ -3521,6 +3576,7 @@ function load_recipe_into_publish_form(recipe) {
       image_url: step.image_url || null,
       video_url: step.video_url || null,
       external_url: step.external_url || null,
+      output_product: step.output_product || null,
       _image_file: null,
       _video_file: null
     };

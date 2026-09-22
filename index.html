@@ -331,13 +331,34 @@
           <div class="form_row">
             <div class="form_group">
               <label id="step_editor_time_label">Temps (min)</label>
-              <input type="number" id="step_editor_time" min="0" placeholder="Ex : 10">
+              <div class="time-picker" data-target="step_editor_time">
+                <button type="button" class="time-picker-btn time-picker-minus" aria-label="Moins 5 min"><i class="fa-solid fa-minus"></i></button>
+                <div class="time-picker-display">
+                  <input type="number" id="step_editor_time" min="0" placeholder="0">
+                  <span class="time-picker-unit">min</span>
+                </div>
+                <button type="button" class="time-picker-btn time-picker-plus" aria-label="Plus 5 min"><i class="fa-solid fa-plus"></i></button>
+              </div>
+              <div class="time-picker-presets" data-target="step_editor_time">
+                <button type="button" data-min="1">1</button>
+                <button type="button" data-min="5">5</button>
+                <button type="button" data-min="10">10</button>
+                <button type="button" data-min="15">15</button>
+                <button type="button" data-min="20">20</button>
+                <button type="button" data-min="30">30</button>
+                <button type="button" data-min="45">45</button>
+                <button type="button" data-min="60">60</button>
+              </div>
             </div>
             <div class="form_group hidden" id="step_editor_temp_group">
               <label><i class="fa-solid fa-temperature-half"></i> Température (°C)</label>
               <input type="number" id="step_editor_temp" min="0" placeholder="Ex : 180">
             </div>
           </div>
+
+          <label class="field-label"><i class="fa-solid fa-wand-magic-sparkles"></i> Ce produit crée un nouvel ingrédient (optionnel)</label>
+          <p class="sub-hint">Ex : si cette étape découpe des frites, tape "Frites coupées" — il apparaîtra dans la liste des ingrédients, prêt à être utilisé dans les étapes suivantes.</p>
+          <input type="text" id="step_editor_output_product" placeholder="Ex : Frites coupées">
         </div>
 
         <div class="step-editor-section">
