@@ -1251,6 +1251,12 @@ label.field-label{
 @media (max-width:760px){
   .step-editor-grid-2col{grid-template-columns:1fr;}
 }
+/* Variante "étirée" : les deux cases (ingrédients / outils) doivent toujours faire
+   la même hauteur, même quand l'une a plus de lignes que l'autre — le bouton
+   "Ajouter..." reste collé en bas des deux cases. */
+.step-editor-grid-2col.align-stretch{align-items:stretch;}
+.step-editor-grid-2col.align-stretch .step-editor-section{height:100%;}
+.step-editor-grid-2col.align-stretch .step-linked-ingredients-list{flex:1;}
 
 /* ---------- Pool d'ingrédients (étape 2) ---------- */
 .ingredient-pool-chips{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;min-height:20px;}
@@ -1761,6 +1767,33 @@ label.field-label{
 }
 .time-picker-presets button:hover{border-color:var(--saffron);color:var(--ink);}
 .time-picker-presets button.active{background:var(--saffron);color:#fff;border-color:var(--saffron-deep);}
+
+.time-picker-clock-toggle{
+  width:40px;flex-shrink:0;background:var(--paper);border:1px solid var(--line);border-radius:9px;
+  color:var(--ink-soft);font-size:14px;display:flex;align-items:center;justify-content:center;
+  transition:background .15s ease, border-color .15s ease, color .15s ease;
+}
+.time-picker-clock-toggle:hover{border-color:var(--saffron);color:var(--ink);}
+.time-picker-clock-toggle.active{background:var(--basil);color:#fff;border-color:var(--basil-deep);}
+
+/* ---------- Horloge à glisser (alternative visuelle au stepper -/+) ----------
+   Un tour complet du point autour du cadran = 60 minutes. On glisse avec la souris
+   (ou le doigt, via Pointer Events) ; l'aiguille suit en direct et met à jour le
+   même <input type="number"> que le stepper, donc tout reste synchronisé. */
+.time-clock-dial{
+  margin-top:12px;padding:16px;background:var(--paper);border:1px solid var(--line);border-radius:14px;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+}
+.time-clock-dial-svg{width:180px;height:180px;touch-action:none;cursor:grab;user-select:none;}
+.time-clock-dial-svg.dragging{cursor:grabbing;}
+.time-clock-face{fill:var(--card);stroke:var(--line);stroke-width:2;}
+.time-clock-ticks line{stroke:var(--ink-soft);opacity:0.35;stroke-width:2;}
+.time-clock-ticks text{fill:var(--ink-soft);font-size:13px;font-weight:700;font-family:inherit;text-anchor:middle;dominant-baseline:middle;}
+.time-clock-hand{stroke:var(--rust);stroke-width:4;stroke-linecap:round;}
+.time-clock-handle{fill:var(--rust);stroke:#fff;stroke-width:3;filter:drop-shadow(0 2px 4px rgba(43,36,28,0.3));}
+.time-clock-center-dot{fill:var(--ink);}
+.time-clock-readout{font-size:13px;color:var(--ink-soft);margin:0;text-align:center;}
+.time-clock-readout-num{font-size:16px;font-weight:800;color:var(--ink);}
 
 /* ---------- Notification flottante ---------- */
 .dishful-toast{

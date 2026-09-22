@@ -290,6 +290,14 @@ const UNIT_OPTIONS = [
   {value:'pincée', label:'pincée'}, {value:'unité', label:'unité(s)'}, {value:'au_gout', label:'Au goût'}
 ];
 const TO_TASTE_UNIT = 'au_gout';
+// Une quantité doit toujours être explicite : un nombre+unité, ou "Au goût" par défaut si
+// l'utilisateur ne renseigne rien — plus jamais de quantité silencieusement non précisée.
+function normalize_ingredient_quantity(entry) {
+  if (!entry.amount && entry.unit !== TO_TASTE_UNIT) {
+    entry.unit = TO_TASTE_UNIT;
+    entry.amount = '';
+  }
+}
 
 const recipe_badge_list = [
   { id: "rec_5", name: "Apprenti Cuisinier", icon: "🍳", count: 5 },
@@ -1326,6 +1334,7 @@ function render_step_editor_linked_list() {
   });
   container.querySelectorAll('.step-linked-ing-done').forEach(btn => {
     btn.addEventListener('click', () => {
+      normalize_ingredient_quantity(step_editor_linked_ingredients[Number(btn.dataset.index)]);
       step_editor_linked_edit_index = null;
       render_step_editor_linked_list();
     });
@@ -1466,6 +1475,7 @@ document.getElementById('step_ing_picker_back_btn').addEventListener('click', ()
 document.getElementById('step_ing_picker_confirm_btn').addEventListener('click', () => {
   if (step_ing_modal_selected.size === 0) return;
   step_ing_modal_selected.forEach((data, name) => {
+    normalize_ingredient_quantity(data);
     step_editor_linked_ingredients.push({ name, amount: data.amount, unit: data.unit });
   });
   step_ing_modal_selected = new Map();
@@ -1578,6 +1588,7 @@ function open_step_editor(index) {
   document.getElementById('step_editor_text').value = step.text || '';
   document.getElementById('step_editor_time').value = step.time_min || '';
   sync_time_picker_presets('step_editor_time');
+  sync_time_clock_dial('step_editor_time');
   document.getElementById('step_editor_temp').value = step.oven_temp || '';
   document.getElementById('step_editor_external_url').value = step.external_url || '';
   const creates_product_checkbox = document.getElementById('step_editor_creates_product');
@@ -2268,6 +2279,111 @@ function init_time_pickers() {
   });
 }
 init_time_pickers();
+
+// ---------- Horloge à glisser (alternative visuelle au stepper -/+) ----------
+// Un tour complet du point autour du cadran = 60 minutes. Se règle à la souris (ou
+// au doigt, via Pointer Events) et pilote le même <input type="number"> que le
+// stepper et les raccourcis : tout reste synchronisé quel que soit le sélecteur
+// utilisé. Tourner au-delà de midi/minuit (ex : glisser deux tours complets) monte
+// au-delà de 60 min, utile pour un temps de repos long.
+const TIME_CLOCK_CX = 110, TIME_CLOCK_CY = 110, TIME_CLOCK_R_HAND = 74;
+
+function sync_time_clock_dial(target_id) {
+  const dial = document.querySelector(`.time-clock-dial[data-target="${target_id}"]`);
+  const input = document.getElementById(target_id);
+  if (!dial || !input) return;
+  const min = parseInt(input.value) || 0;
+  const angle = ((((min % 60) + 60) % 60) / 60) * 2 * Math.PI - Math.PI / 2;
+  const hx = TIME_CLOCK_CX + Math.cos(angle) * TIME_CLOCK_R_HAND;
+  const hy = TIME_CLOCK_CY + Math.sin(angle) * TIME_CLOCK_R_HAND;
+  dial.querySelector('.time-clock-hand').setAttribute('x2', hx);
+  dial.querySelector('.time-clock-hand').setAttribute('y2', hy);
+  dial.querySelector('.time-clock-handle').setAttribute('cx', hx);
+  dial.querySelector('.time-clock-handle').setAttribute('cy', hy);
+  dial.querySelector('.time-clock-readout-num').textContent = String(min);
+}
+
+function init_time_clock_dials() {
+  document.querySelectorAll('.time-clock-dial').forEach(dial => {
+    const target_id = dial.dataset.target;
+    const input = document.getElementById(target_id);
+    const svg = dial.querySelector('.time-clock-dial-svg');
+    const ticks_group = dial.querySelector('.time-clock-ticks');
+    if (!input || !svg || !ticks_group) return;
+
+    // Graduations fixes (0/5/10.../55), dessinées une seule fois à l'init.
+    for (let m = 0; m < 60; m += 5) {
+      const angle = (m / 60) * 2 * Math.PI - Math.PI / 2;
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', TIME_CLOCK_CX + Math.cos(angle) * 90);
+      line.setAttribute('y1', TIME_CLOCK_CY + Math.sin(angle) * 90);
+      line.setAttribute('x2', TIME_CLOCK_CX + Math.cos(angle) * 98);
+      line.setAttribute('y2', TIME_CLOCK_CY + Math.sin(angle) * 98);
+      ticks_group.appendChild(line);
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', TIME_CLOCK_CX + Math.cos(angle) * 78);
+      text.setAttribute('y', TIME_CLOCK_CY + Math.sin(angle) * 78);
+      text.textContent = String(m === 0 ? 60 : m);
+      ticks_group.appendChild(text);
+    }
+
+    input.addEventListener('input', () => sync_time_clock_dial(target_id));
+    sync_time_clock_dial(target_id);
+
+    function angle_to_minutes(client_x, client_y) {
+      const rect = svg.getBoundingClientRect();
+      const scale = 220 / rect.width;
+      const x = (client_x - rect.left) * scale - TIME_CLOCK_CX;
+      const y = (client_y - rect.top) * scale - TIME_CLOCK_CY;
+      let angle = Math.atan2(y, x) + Math.PI / 2;
+      if (angle < 0) angle += 2 * Math.PI;
+      const min = Math.round((angle / (2 * Math.PI)) * 60);
+      return min === 60 ? 0 : min;
+    }
+
+    let dragging = false;
+    let current_total = parseInt(input.value) || 0;
+
+    function apply_pointer(client_x, client_y) {
+      const raw_min = angle_to_minutes(client_x, client_y);
+      const prev_mod = ((current_total % 60) + 60) % 60;
+      let delta = raw_min - prev_mod;
+      if (delta > 30) delta -= 60;
+      if (delta < -30) delta += 60;
+      current_total = Math.max(0, current_total + delta);
+      input.value = current_total;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    svg.addEventListener('pointerdown', (e) => {
+      dragging = true;
+      svg.classList.add('dragging');
+      svg.setPointerCapture(e.pointerId);
+      current_total = parseInt(input.value) || 0;
+      apply_pointer(e.clientX, e.clientY);
+    });
+    svg.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      apply_pointer(e.clientX, e.clientY);
+    });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => {
+      svg.addEventListener(evt, () => { dragging = false; svg.classList.remove('dragging'); });
+    });
+  });
+
+  document.querySelectorAll('.time-picker-clock-toggle').forEach(btn => {
+    const target_id = btn.dataset.target;
+    const dial = document.querySelector(`.time-clock-dial[data-target="${target_id}"]`);
+    if (!dial) return;
+    btn.addEventListener('click', () => {
+      const now_hidden = dial.classList.toggle('hidden');
+      btn.classList.toggle('active', !now_hidden);
+      btn.setAttribute('aria-expanded', String(!now_hidden));
+      if (!now_hidden) sync_time_clock_dial(target_id);
+    });
+  });
+}
+init_time_clock_dials();
 
 // =====================================================================
 // 9bis. RECADRAGE D'IMAGE (zoom + déplacement) — réutilisé partout où on
