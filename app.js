@@ -3212,7 +3212,7 @@ document.addEventListener('error', (e) => {
 }, true);
 
 // Date relative façon fil d'actualité ("il y a 2 j") plutôt qu'une date brute.
-const DATE_LOCALE_BY_LANG = { fr: 'fr-FR', en: 'en-GB', pt: 'pt-PT', es: 'es-ES', zh: 'zh-CN', hi: 'hi-IN', ar: 'ar-SA' };
+const DATE_LOCALE_BY_LANG = { fr: 'fr-FR', en: 'en-GB', pt: 'pt-PT', es: 'es-ES', de: 'de-DE', zh: 'zh-CN', hi: 'hi-IN', ar: 'ar-SA' };
 function format_relative_date(iso) {
   if (!iso) return '';
   const diff_ms = Date.now() - new Date(iso).getTime();

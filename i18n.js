@@ -13,9 +13,9 @@
 // allergènes...) l'est.
 // =====================================================================
 window.I18N = (function () {
-  const SUPPORTED = ['fr', 'en', 'pt', 'es', 'zh', 'hi', 'ar'];
-  const FLAGS = { fr: '🇫🇷', en: '🇬🇧', pt: '🇵🇹', es: '🇪🇸', zh: '🇨🇳', hi: '🇮🇳', ar: '🇸🇦' };
-  const NAMES = { fr: 'Français', en: 'English', pt: 'Português', es: 'Español', zh: '中文', hi: 'हिन्दी', ar: 'العربية' };
+  const SUPPORTED = ['fr', 'en', 'pt', 'es', 'de', 'zh', 'hi', 'ar'];
+  const FLAGS = { fr: '🇫🇷', en: '🇬🇧', pt: '🇵🇹', es: '🇪🇸', de: '🇩🇪', zh: '🇨🇳', hi: '🇮🇳', ar: '🇸🇦' };
+  const NAMES = { fr: 'Français', en: 'English', pt: 'Português', es: 'Español', de: 'Deutsch', zh: '中文', hi: 'हिन्दी', ar: 'العربية' };
   const RTL_LANGS = ['ar'];
 
   function detect_default_lang() {
