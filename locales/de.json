@@ -521,6 +521,19 @@
       "meal_unspecified": "Sonstiges",
       "prev_day": "Vorheriger Tag",
       "next_day": "Nächster Tag"
+    },
+    "hints": {
+      "got_it_btn": "Verstanden, nicht mehr anzeigen",
+      "feed_title": "Der Feed",
+      "feed_body": "Entdecke Rezepte der ganzen Community. Like, kommentiere, filtere nach Kategorie oder Land, und finde die Ideen der Woche und Fitness-Rezepte in den Unterreitern.",
+      "search_title": "Die Suche",
+      "search_body": "Finde das perfekte Rezept für deine Ziele: Kalorien, Eiweiß, Kategorie, Schwierigkeit, zu vermeidende Allergene...",
+      "publish_title": "Veröffentlichen",
+      "publish_body": "Teile deine eigenen Rezepte Schritt für Schritt mit der Community, mit Fotos und Video. Du bekommst XP für jede Veröffentlichung und jedes erhaltene Like!",
+      "leaderboard_title": "Die Rangliste",
+      "leaderboard_body": "Entdecke die beliebtesten Köche und Rezepte von Dishful — Gesamtwertung oder der letzten 7 Tage.",
+      "profile_title": "Dein Profil",
+      "profile_body": "Verwalte deine Daten, schalte Abzeichen frei, finde deine veröffentlichten und gespeicherten Rezepte, und verfolge deine Kalorien im Tagebuch."
     }
   },
   "data": {

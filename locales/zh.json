@@ -521,6 +521,19 @@
       "meal_unspecified": "其他",
       "prev_day": "前一天",
       "next_day": "后一天"
+    },
+    "hints": {
+      "got_it_btn": "知道了，不再显示",
+      "feed_title": "动态",
+      "feed_body": "浏览社区的所有菜谱。点赞、评论，按分类或国家筛选，还能在子标签中查看本周灵感和健身食谱。",
+      "search_title": "搜索",
+      "search_body": "根据你的目标找到完美的菜谱：热量、蛋白质、分类、难度、需要避开的过敏原……",
+      "publish_title": "发布",
+      "publish_body": "与社区分享你自己的食谱，一步步配上照片和视频。每次发布和收到的每个赞都能获得经验值！",
+      "leaderboard_title": "排行榜",
+      "leaderboard_body": "发现 Dishful 上最受欢迎的厨师和菜谱——总榜或近 7 天榜单。",
+      "profile_title": "你的主页",
+      "profile_body": "管理你的信息，解锁徽章，查看你发布和收藏的菜谱，并在日记中追踪你的热量摄入。"
     }
   },
   "data": {

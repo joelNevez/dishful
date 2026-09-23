@@ -521,6 +521,19 @@
       "meal_unspecified": "Other",
       "prev_day": "Previous day",
       "next_day": "Next day"
+    },
+    "hints": {
+      "got_it_btn": "Got it, don't show again",
+      "feed_title": "The Feed",
+      "feed_body": "Discover recipes from the whole community. Like, comment, filter by category or country, and check the weekly ideas and fitness recipes in the sub-tabs.",
+      "search_title": "Search",
+      "search_body": "Find the perfect recipe for your goals: calories, protein, category, difficulty, allergens to avoid...",
+      "publish_title": "Publish",
+      "publish_body": "Share your own recipes with the community, step by step, with photos and video. You earn XP for every publish and every like you get!",
+      "leaderboard_title": "Leaderboard",
+      "leaderboard_body": "Discover Dishful's most-loved chefs and recipes — all-time or from the last 7 days.",
+      "profile_title": "Your Profile",
+      "profile_body": "Manage your info, unlock badges, find your published and saved recipes, and track your calories in the Journal."
     }
   },
   "data": {

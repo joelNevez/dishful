@@ -521,6 +521,19 @@
       "meal_unspecified": "Outro",
       "prev_day": "Dia anterior",
       "next_day": "Dia seguinte"
+    },
+    "hints": {
+      "got_it_btn": "Entendi, não mostrar novamente",
+      "feed_title": "O Feed",
+      "feed_body": "Descobre as receitas de toda a comunidade. Gosta, comenta, filtra por categoria ou país, e encontra as ideias da semana e as receitas fitness nos separadores.",
+      "search_title": "A Pesquisa",
+      "search_body": "Encontra a receita perfeita para os teus objetivos: calorias, proteínas, categoria, dificuldade, alergénios a evitar...",
+      "publish_title": "Publicar",
+      "publish_body": "Partilha as tuas próprias receitas com a comunidade, passo a passo, com fotos e vídeo. Ganhas XP a cada publicação e a cada gosto recebido!",
+      "leaderboard_title": "A Classificação",
+      "leaderboard_body": "Descobre os chefs e as receitas mais apreciados do Dishful — classificação geral ou dos últimos 7 dias.",
+      "profile_title": "O teu Perfil",
+      "profile_body": "Gere as tuas informações, desbloqueia badges, encontra as tuas receitas publicadas e guardadas, e acompanha as tuas calorias no Diário."
     }
   },
   "data": {

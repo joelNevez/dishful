@@ -4051,7 +4051,54 @@ function switch_tab(tab_name) {
   if (tab_name !== "recipe-detail" && location.search) {
     history.replaceState(null, '', location.pathname);
   }
+
+  maybe_show_page_hint(tab_name);
 }
+
+// =====================================================================
+// Popups d'explication de page : une courte explication à la première visite
+// de chaque page principale, avec un bouton "ne plus afficher" qui la
+// désactive définitivement (persisté en local — pas besoin d'être connecté).
+// Un Set en mémoire évite aussi de la remontrer plusieurs fois dans la même
+// session tant qu'elle n'a pas encore été explicitement fermée.
+// =====================================================================
+const PAGE_HINT_TABS = new Set(['feed', 'search', 'publish', 'leaderboard', 'profile']);
+const session_shown_hints = new Set();
+
+function get_dismissed_hints() {
+  try { return JSON.parse(localStorage.getItem('dishful_dismissed_hints') || '[]'); } catch (err) { return []; }
+}
+function dismiss_hint_forever(key) {
+  try {
+    const list = get_dismissed_hints();
+    if (!list.includes(key)) {
+      list.push(key);
+      localStorage.setItem('dishful_dismissed_hints', JSON.stringify(list));
+    }
+  } catch (err) { /* localStorage indisponible (navigation privée...) : tant pis, pas bloquant */ }
+}
+
+function maybe_show_page_hint(tab_name) {
+  if (!PAGE_HINT_TABS.has(tab_name)) return;
+  if (session_shown_hints.has(tab_name)) return;
+  if (get_dismissed_hints().includes(tab_name)) return;
+  const modal = document.getElementById('page_hint_modal');
+  if (!modal) return;
+  session_shown_hints.add(tab_name);
+  modal.dataset.hintKey = tab_name;
+  document.getElementById('page_hint_title').textContent = I18N.t(`hints.${tab_name}_title`);
+  document.getElementById('page_hint_body').textContent = I18N.t(`hints.${tab_name}_body`);
+  modal.classList.remove('hidden');
+}
+function close_page_hint() {
+  const modal = document.getElementById('page_hint_modal');
+  if (!modal) return;
+  const key = modal.dataset.hintKey;
+  if (key) dismiss_hint_forever(key);
+  modal.classList.add('hidden');
+}
+document.getElementById('close_page_hint_btn')?.addEventListener('click', close_page_hint);
+document.getElementById('page_hint_ok_btn')?.addEventListener('click', close_page_hint);
 
 // 'all' (classement historique) ou 'week' (uniquement les 7 derniers jours).
 let leaderboard_period = 'all';
@@ -5579,6 +5626,9 @@ function restore_pending_state_after_lang_switch() {
     const shared_recipe_id = new URLSearchParams(location.search).get('recipe');
     if (shared_recipe_id) show_recipe_detail_page(shared_recipe_id);
     restore_pending_state_after_lang_switch();
+    // Le feed est actif par défaut dès le HTML, sans passer par switch_tab() — donc son
+    // popup d'explication ne se déclencherait jamais tout seul sans cet appel explicite.
+    if (!shared_recipe_id && get_visible_tab_name() === 'feed') maybe_show_page_hint('feed');
   } catch (err) {
     console.error('[Dishful] Erreur au démarrage :', err);
   }

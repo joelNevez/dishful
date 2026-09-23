@@ -148,6 +148,16 @@ main{max-width:900px;margin:0 auto;padding:28px 20px 80px;}
 #app_alert_title{margin-bottom:8px;}
 .app-alert-message{color:var(--ink-soft);font-size:14px;line-height:1.55;margin:0 0 22px;}
 .app-alert-ok-btn{width:100%;}
+
+/* ---------- Popup d'explication de page (première visite, "ne plus afficher") ---------- */
+.page-hint-card{text-align:center;padding-top:36px;}
+.page-hint-icon{
+  width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:24px;margin:0 auto 16px;background:#FFF6E0;color:var(--saffron-deep);
+}
+#page_hint_title{margin-bottom:8px;}
+.page-hint-body{color:var(--ink-soft);font-size:14px;line-height:1.55;margin:0 0 22px;}
+#page_hint_ok_btn{width:100%;}
 .auth-tabs{display:flex;gap:6px;margin:16px 0 18px;}
 .auth-tabs button{
   flex:1;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--paper);

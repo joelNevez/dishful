@@ -926,6 +926,17 @@
   </div>
 </div>
 
+<!-- ---------------- POPUP : EXPLICATION DE PAGE (première visite, "ne plus afficher") ---------------- -->
+<div id="page_hint_modal" class="modal hidden">
+  <div class="modal-card page-hint-card">
+    <button id="close_page_hint_btn" type="button" class="close-btn">&times;</button>
+    <div class="page-hint-icon" id="page_hint_icon"><i class="fa-solid fa-circle-info"></i></div>
+    <h2 id="page_hint_title"></h2>
+    <p id="page_hint_body" class="page-hint-body"></p>
+    <button type="button" class="btn-primary" id="page_hint_ok_btn" data-i18n="hints.got_it_btn">Compris, ne plus afficher</button>
+  </div>
+</div>
+
 <!-- ---------------- POPUP : RECETTES FITNESS (meilleur ratio protéines/calories) ---------------- -->
 <div id="fitness_plan_modal" class="modal hidden">
   <div class="modal-card modal-card-wide">
