@@ -68,7 +68,10 @@ nav.tabs button.active{background:var(--ink);color:var(--paper);}
 .header-right{display:flex;align-items:center;gap:12px;justify-self:end;}
 @media (max-width:860px){
   header.top{display:flex;flex-wrap:wrap;justify-content:space-between;}
-  nav.tabs{justify-self:auto;order:3;flex-basis:100%;justify-content:center;}
+  nav.tabs{justify-self:auto;order:3;flex-basis:100%;justify-content:center;flex-wrap:wrap;}
+}
+@media (max-width:420px){
+  nav.tabs button{min-width:0;flex:1 1 calc(50% - 4px);}
 }
 
 /* ---------- Sélecteur de langue ---------- */
