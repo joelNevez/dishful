@@ -481,7 +481,8 @@
       "your_comment_label": "आपका रिव्यू",
       "edit_comment_btn": "एडिट करें",
       "comment_update_btn": "अपडेट करें",
-      "comment_edited_label": "(एडिटेड)"
+      "comment_edited_label": "(एडिटेड)",
+      "add_photo": "फ़ोटो जोड़ें"
     },
     "time": {
       "just_now": "अभी अभी",

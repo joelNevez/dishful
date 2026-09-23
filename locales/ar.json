@@ -481,7 +481,8 @@
       "your_comment_label": "رأيك",
       "edit_comment_btn": "تعديل",
       "comment_update_btn": "تحديث",
-      "comment_edited_label": "(معدَّل)"
+      "comment_edited_label": "(معدَّل)",
+      "add_photo": "إضافة صورة"
     },
     "time": {
       "just_now": "الآن",

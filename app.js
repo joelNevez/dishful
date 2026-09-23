@@ -848,6 +848,9 @@ let liked_recipe_ids = new Set();
 let recipe_detail_return_tab = 'feed';
 let editing_comment_id = null;
 let current_user_own_comment = null;
+let comment_photo_file = null;
+let comment_photo_existing_url = null;
+let comment_photo_removed = false;
 let active_category_filter = null;
 
 // Identifiant anonyme stable (stocké en local) pour dédupliquer les vues des visiteurs
@@ -4306,6 +4309,9 @@ async function show_recipe_detail_page(recipe_id) {
   if (cooking_keydown_handler) { document.removeEventListener('keydown', cooking_keydown_handler); cooking_keydown_handler = null; }
   editing_comment_id = null;
   current_user_own_comment = null;
+  comment_photo_file = null;
+  comment_photo_existing_url = null;
+  comment_photo_removed = false;
 
   // Mémorise d'où on vient (sauf si on navigue d'une recette à une autre) pour que
   // le bouton "Retour" ramène à la bonne page, et remet le scroll en haut à l'ouverture.
@@ -4688,6 +4694,14 @@ async function show_recipe_detail_page(recipe_id) {
             </span>
           </div>
           <textarea id="comment_input_field" placeholder="${escape_attr(I18N.t('recipe_detail.comment_placeholder'))}"></textarea>
+          <div class="comment_photo_row">
+            <input type="file" id="comment_photo_input" accept="image/*" class="hidden_file_input">
+            <label for="comment_photo_input" class="upload-btn mini" id="comment_photo_label"><i class="fa-solid fa-camera"></i> <span data-i18n="recipe_detail.add_photo">Ajouter une photo</span></label>
+            <div class="comment_photo_preview hidden" id="comment_photo_preview">
+              <img id="comment_photo_preview_img" src="" alt="">
+              <button type="button" id="remove_comment_photo_btn" class="remove-photo-btn" aria-label="Retirer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+          </div>
           <div class="comment_form_actions">
             <button id="send_comment_btn">${escape_html(I18N.t('recipe_detail.comment_send'))}</button>
             <button type="button" id="cancel_comment_edit_btn" class="text-btn hidden">${escape_html(I18N.t('common.cancel'))}</button>
@@ -4804,12 +4818,48 @@ async function show_recipe_detail_page(recipe_id) {
     });
   });
 
+  function show_comment_photo_preview(url) {
+    const preview = document.getElementById('comment_photo_preview');
+    document.getElementById('comment_photo_preview_img').src = url;
+    preview.classList.remove('hidden');
+    document.getElementById('comment_photo_label').classList.add('hidden');
+  }
+  function hide_comment_photo_preview() {
+    document.getElementById('comment_photo_preview').classList.add('hidden');
+    document.getElementById('comment_photo_preview_img').src = '';
+    document.getElementById('comment_photo_label').classList.remove('hidden');
+  }
+  function reset_comment_photo_state() {
+    comment_photo_file = null;
+    comment_photo_existing_url = null;
+    comment_photo_removed = false;
+    hide_comment_photo_preview();
+  }
+
+  document.getElementById('comment_photo_input').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    comment_photo_file = file;
+    comment_photo_removed = false;
+    show_comment_photo_preview(URL.createObjectURL(file));
+  });
+  document.getElementById('remove_comment_photo_btn').addEventListener('click', () => {
+    comment_photo_file = null;
+    comment_photo_removed = true;
+    hide_comment_photo_preview();
+  });
+
   function enter_comment_edit_mode() {
     if (!current_user_own_comment) return;
     editing_comment_id = current_user_own_comment.id;
     document.getElementById('comment_input_field').value = current_user_own_comment.content || '';
     rating_picker.dataset.value = current_user_own_comment.rating || 0;
     render_rating_picker();
+    comment_photo_file = null;
+    comment_photo_removed = false;
+    comment_photo_existing_url = current_user_own_comment.photo_url || null;
+    if (comment_photo_existing_url) show_comment_photo_preview(comment_photo_existing_url); else hide_comment_photo_preview();
     document.getElementById('send_comment_btn').textContent = I18N.t('recipe_detail.comment_update_btn');
     document.getElementById('cancel_comment_edit_btn').classList.remove('hidden');
     set_comment_form_already_commented(false);
@@ -4821,6 +4871,7 @@ async function show_recipe_detail_page(recipe_id) {
     document.getElementById('comment_input_field').value = '';
     rating_picker.dataset.value = 0;
     render_rating_picker();
+    reset_comment_photo_state();
     document.getElementById('send_comment_btn').textContent = I18N.t('recipe_detail.comment_send');
     document.getElementById('cancel_comment_edit_btn').classList.add('hidden');
     set_comment_form_already_commented(!!current_user_own_comment);
@@ -4861,7 +4912,7 @@ async function load_recipe_comments(recipe_id) {
 
   const { data: comments, error } = await supabase
     .from("comments")
-    .select("id, user_id, content, rating, created_at, edited_at, profiles(username, avatar_url)")
+    .select("id, user_id, content, rating, created_at, edited_at, photo_url, profiles(username, avatar_url)")
     .eq("recipe_id", recipe_id)
     .order("created_at", { ascending: false });
 
@@ -4881,9 +4932,25 @@ async function load_recipe_comments(recipe_id) {
         ${c.edited_at ? `<span class="comment_edited_label">${escape_html(I18N.t('recipe_detail.comment_edited_label'))}</span>` : ''}
       </div>
       <p>${escape_html(c.content)}</p>
+      ${c.photo_url ? `<img class="comment_photo_thumb" src="${escape_attr(c.photo_url)}" alt="" data-full="${escape_attr(c.photo_url)}">` : ''}
     </div>
   `).join("");
+
+  container.querySelectorAll('.comment_photo_thumb').forEach(thumb => {
+    thumb.addEventListener('click', () => open_comment_photo_lightbox(thumb.dataset.full));
+  });
 }
+
+function open_comment_photo_lightbox(url) {
+  const modal = document.getElementById('comment_photo_lightbox_modal');
+  if (!modal) return;
+  document.getElementById('comment_photo_lightbox_img').src = url;
+  modal.classList.remove('hidden');
+}
+document.getElementById('close_comment_photo_lightbox_btn')?.addEventListener('click', () => {
+  document.getElementById('comment_photo_lightbox_modal').classList.add('hidden');
+  document.getElementById('comment_photo_lightbox_img').src = '';
+});
 
 // Envoyer un commentaire (avec étoile optionnelle)
 async function submit_recipe_comment(recipe_id) {
@@ -4895,11 +4962,17 @@ async function submit_recipe_comment(recipe_id) {
   const rating_picker = document.getElementById("comment_rating_picker");
   const rating_value = rating_picker ? Number(rating_picker.dataset.value) || 0 : 0;
 
+  let photo_url = comment_photo_removed ? null : comment_photo_existing_url;
+  if (comment_photo_file) {
+    const uploaded = await upload_single_file(comment_photo_file, current_user.id, 'comment_photo');
+    if (uploaded) photo_url = uploaded;
+  }
+
   const was_editing = !!editing_comment_id;
   const { error } = was_editing
     ? await supabase
         .from("comments")
-        .update({ content: content, rating: rating_value > 0 ? rating_value : null, edited_at: new Date().toISOString() })
+        .update({ content: content, rating: rating_value > 0 ? rating_value : null, edited_at: new Date().toISOString(), photo_url: photo_url })
         .eq("id", editing_comment_id)
     : await supabase
         .from("comments")
@@ -4907,12 +4980,19 @@ async function submit_recipe_comment(recipe_id) {
           recipe_id: recipe_id,
           user_id: current_user.id,
           content: content,
-          rating: rating_value > 0 ? rating_value : null
+          rating: rating_value > 0 ? rating_value : null,
+          photo_url: photo_url
         }]);
 
   if (!error) {
     input.value = "";
     editing_comment_id = null;
+    comment_photo_file = null;
+    comment_photo_existing_url = null;
+    comment_photo_removed = false;
+    document.getElementById('comment_photo_preview')?.classList.add('hidden');
+    document.getElementById('comment_photo_preview_img')?.setAttribute('src', '');
+    document.getElementById('comment_photo_label')?.classList.remove('hidden');
     document.getElementById('send_comment_btn').textContent = I18N.t('recipe_detail.comment_send');
     document.getElementById('cancel_comment_edit_btn')?.classList.add('hidden');
     if (rating_picker) {

@@ -481,7 +481,8 @@
       "your_comment_label": "你的评价",
       "edit_comment_btn": "编辑",
       "comment_update_btn": "更新",
-      "comment_edited_label": "(已编辑)"
+      "comment_edited_label": "(已编辑)",
+      "add_photo": "添加照片"
     },
     "time": {
       "just_now": "刚刚",

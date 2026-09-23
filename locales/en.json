@@ -481,7 +481,8 @@
       "your_comment_label": "Your review",
       "edit_comment_btn": "Edit",
       "comment_update_btn": "Update",
-      "comment_edited_label": "(edited)"
+      "comment_edited_label": "(edited)",
+      "add_photo": "Add a photo"
     },
     "time": {
       "just_now": "just now",

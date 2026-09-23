@@ -481,7 +481,8 @@
       "your_comment_label": "A tua opinião",
       "edit_comment_btn": "Editar",
       "comment_update_btn": "Atualizar",
-      "comment_edited_label": "(editado)"
+      "comment_edited_label": "(editado)",
+      "add_photo": "Adicionar uma foto"
     },
     "time": {
       "just_now": "agora mesmo",
