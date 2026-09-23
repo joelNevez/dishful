@@ -364,7 +364,11 @@
       "level_progress": "{{xp}} / 100 经验值（等级 {{level}}）· 共 {{total}} 经验值",
       "level_short_display": "等级 {{n}}",
       "loading_profile": "正在加载个人主页...",
-      "no_bio": "暂无个人简介。"
+      "no_bio": "暂无个人简介。",
+      "tab_journal": "日记",
+      "calorie_goal_label": "每日热量目标",
+      "calorie_goal_placeholder": "例如：2000",
+      "calorie_goal_unit": "千卡 / 天"
     },
     "public_profile": {
       "tab_badges": "徽章与成就",
@@ -482,7 +486,13 @@
       "edit_comment_btn": "编辑",
       "comment_update_btn": "更新",
       "comment_edited_label": "(已编辑)",
-      "add_photo": "添加照片"
+      "add_photo": "添加照片",
+      "log_meal_btn": "我吃了这个",
+      "log_meal_modal_title": "添加到日记",
+      "log_meal_slot_label": "餐次",
+      "log_meal_date_label": "日期",
+      "log_meal_confirm_btn": "添加到日记",
+      "log_meal_success": "已添加到你的日记！"
     },
     "time": {
       "just_now": "刚刚",
@@ -490,6 +500,27 @@
       "hours_ago": "{{count}} 小时前",
       "days_ago": "{{count}} 天前",
       "weeks_ago": "{{count}} 周前"
+    },
+    "journal": {
+      "title": "我的饮食日记",
+      "today_label": "今天",
+      "total_label": "当日总计",
+      "goal_label": "目标",
+      "remaining_label": "剩余",
+      "over_label": "超出",
+      "no_entries": "这一天没有记录。",
+      "add_manual_btn": "手动添加记录",
+      "manual_modal_title": "添加记录",
+      "manual_label_placeholder": "食物名称",
+      "manual_kcal_placeholder": "热量（千卡）",
+      "manual_protein_placeholder": "蛋白质（克）",
+      "manual_carbs_placeholder": "碳水化合物（克）",
+      "manual_fat_placeholder": "脂肪（克）",
+      "save_entry_btn": "添加",
+      "delete_entry_confirm": "删除这条记录？",
+      "meal_unspecified": "其他",
+      "prev_day": "前一天",
+      "next_day": "后一天"
     }
   },
   "data": {

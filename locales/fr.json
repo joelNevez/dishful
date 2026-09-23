@@ -364,7 +364,11 @@
       "level_progress": "{{xp}} / 100 XP (niveau {{level}}) · {{total}} XP au total",
       "level_short_display": "Niv. {{n}}",
       "loading_profile": "Chargement du profil...",
-      "no_bio": "Pas de description."
+      "no_bio": "Pas de description.",
+      "tab_journal": "Journal",
+      "calorie_goal_label": "Objectif calorique quotidien",
+      "calorie_goal_placeholder": "Ex : 2000",
+      "calorie_goal_unit": "kcal / jour"
     },
     "public_profile": {
       "tab_badges": "Badges & Succès",
@@ -482,7 +486,13 @@
       "edit_comment_btn": "Modifier",
       "comment_update_btn": "Mettre à jour",
       "comment_edited_label": "(modifié)",
-      "add_photo": "Ajouter une photo"
+      "add_photo": "Ajouter une photo",
+      "log_meal_btn": "J'ai mangé ça",
+      "log_meal_modal_title": "Ajouter au journal",
+      "log_meal_slot_label": "Repas",
+      "log_meal_date_label": "Date",
+      "log_meal_confirm_btn": "Ajouter au journal",
+      "log_meal_success": "Ajouté à ton journal !"
     },
     "time": {
       "just_now": "à l'instant",
@@ -490,6 +500,27 @@
       "hours_ago": "il y a {{count}} h",
       "days_ago": "il y a {{count}} j",
       "weeks_ago": "il y a {{count}} sem."
+    },
+    "journal": {
+      "title": "Mon journal alimentaire",
+      "today_label": "Aujourd'hui",
+      "total_label": "Total du jour",
+      "goal_label": "Objectif",
+      "remaining_label": "Restant",
+      "over_label": "Dépassement",
+      "no_entries": "Aucune entrée pour ce jour.",
+      "add_manual_btn": "Ajouter une entrée manuelle",
+      "manual_modal_title": "Ajouter une entrée",
+      "manual_label_placeholder": "Nom de l'aliment",
+      "manual_kcal_placeholder": "Calories (kcal)",
+      "manual_protein_placeholder": "Protéines (g)",
+      "manual_carbs_placeholder": "Glucides (g)",
+      "manual_fat_placeholder": "Lipides (g)",
+      "save_entry_btn": "Ajouter",
+      "delete_entry_confirm": "Supprimer cette entrée ?",
+      "meal_unspecified": "Autre",
+      "prev_day": "Jour précédent",
+      "next_day": "Jour suivant"
     }
   },
   "data": {

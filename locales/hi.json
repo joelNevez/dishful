@@ -364,7 +364,11 @@
       "level_progress": "{{xp}} / 100 XP (लेवल {{level}}) · कुल {{total}} XP",
       "level_short_display": "लेवल {{n}}",
       "loading_profile": "प्रोफ़ाइल लोड हो रही है...",
-      "no_bio": "कोई डिस्क्रिप्शन नहीं।"
+      "no_bio": "कोई डिस्क्रिप्शन नहीं।",
+      "tab_journal": "जर्नल",
+      "calorie_goal_label": "दैनिक कैलोरी लक्ष्य",
+      "calorie_goal_placeholder": "उदा: 2000",
+      "calorie_goal_unit": "कैलोरी / दिन"
     },
     "public_profile": {
       "tab_badges": "बैज और अचीवमेंट्स",
@@ -482,7 +486,13 @@
       "edit_comment_btn": "एडिट करें",
       "comment_update_btn": "अपडेट करें",
       "comment_edited_label": "(एडिटेड)",
-      "add_photo": "फ़ोटो जोड़ें"
+      "add_photo": "फ़ोटो जोड़ें",
+      "log_meal_btn": "मैंने यह खाया",
+      "log_meal_modal_title": "जर्नल में जोड़ें",
+      "log_meal_slot_label": "भोजन",
+      "log_meal_date_label": "तारीख़",
+      "log_meal_confirm_btn": "जर्नल में जोड़ें",
+      "log_meal_success": "तुम्हारी जर्नल में जोड़ दिया गया!"
     },
     "time": {
       "just_now": "अभी अभी",
@@ -490,6 +500,27 @@
       "hours_ago": "{{count}} घंटे पहले",
       "days_ago": "{{count}} दिन पहले",
       "weeks_ago": "{{count}} हफ़्ते पहले"
+    },
+    "journal": {
+      "title": "मेरी फ़ूड जर्नल",
+      "today_label": "आज",
+      "total_label": "दिन का कुल",
+      "goal_label": "लक्ष्य",
+      "remaining_label": "शेष",
+      "over_label": "अधिक",
+      "no_entries": "इस दिन के लिए कोई एंट्री नहीं है।",
+      "add_manual_btn": "मैन्युअल एंट्री जोड़ें",
+      "manual_modal_title": "एंट्री जोड़ें",
+      "manual_label_placeholder": "खाने का नाम",
+      "manual_kcal_placeholder": "कैलोरी (kcal)",
+      "manual_protein_placeholder": "प्रोटीन (g)",
+      "manual_carbs_placeholder": "कार्ब्स (g)",
+      "manual_fat_placeholder": "फैट (g)",
+      "save_entry_btn": "जोड़ें",
+      "delete_entry_confirm": "क्या यह एंट्री हटानी है?",
+      "meal_unspecified": "अन्य",
+      "prev_day": "पिछला दिन",
+      "next_day": "अगला दिन"
     }
   },
   "data": {

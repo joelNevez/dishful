@@ -364,7 +364,11 @@
       "level_progress": "{{xp}} / 100 XP (Level {{level}}) · {{total}} XP insgesamt",
       "level_short_display": "Lvl. {{n}}",
       "loading_profile": "Profil wird geladen...",
-      "no_bio": "Keine Beschreibung."
+      "no_bio": "Keine Beschreibung.",
+      "tab_journal": "Tagebuch",
+      "calorie_goal_label": "Tägliches Kalorienziel",
+      "calorie_goal_placeholder": "z. B. 2000",
+      "calorie_goal_unit": "kcal / Tag"
     },
     "public_profile": {
       "tab_badges": "Abzeichen & Erfolge",
@@ -482,7 +486,13 @@
       "edit_comment_btn": "Bearbeiten",
       "comment_update_btn": "Aktualisieren",
       "comment_edited_label": "(bearbeitet)",
-      "add_photo": "Foto hinzufügen"
+      "add_photo": "Foto hinzufügen",
+      "log_meal_btn": "Das habe ich gegessen",
+      "log_meal_modal_title": "Zum Tagebuch hinzufügen",
+      "log_meal_slot_label": "Mahlzeit",
+      "log_meal_date_label": "Datum",
+      "log_meal_confirm_btn": "Zum Tagebuch hinzufügen",
+      "log_meal_success": "Zu deinem Tagebuch hinzugefügt!"
     },
     "time": {
       "just_now": "gerade eben",
@@ -490,6 +500,27 @@
       "hours_ago": "vor {{count}} Std.",
       "days_ago": "vor {{count}} T.",
       "weeks_ago": "vor {{count}} Wo."
+    },
+    "journal": {
+      "title": "Mein Ernährungstagebuch",
+      "today_label": "Heute",
+      "total_label": "Tagesgesamt",
+      "goal_label": "Ziel",
+      "remaining_label": "Verbleibend",
+      "over_label": "Überschritten",
+      "no_entries": "Keine Einträge für diesen Tag.",
+      "add_manual_btn": "Manuellen Eintrag hinzufügen",
+      "manual_modal_title": "Eintrag hinzufügen",
+      "manual_label_placeholder": "Name des Lebensmittels",
+      "manual_kcal_placeholder": "Kalorien (kcal)",
+      "manual_protein_placeholder": "Eiweiß (g)",
+      "manual_carbs_placeholder": "Kohlenhydrate (g)",
+      "manual_fat_placeholder": "Fett (g)",
+      "save_entry_btn": "Hinzufügen",
+      "delete_entry_confirm": "Diesen Eintrag löschen?",
+      "meal_unspecified": "Sonstiges",
+      "prev_day": "Vorheriger Tag",
+      "next_day": "Nächster Tag"
     }
   },
   "data": {

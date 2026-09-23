@@ -364,7 +364,11 @@
       "level_progress": "{{xp}} / 100 XP (nivel {{level}}) · {{total}} XP en total",
       "level_short_display": "Niv. {{n}}",
       "loading_profile": "Cargando el perfil...",
-      "no_bio": "Sin descripción."
+      "no_bio": "Sin descripción.",
+      "tab_journal": "Diario",
+      "calorie_goal_label": "Objetivo calórico diario",
+      "calorie_goal_placeholder": "Ej.: 2000",
+      "calorie_goal_unit": "kcal / día"
     },
     "public_profile": {
       "tab_badges": "Insignias y Logros",
@@ -482,7 +486,13 @@
       "edit_comment_btn": "Editar",
       "comment_update_btn": "Actualizar",
       "comment_edited_label": "(editado)",
-      "add_photo": "Añadir una foto"
+      "add_photo": "Añadir una foto",
+      "log_meal_btn": "Comí esto",
+      "log_meal_modal_title": "Añadir al diario",
+      "log_meal_slot_label": "Comida",
+      "log_meal_date_label": "Fecha",
+      "log_meal_confirm_btn": "Añadir al diario",
+      "log_meal_success": "¡Añadido a tu diario!"
     },
     "time": {
       "just_now": "ahora mismo",
@@ -490,6 +500,27 @@
       "hours_ago": "hace {{count}} h",
       "days_ago": "hace {{count}} d",
       "weeks_ago": "hace {{count}} sem."
+    },
+    "journal": {
+      "title": "Mi diario de comidas",
+      "today_label": "Hoy",
+      "total_label": "Total del día",
+      "goal_label": "Objetivo",
+      "remaining_label": "Restante",
+      "over_label": "Excedido",
+      "no_entries": "No hay entradas para este día.",
+      "add_manual_btn": "Añadir entrada manual",
+      "manual_modal_title": "Añadir entrada",
+      "manual_label_placeholder": "Nombre del alimento",
+      "manual_kcal_placeholder": "Calorías (kcal)",
+      "manual_protein_placeholder": "Proteínas (g)",
+      "manual_carbs_placeholder": "Carbohidratos (g)",
+      "manual_fat_placeholder": "Grasas (g)",
+      "save_entry_btn": "Añadir",
+      "delete_entry_confirm": "¿Eliminar esta entrada?",
+      "meal_unspecified": "Otro",
+      "prev_day": "Día anterior",
+      "next_day": "Día siguiente"
     }
   },
   "data": {

@@ -2895,6 +2895,7 @@ function open_fitness_plan_modal() {
 }
 document.getElementById('open_fitness_plan_btn')?.addEventListener('click', open_fitness_plan_modal);
 document.getElementById('close_fitness_plan_btn')?.addEventListener('click', () => fitness_plan_modal.classList.add('hidden'));
+document.getElementById('close_log_meal_btn')?.addEventListener('click', () => document.getElementById('log_meal_modal')?.classList.add('hidden'));
 
 // =====================================================================
 // Onglet "Recherche" : trouver une recette selon des objectifs nutritionnels
@@ -3564,6 +3565,8 @@ async function render_profile_tab() {
   document.getElementById("profile_last_name").value = profile.last_name || "";
   document.getElementById("profile_nationality").value = profile.nationality_code || "";
   document.getElementById("profile_bio").value = profile.bio || "";
+  const calorie_goal_input = document.getElementById("profile_calorie_goal_input");
+  if (calorie_goal_input) calorie_goal_input.value = profile.daily_calorie_goal || "";
 
   // En-tête profil
   const display_name = `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
@@ -3604,8 +3607,151 @@ async function render_profile_tab() {
     document.getElementById("profile_banner_preview").style.backgroundImage = `url('${current_banner_url}')`;
   }
   render_badges_tab();
-  render_my_recipes_tab()
+  render_my_recipes_tab();
+  render_journal_tab();
 }
+
+// =====================================================================
+// Journal alimentaire personnel : suivi des calories/macros consommées,
+// jour par jour. Une entrée vient soit d'une recette Dishful ("J'ai mangé
+// ça" sur la page recette), soit d'une saisie manuelle libre.
+// =====================================================================
+let journal_current_date = new Date().toISOString().slice(0, 10);
+
+function journal_today_str() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function format_journal_date_label(date_str) {
+  if (date_str === journal_today_str()) return I18N.t('journal.today_label');
+  const d = new Date(date_str + 'T00:00:00');
+  const label = d.toLocaleDateString(DATE_LOCALE_BY_LANG[I18N.getLang()] || 'fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+async function render_journal_tab() {
+  if (!supabase || !current_user) return;
+  const date_label = document.getElementById('journal_current_date_label');
+  if (date_label) date_label.textContent = format_journal_date_label(journal_current_date);
+
+  const { data: profile } = await supabase.from('profiles').select('daily_calorie_goal').eq('id', current_user.id).single();
+  const goal = profile?.daily_calorie_goal || null;
+
+  const { data: entries } = await supabase
+    .from('food_log')
+    .select('id, label, meal_slot, kcal, protein, carbs, fat, recipe_id, created_at')
+    .eq('user_id', current_user.id)
+    .eq('logged_date', journal_current_date)
+    .order('created_at', { ascending: true });
+
+  const list = entries || [];
+  const total_kcal = list.reduce((sum, e) => sum + (Number(e.kcal) || 0), 0);
+  const total_protein = list.reduce((sum, e) => sum + (Number(e.protein) || 0), 0);
+  const total_carbs = list.reduce((sum, e) => sum + (Number(e.carbs) || 0), 0);
+  const total_fat = list.reduce((sum, e) => sum + (Number(e.fat) || 0), 0);
+
+  document.getElementById('journal_total_kcal').textContent = `${Math.round(total_kcal)} kcal`;
+  document.getElementById('journal_goal_kcal').textContent = goal ? `${goal} kcal` : '—';
+
+  const remaining_el = document.getElementById('journal_remaining_kcal');
+  const remaining_label_el = document.getElementById('journal_remaining_label');
+  const progress_fill = document.getElementById('journal_progress_fill');
+  if (goal) {
+    const diff = goal - total_kcal;
+    remaining_el.textContent = `${Math.abs(Math.round(diff))} kcal`;
+    remaining_label_el.textContent = diff >= 0 ? I18N.t('journal.remaining_label') : I18N.t('journal.over_label');
+    remaining_el.classList.toggle('journal_over', diff < 0);
+    const progress_pct = Math.min(100, (total_kcal / goal) * 100);
+    progress_fill.style.width = `${progress_pct}%`;
+    progress_fill.classList.toggle('over', total_kcal > goal);
+  } else {
+    remaining_el.textContent = '—';
+    remaining_label_el.textContent = I18N.t('journal.remaining_label');
+    remaining_el.classList.remove('journal_over');
+    progress_fill.style.width = '0%';
+    progress_fill.classList.remove('over');
+  }
+
+  document.getElementById('journal_macro_row').innerHTML = `
+    <span class="journal_macro_chip"><strong>${Math.round(total_protein)}g</strong> ${escape_html(I18N.t('recipe_detail.protein'))}</span>
+    <span class="journal_macro_chip"><strong>${Math.round(total_carbs)}g</strong> ${escape_html(I18N.t('recipe_detail.carbs'))}</span>
+    <span class="journal_macro_chip"><strong>${Math.round(total_fat)}g</strong> ${escape_html(I18N.t('recipe_detail.fat'))}</span>
+  `;
+
+  const entries_list_el = document.getElementById('journal_entries_list');
+  if (!list.length) {
+    entries_list_el.innerHTML = `<p class="empty-state">${escape_html(I18N.t('journal.no_entries'))}</p>`;
+    return;
+  }
+  entries_list_el.innerHTML = list.map(e => `
+    <div class="journal_entry_item">
+      <div class="journal_entry_info">
+        <span class="journal_entry_meal">${escape_html(e.meal_slot ? I18N.t(`feed.slot_${e.meal_slot}`) : I18N.t('journal.meal_unspecified'))}</span>
+        <strong>${escape_html(e.label)}</strong>
+        <span class="journal_entry_macros">${Math.round(e.kcal)} kcal · ${Math.round(e.protein)} g P · ${Math.round(e.carbs)} g G · ${Math.round(e.fat)} g L</span>
+      </div>
+      <button type="button" class="journal_entry_delete" data-entry-id="${escape_attr(e.id)}" aria-label="Delete"><i class="fa-solid fa-trash"></i></button>
+    </div>
+  `).join('');
+  entries_list_el.querySelectorAll('.journal_entry_delete').forEach(btn => {
+    btn.addEventListener('click', () => delete_journal_entry(btn.dataset.entryId));
+  });
+}
+
+async function delete_journal_entry(entry_id) {
+  if (!window.confirm(I18N.t('journal.delete_entry_confirm'))) return;
+  await supabase.from('food_log').delete().eq('id', entry_id);
+  render_journal_tab();
+}
+
+document.getElementById('journal_prev_day_btn')?.addEventListener('click', () => {
+  const d = new Date(journal_current_date + 'T00:00:00');
+  d.setDate(d.getDate() - 1);
+  journal_current_date = d.toISOString().slice(0, 10);
+  render_journal_tab();
+});
+document.getElementById('journal_next_day_btn')?.addEventListener('click', () => {
+  const d = new Date(journal_current_date + 'T00:00:00');
+  d.setDate(d.getDate() + 1);
+  journal_current_date = d.toISOString().slice(0, 10);
+  render_journal_tab();
+});
+
+document.getElementById('open_manual_journal_entry_btn')?.addEventListener('click', () => {
+  if (!current_user) { auth_modal.classList.remove('hidden'); return; }
+  ['journal_manual_label_input', 'journal_manual_kcal_input', 'journal_manual_protein_input', 'journal_manual_carbs_input', 'journal_manual_fat_input'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('journal_manual_entry_modal')?.classList.remove('hidden');
+});
+document.getElementById('close_journal_manual_entry_btn')?.addEventListener('click', () => {
+  document.getElementById('journal_manual_entry_modal')?.classList.add('hidden');
+});
+document.getElementById('save_journal_manual_entry_btn')?.addEventListener('click', async () => {
+  if (!current_user) return;
+  const label = document.getElementById('journal_manual_label_input').value.trim();
+  if (!label) return;
+  const meal_slot = document.getElementById('journal_manual_meal_select').value;
+  const kcal = Number(document.getElementById('journal_manual_kcal_input').value) || 0;
+  const protein = Number(document.getElementById('journal_manual_protein_input').value) || 0;
+  const carbs = Number(document.getElementById('journal_manual_carbs_input').value) || 0;
+  const fat = Number(document.getElementById('journal_manual_fat_input').value) || 0;
+
+  const { error } = await supabase.from('food_log').insert([{
+    user_id: current_user.id,
+    label: label,
+    meal_slot: meal_slot,
+    kcal: kcal, protein: protein, carbs: carbs, fat: fat,
+    logged_date: journal_current_date,
+  }]);
+  if (error) {
+    show_alert_modal(error.message, { type: 'error', title: I18N.t('common.alert_title_generic_error') });
+    return;
+  }
+  document.getElementById('journal_manual_entry_modal')?.classList.add('hidden');
+  render_journal_tab();
+});
 
 // Enregistrement des modifications
 const profile_form = document.getElementById("profile_form");
@@ -3619,6 +3765,7 @@ const profile_form = document.getElementById("profile_form");
 
     const nationality_code_val = document.getElementById("profile_nationality").value;
     const nationality_country = country_list.find(c => c.code === nationality_code_val);
+    const calorie_goal_val = document.getElementById("profile_calorie_goal_input")?.value;
 
     const updated_data = {
       username: document.getElementById("profile_username_input").value,
@@ -3629,7 +3776,8 @@ const profile_form = document.getElementById("profile_form");
       bio: document.getElementById("profile_bio").value,
       donation_link: document.getElementById("profile_donation_input").value,
       avatar_url: current_avatar_url,
-      banner_url: current_banner_url
+      banner_url: current_banner_url,
+      daily_calorie_goal: calorie_goal_val ? Number(calorie_goal_val) : null
     };
 
       const { error } = await supabase
@@ -4677,6 +4825,7 @@ async function show_recipe_detail_page(recipe_id) {
         <button id="like_recipe_btn" class="action-btn like-btn ${liked_recipe_ids.has(recipe.id) ? 'liked' : ''}" data-recipe-id="${escape_attr(recipe.id)}">
           <i class="fa-solid fa-heart"></i> <span class="like-count">${recipe.likes_count || 0}</span> ${escape_html(I18N.t('recipe_detail.likes'))}
         </button>
+        <button type="button" id="log_meal_open_btn" class="action-btn"><i class="fa-solid fa-utensils"></i> ${escape_html(I18N.t('recipe_detail.log_meal_btn'))}</button>
         <p class="recipe_footer_actions_hint">${escape_html(I18N.t('recipe_detail.footer_hint'))}</p>
       </div>
 
@@ -4795,6 +4944,37 @@ async function show_recipe_detail_page(recipe_id) {
 
   document.getElementById("like_recipe_btn").onclick = () => {
     toggle_like(recipe.id);
+  };
+
+  document.getElementById("log_meal_open_btn").onclick = () => {
+    if (!current_user) { auth_modal.classList.remove('hidden'); return; }
+    const date_input = document.getElementById('log_meal_date_input');
+    if (date_input) date_input.value = new Date().toISOString().slice(0, 10);
+    document.getElementById('log_meal_modal')?.classList.remove('hidden');
+  };
+  document.getElementById("confirm_log_meal_btn").onclick = async () => {
+    if (!current_user) return;
+    const meal_slot = document.getElementById('log_meal_slot_select').value;
+    const logged_date = document.getElementById('log_meal_date_input').value || new Date().toISOString().slice(0, 10);
+    const totals = compute_recipe_nutrition(recipe.steps, 1);
+    const servings = recipe.servings || 1;
+    const { error } = await supabase.from('food_log').insert([{
+      user_id: current_user.id,
+      recipe_id: recipe.id,
+      label: recipe.title,
+      meal_slot: meal_slot,
+      kcal: Math.round(totals.kcal / servings),
+      protein: Math.round(totals.protein / servings),
+      carbs: Math.round(totals.carbs / servings),
+      fat: Math.round(totals.fat / servings),
+      logged_date: logged_date,
+    }]);
+    if (error) {
+      show_alert_modal(error.message, { type: 'error', title: I18N.t('common.alert_title_generic_error') });
+      return;
+    }
+    document.getElementById('log_meal_modal')?.classList.add('hidden');
+    show_alert_modal(I18N.t('recipe_detail.log_meal_success'), { type: 'success' });
   };
 
   document.getElementById("send_comment_btn").onclick = () => {

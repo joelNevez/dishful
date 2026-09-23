@@ -364,7 +364,11 @@
       "level_progress": "{{xp}} / 100 XP (level {{level}}) · {{total}} XP total",
       "level_short_display": "Lvl. {{n}}",
       "loading_profile": "Loading profile...",
-      "no_bio": "No description."
+      "no_bio": "No description.",
+      "tab_journal": "Journal",
+      "calorie_goal_label": "Daily calorie goal",
+      "calorie_goal_placeholder": "E.g. 2000",
+      "calorie_goal_unit": "kcal / day"
     },
     "public_profile": {
       "tab_badges": "Badges & Achievements",
@@ -482,7 +486,13 @@
       "edit_comment_btn": "Edit",
       "comment_update_btn": "Update",
       "comment_edited_label": "(edited)",
-      "add_photo": "Add a photo"
+      "add_photo": "Add a photo",
+      "log_meal_btn": "I ate this",
+      "log_meal_modal_title": "Add to journal",
+      "log_meal_slot_label": "Meal",
+      "log_meal_date_label": "Date",
+      "log_meal_confirm_btn": "Add to journal",
+      "log_meal_success": "Added to your journal!"
     },
     "time": {
       "just_now": "just now",
@@ -490,6 +500,27 @@
       "hours_ago": "{{count}} h ago",
       "days_ago": "{{count}} d ago",
       "weeks_ago": "{{count}} wk ago"
+    },
+    "journal": {
+      "title": "My food journal",
+      "today_label": "Today",
+      "total_label": "Daily total",
+      "goal_label": "Goal",
+      "remaining_label": "Remaining",
+      "over_label": "Over",
+      "no_entries": "No entries for this day.",
+      "add_manual_btn": "Add a manual entry",
+      "manual_modal_title": "Add an entry",
+      "manual_label_placeholder": "Food name",
+      "manual_kcal_placeholder": "Calories (kcal)",
+      "manual_protein_placeholder": "Protein (g)",
+      "manual_carbs_placeholder": "Carbs (g)",
+      "manual_fat_placeholder": "Fat (g)",
+      "save_entry_btn": "Add",
+      "delete_entry_confirm": "Delete this entry?",
+      "meal_unspecified": "Other",
+      "prev_day": "Previous day",
+      "next_day": "Next day"
     }
   },
   "data": {

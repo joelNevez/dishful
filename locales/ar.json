@@ -364,7 +364,11 @@
       "level_progress": "{{xp}} / 100 XP (المستوى {{level}}) · {{total}} XP إجمالًا",
       "level_short_display": "المستوى {{n}}",
       "loading_profile": "جارٍ تحميل الملف الشخصي...",
-      "no_bio": "لا يوجد وصف."
+      "no_bio": "لا يوجد وصف.",
+      "tab_journal": "السجل",
+      "calorie_goal_label": "الهدف اليومي للسعرات الحرارية",
+      "calorie_goal_placeholder": "مثال: 2000",
+      "calorie_goal_unit": "سعرة حرارية / يوم"
     },
     "public_profile": {
       "tab_badges": "الأوسمة والإنجازات",
@@ -482,7 +486,13 @@
       "edit_comment_btn": "تعديل",
       "comment_update_btn": "تحديث",
       "comment_edited_label": "(معدَّل)",
-      "add_photo": "إضافة صورة"
+      "add_photo": "إضافة صورة",
+      "log_meal_btn": "تناولت هذا",
+      "log_meal_modal_title": "إضافة إلى السجل",
+      "log_meal_slot_label": "الوجبة",
+      "log_meal_date_label": "التاريخ",
+      "log_meal_confirm_btn": "إضافة إلى السجل",
+      "log_meal_success": "أُضيف إلى سجلك!"
     },
     "time": {
       "just_now": "الآن",
@@ -490,6 +500,27 @@
       "hours_ago": "قبل {{count}} س",
       "days_ago": "قبل {{count}} ي",
       "weeks_ago": "قبل {{count}} أسب."
+    },
+    "journal": {
+      "title": "سجل طعامي",
+      "today_label": "اليوم",
+      "total_label": "إجمالي اليوم",
+      "goal_label": "الهدف",
+      "remaining_label": "المتبقي",
+      "over_label": "تجاوز",
+      "no_entries": "لا توجد إدخالات لهذا اليوم.",
+      "add_manual_btn": "إضافة إدخال يدوي",
+      "manual_modal_title": "إضافة إدخال",
+      "manual_label_placeholder": "اسم الطعام",
+      "manual_kcal_placeholder": "السعرات (كيلو كالوري)",
+      "manual_protein_placeholder": "بروتين (غ)",
+      "manual_carbs_placeholder": "كربوهيدرات (غ)",
+      "manual_fat_placeholder": "دهون (غ)",
+      "save_entry_btn": "إضافة",
+      "delete_entry_confirm": "هل تريد حذف هذا الإدخال؟",
+      "meal_unspecified": "أخرى",
+      "prev_day": "اليوم السابق",
+      "next_day": "اليوم التالي"
     }
   },
   "data": {

@@ -594,6 +594,7 @@
       <button class="tab_btn active" data-tab="tab_info"><span data-i18n="profile.tab_info">Informations</span></button>
       <button class="tab_btn" data-tab="tab_badges"><span data-i18n="profile.tab_badges">Badges & Succès</span></button>
       <button class="tab_btn" data-tab="tab_recipes"><span data-i18n="profile.tab_recipes">Mes Recettes</span></button>
+      <button class="tab_btn" data-tab="tab_journal"><span data-i18n="profile.tab_journal">Journal</span></button>
     </div>
 
     <div id="tab_info" class="tab_content active">
@@ -638,6 +639,13 @@
         <div class="form_group">
           <label data-i18n="profile.donation_label">Lien pour recevoir des dons (Stripe, Ko-fi, PayPal...)</label>
           <input type="url" id="profile_donation_input" placeholder="https://ko-fi.com/..." />
+        </div>
+        <div class="form_group">
+          <label><i class="fa-solid fa-fire"></i> <span data-i18n="profile.calorie_goal_label">Objectif calorique quotidien</span></label>
+          <div class="search-range-row">
+            <input type="number" id="profile_calorie_goal_input" min="0" data-i18n-placeholder="profile.calorie_goal_placeholder" placeholder="Ex : 2000">
+            <span class="search-range-unit" data-i18n="profile.calorie_goal_unit">kcal / jour</span>
+          </div>
         </div>
 
         <div class="form_security_section">
@@ -691,6 +699,35 @@
       </div>
 
       <div id="user_saved_recipes" class="recipes_grid mini_grid"></div>
+    </div>
+
+    <div id="tab_journal" class="tab_content">
+      <div class="journal_day_nav">
+        <button type="button" id="journal_prev_day_btn" class="journal_day_arrow" data-i18n-aria="journal.prev_day" aria-label="Jour précédent"><i class="fa-solid fa-chevron-left"></i></button>
+        <span id="journal_current_date_label" class="journal_current_date"></span>
+        <button type="button" id="journal_next_day_btn" class="journal_day_arrow" data-i18n-aria="journal.next_day" aria-label="Jour suivant"><i class="fa-solid fa-chevron-right"></i></button>
+      </div>
+
+      <div class="journal_summary_card">
+        <div class="journal_summary_stat">
+          <span class="journal_summary_value" id="journal_total_kcal">0</span>
+          <span class="journal_summary_label" data-i18n="journal.total_label">Total du jour</span>
+        </div>
+        <div class="journal_summary_stat">
+          <span class="journal_summary_value" id="journal_goal_kcal">—</span>
+          <span class="journal_summary_label" data-i18n="journal.goal_label">Objectif</span>
+        </div>
+        <div class="journal_summary_stat">
+          <span class="journal_summary_value" id="journal_remaining_kcal">—</span>
+          <span class="journal_summary_label" id="journal_remaining_label" data-i18n="journal.remaining_label">Restant</span>
+        </div>
+      </div>
+      <div class="journal_progress_bar"><div id="journal_progress_fill" class="journal_progress_fill"></div></div>
+      <div class="journal_macro_row" id="journal_macro_row"></div>
+
+      <button type="button" id="open_manual_journal_entry_btn" class="btn-secondary"><i class="fa-solid fa-plus"></i> <span data-i18n="journal.add_manual_btn">Ajouter une entrée manuelle</span></button>
+
+      <div id="journal_entries_list" class="journal_entries_list"></div>
     </div>
   </section>
 
@@ -904,6 +941,58 @@
   <div class="modal-card comment-photo-lightbox-card">
     <button id="close_comment_photo_lightbox_btn" type="button" class="close-btn">&times;</button>
     <img id="comment_photo_lightbox_img" src="" alt="">
+  </div>
+</div>
+
+<!-- ---------------- POPUP : AJOUTER UNE ENTRÉE MANUELLE AU JOURNAL ---------------- -->
+<div id="journal_manual_entry_modal" class="modal hidden">
+  <div class="modal-card">
+    <button id="close_journal_manual_entry_btn" type="button" class="close-btn">&times;</button>
+    <h2><i class="fa-solid fa-plus"></i> <span data-i18n="journal.manual_modal_title">Ajouter une entrée</span></h2>
+    <div class="form_group">
+      <input type="text" id="journal_manual_label_input" data-i18n-placeholder="journal.manual_label_placeholder" placeholder="Nom de l'aliment">
+    </div>
+    <div class="form_group">
+      <select id="journal_manual_meal_select">
+        <option value="breakfast" data-i18n="feed.slot_breakfast">Petit-déjeuner</option>
+        <option value="lunch" data-i18n="feed.slot_lunch">Déjeuner</option>
+        <option value="dinner" data-i18n="feed.slot_dinner">Dîner</option>
+        <option value="snack" data-i18n="feed.slot_snack">Snack</option>
+        <option value="dessert" data-i18n="feed.slot_dessert">Dessert</option>
+      </select>
+    </div>
+    <div class="form_row">
+      <div class="form_group"><input type="number" id="journal_manual_kcal_input" min="0" data-i18n-placeholder="journal.manual_kcal_placeholder" placeholder="Calories (kcal)"></div>
+      <div class="form_group"><input type="number" id="journal_manual_protein_input" min="0" data-i18n-placeholder="journal.manual_protein_placeholder" placeholder="Protéines (g)"></div>
+    </div>
+    <div class="form_row">
+      <div class="form_group"><input type="number" id="journal_manual_carbs_input" min="0" data-i18n-placeholder="journal.manual_carbs_placeholder" placeholder="Glucides (g)"></div>
+      <div class="form_group"><input type="number" id="journal_manual_fat_input" min="0" data-i18n-placeholder="journal.manual_fat_placeholder" placeholder="Lipides (g)"></div>
+    </div>
+    <button type="button" id="save_journal_manual_entry_btn" class="btn-primary"><span data-i18n="journal.save_entry_btn">Ajouter</span></button>
+  </div>
+</div>
+
+<!-- ---------------- POPUP : AJOUTER UNE RECETTE AU JOURNAL ---------------- -->
+<div id="log_meal_modal" class="modal hidden">
+  <div class="modal-card">
+    <button id="close_log_meal_btn" type="button" class="close-btn">&times;</button>
+    <h2><i class="fa-solid fa-utensils"></i> <span data-i18n="recipe_detail.log_meal_modal_title">Ajouter au journal</span></h2>
+    <div class="form_group">
+      <label data-i18n="recipe_detail.log_meal_slot_label">Repas</label>
+      <select id="log_meal_slot_select">
+        <option value="breakfast" data-i18n="feed.slot_breakfast">Petit-déjeuner</option>
+        <option value="lunch" data-i18n="feed.slot_lunch">Déjeuner</option>
+        <option value="dinner" data-i18n="feed.slot_dinner">Dîner</option>
+        <option value="snack" data-i18n="feed.slot_snack">Snack</option>
+        <option value="dessert" data-i18n="feed.slot_dessert">Dessert</option>
+      </select>
+    </div>
+    <div class="form_group">
+      <label data-i18n="recipe_detail.log_meal_date_label">Date</label>
+      <input type="date" id="log_meal_date_input">
+    </div>
+    <button type="button" id="confirm_log_meal_btn" class="btn-primary"><span data-i18n="recipe_detail.log_meal_confirm_btn">Ajouter au journal</span></button>
   </div>
 </div>
 

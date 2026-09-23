@@ -364,7 +364,11 @@
       "level_progress": "{{xp}} / 100 XP (nível {{level}}) · {{total}} XP no total",
       "level_short_display": "Nív. {{n}}",
       "loading_profile": "A carregar o perfil...",
-      "no_bio": "Sem descrição."
+      "no_bio": "Sem descrição.",
+      "tab_journal": "Diário",
+      "calorie_goal_label": "Meta calórica diária",
+      "calorie_goal_placeholder": "Ex.: 2000",
+      "calorie_goal_unit": "kcal / dia"
     },
     "public_profile": {
       "tab_badges": "Emblemas & Conquistas",
@@ -482,7 +486,13 @@
       "edit_comment_btn": "Editar",
       "comment_update_btn": "Atualizar",
       "comment_edited_label": "(editado)",
-      "add_photo": "Adicionar uma foto"
+      "add_photo": "Adicionar uma foto",
+      "log_meal_btn": "Comi isto",
+      "log_meal_modal_title": "Adicionar ao diário",
+      "log_meal_slot_label": "Refeição",
+      "log_meal_date_label": "Data",
+      "log_meal_confirm_btn": "Adicionar ao diário",
+      "log_meal_success": "Adicionado ao teu diário!"
     },
     "time": {
       "just_now": "agora mesmo",
@@ -490,6 +500,27 @@
       "hours_ago": "há {{count}} h",
       "days_ago": "há {{count}} d",
       "weeks_ago": "há {{count}} sem."
+    },
+    "journal": {
+      "title": "O meu diário alimentar",
+      "today_label": "Hoje",
+      "total_label": "Total do dia",
+      "goal_label": "Meta",
+      "remaining_label": "Restante",
+      "over_label": "Excedido",
+      "no_entries": "Nenhuma entrada para este dia.",
+      "add_manual_btn": "Adicionar entrada manual",
+      "manual_modal_title": "Adicionar entrada",
+      "manual_label_placeholder": "Nome do alimento",
+      "manual_kcal_placeholder": "Calorias (kcal)",
+      "manual_protein_placeholder": "Proteínas (g)",
+      "manual_carbs_placeholder": "Hidratos de carbono (g)",
+      "manual_fat_placeholder": "Gorduras (g)",
+      "save_entry_btn": "Adicionar",
+      "delete_entry_confirm": "Eliminar esta entrada?",
+      "meal_unspecified": "Outro",
+      "prev_day": "Dia anterior",
+      "next_day": "Dia seguinte"
     }
   },
   "data": {
