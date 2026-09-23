@@ -13,9 +13,10 @@
 // allergènes...) l'est.
 // =====================================================================
 window.I18N = (function () {
-  const SUPPORTED = ['fr', 'en', 'pt', 'es'];
-  const FLAGS = { fr: '🇫🇷', en: '🇬🇧', pt: '🇵🇹', es: '🇪🇸' };
-  const NAMES = { fr: 'Français', en: 'English', pt: 'Português', es: 'Español' };
+  const SUPPORTED = ['fr', 'en', 'pt', 'es', 'zh', 'hi', 'ar'];
+  const FLAGS = { fr: '🇫🇷', en: '🇬🇧', pt: '🇵🇹', es: '🇪🇸', zh: '🇨🇳', hi: '🇮🇳', ar: '🇸🇦' };
+  const NAMES = { fr: 'Français', en: 'English', pt: 'Português', es: 'Español', zh: '中文', hi: 'हिन्दी', ar: 'العربية' };
+  const RTL_LANGS = ['ar'];
 
   function detect_default_lang() {
     const nav = ((navigator.language || 'fr').split('-')[0] || 'fr').toLowerCase();
@@ -128,6 +129,7 @@ window.I18N = (function () {
     await load('fr');
     if (current !== 'fr') await load(current);
     document.documentElement.lang = current;
+    document.documentElement.dir = RTL_LANGS.includes(current) ? 'rtl' : 'ltr';
     apply_translations(document);
     wire_switcher();
     update_switcher_ui();
@@ -135,5 +137,5 @@ window.I18N = (function () {
 
   const ready = init();
 
-  return { t, td, apply: apply_translations, setLang: set_lang, getLang: get_lang, ready, SUPPORTED, FLAGS, NAMES };
+  return { t, td, apply: apply_translations, setLang: set_lang, getLang: get_lang, ready, SUPPORTED, FLAGS, NAMES, isRTL: () => RTL_LANGS.includes(current) };
 })();

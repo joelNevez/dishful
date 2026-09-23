@@ -845,6 +845,9 @@ let current_user = null;
 let current_profile = null;
 let all_recipes = [];
 let liked_recipe_ids = new Set();
+let recipe_detail_return_tab = 'feed';
+let editing_comment_id = null;
+let current_user_own_comment = null;
 let active_category_filter = null;
 
 // Identifiant anonyme stable (stocké en local) pour dédupliquer les vues des visiteurs
@@ -2931,7 +2934,7 @@ function recipe_card_html(r) {
       </div>
       <div class="chips-row">${tag_chips}</div>
       <div class="recipe-actions">
-        <button class="action-btn like-btn ${is_liked ? 'liked' : ''}"><i class="fa-solid fa-heart"></i> <span class="like-count">${r.likes_count || 0}</span></button>
+        <button class="action-btn like-btn ${is_liked ? 'liked' : ''}" data-recipe-id="${escape_attr(r.id)}"><i class="fa-solid fa-heart"></i> <span class="like-count">${r.likes_count || 0}</span></button>
         <span class="action-btn"><i class="fa-regular fa-comment"></i> ${r.comments_count || 0}</span>
         <button class="translate-btn"><i class="fa-solid fa-language"></i> ${escape_html(I18N.t('common.translate_btn'))}</button>
         ${donation_link ? `<a class="donate-btn" href="${escape_attr(donation_link)}" target="_blank" rel="noopener"><i class="fa-solid fa-hand-holding-heart"></i> ${escape_html(I18N.t('common.donate_btn'))}</a>` : ''}
@@ -2940,20 +2943,47 @@ function recipe_card_html(r) {
   </article>`;
 }
 
+function update_like_ui_everywhere(recipe_id, is_liked, likes_count) {
+  document.querySelectorAll(`.like-btn[data-recipe-id="${CSS.escape(recipe_id)}"]`).forEach(btn => {
+    btn.classList.toggle('liked', is_liked);
+    const count_el = btn.querySelector('.like-count');
+    if (count_el) count_el.textContent = likes_count;
+  });
+}
+
 async function toggle_like(recipe_id) {
   if (!current_user) { auth_modal.classList.remove('hidden'); return; }
   const already_liked = liked_recipe_ids.has(recipe_id);
+  const recipe = all_recipes.find((r) => r.id === recipe_id);
+  const was_count = recipe ? (recipe.likes_count || 0) : 0;
+  const next_count = Math.max(0, was_count + (already_liked ? -1 : 1));
 
   if (already_liked) {
-    await supabase.from('likes').delete().eq('recipe_id', recipe_id).eq('user_id', current_user.id);
     liked_recipe_ids.delete(recipe_id);
   } else {
-    await supabase.from('likes').insert([{ recipe_id, user_id: current_user.id }]);
     liked_recipe_ids.add(recipe_id);
   }
+  if (recipe) recipe.likes_count = next_count;
+  update_like_ui_everywhere(recipe_id, !already_liked, next_count);
 
-  await load_recipes();
-  await refresh_session();
+  try {
+    if (already_liked) {
+      const { error } = await supabase.from('likes').delete().eq('recipe_id', recipe_id).eq('user_id', current_user.id);
+      if (error) throw error;
+    } else {
+      const { error } = await supabase.from('likes').insert([{ recipe_id, user_id: current_user.id }]);
+      if (error) throw error;
+    }
+  } catch (err) {
+    // rollback en cas d'echec reseau/serveur
+    if (already_liked) { liked_recipe_ids.add(recipe_id); } else { liked_recipe_ids.delete(recipe_id); }
+    if (recipe) recipe.likes_count = was_count;
+    update_like_ui_everywhere(recipe_id, already_liked, was_count);
+    show_alert_modal(I18N.t('common.generic_error'), { type: 'error' });
+    return;
+  }
+
+  refresh_session();
 }
 
 function escape_html(str) {
@@ -2963,7 +2993,7 @@ function escape_html(str) {
 function escape_attr(str) { return escape_html(str); }
 
 // Date relative façon fil d'actualité ("il y a 2 j") plutôt qu'une date brute.
-const DATE_LOCALE_BY_LANG = { fr: 'fr-FR', en: 'en-GB', pt: 'pt-PT', es: 'es-ES' };
+const DATE_LOCALE_BY_LANG = { fr: 'fr-FR', en: 'en-GB', pt: 'pt-PT', es: 'es-ES', zh: 'zh-CN', hi: 'hi-IN', ar: 'ar-SA' };
 function format_relative_date(iso) {
   if (!iso) return '';
   const diff_ms = Date.now() - new Date(iso).getTime();
@@ -3611,6 +3641,15 @@ function apply_saved_recipes_filter(saved_recipes) {
   render_mini_recipes_grid("user_saved_recipes", filtered);
 }
 
+function get_visible_tab_name() {
+  const tab_ids = ["feed", "publish", "profile", "recipe-detail", "leaderboard", "public-profile", "search"];
+  for (const id of tab_ids) {
+    const el = document.getElementById("tab-" + id);
+    if (el && !el.classList.contains("hidden")) return id;
+  }
+  return "feed";
+}
+
 function switch_tab(tab_name) {
   document.querySelectorAll("nav.tabs button").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.tab === tab_name);
@@ -4049,12 +4088,22 @@ async function show_recipe_detail_page(recipe_id) {
   if (!container) return;
 
   if (cooking_keydown_handler) { document.removeEventListener('keydown', cooking_keydown_handler); cooking_keydown_handler = null; }
+  editing_comment_id = null;
+  current_user_own_comment = null;
+
+  // Mémorise d'où on vient (sauf si on navigue d'une recette à une autre) pour que
+  // le bouton "Retour" ramène à la bonne page, et remet le scroll en haut à l'ouverture.
+  const origin_tab = get_visible_tab_name();
+  if (origin_tab !== 'recipe-detail') {
+    recipe_detail_return_tab = origin_tab;
+  }
 
   let recipe = all_recipes.find((r) => r.id === recipe_id);
 
   if (!recipe) {
     // pas encore en cache (lien direct, etc.) : on l'affiche pendant le chargement
     switch_tab("recipe-detail");
+    window.scrollTo(0, 0);
     container.innerHTML = dishful_loading_html(I18N.t('recipe_detail.loading_recipe'));
     if (!supabase) { container.innerHTML = `<p class="empty-state">${escape_html(I18N.t('profile.supabase_unavailable'))}</p>`; return; }
     const { data, error } = await supabase
@@ -4068,6 +4117,7 @@ async function show_recipe_detail_page(recipe_id) {
   }
 
   switch_tab("recipe-detail");
+  window.scrollTo(0, 0);
   history.replaceState(null, '', '?recipe=' + recipe.id);
 
   // Vue comptée à chaque ouverture de la page recette (best-effort, ne bloque pas l'affichage).
@@ -4402,8 +4452,8 @@ async function show_recipe_detail_page(recipe_id) {
       </div>
 
       <div class="recipe_footer_actions">
-        <button id="like_recipe_btn" class="action-btn like-btn ${liked_recipe_ids.has(recipe.id) ? 'liked' : ''}">
-          <i class="fa-solid fa-heart"></i> ${recipe.likes_count || 0} ${escape_html(I18N.t('recipe_detail.likes'))}
+        <button id="like_recipe_btn" class="action-btn like-btn ${liked_recipe_ids.has(recipe.id) ? 'liked' : ''}" data-recipe-id="${escape_attr(recipe.id)}">
+          <i class="fa-solid fa-heart"></i> <span class="like-count">${recipe.likes_count || 0}</span> ${escape_html(I18N.t('recipe_detail.likes'))}
         </button>
         <p class="recipe_footer_actions_hint">${escape_html(I18N.t('recipe_detail.footer_hint'))}</p>
       </div>
@@ -4422,9 +4472,15 @@ async function show_recipe_detail_page(recipe_id) {
             </span>
           </div>
           <textarea id="comment_input_field" placeholder="${escape_attr(I18N.t('recipe_detail.comment_placeholder'))}"></textarea>
-          <button id="send_comment_btn">${escape_html(I18N.t('recipe_detail.comment_send'))}</button>
+          <div class="comment_form_actions">
+            <button id="send_comment_btn">${escape_html(I18N.t('recipe_detail.comment_send'))}</button>
+            <button type="button" id="cancel_comment_edit_btn" class="text-btn hidden">${escape_html(I18N.t('common.cancel'))}</button>
+          </div>
         </div>
-        <p class="already_commented_note hidden" id="already_commented_note"><i class="fa-solid fa-circle-check"></i> ${escape_html(I18N.t('recipe_detail.already_commented'))}</p>
+        <p class="already_commented_note hidden" id="already_commented_note">
+          <i class="fa-solid fa-circle-check"></i> ${escape_html(I18N.t('recipe_detail.already_commented'))}
+          <button type="button" id="edit_own_comment_btn" class="text-btn">${escape_html(I18N.t('recipe_detail.edit_comment_btn'))}</button>
+        </p>
         <div id="recipe_comments_list">${dishful_loading_html(I18N.t('recipe_detail.loading_comments'))}</div>
       </section>
     </article>
@@ -4532,6 +4588,31 @@ async function show_recipe_detail_page(recipe_id) {
     });
   });
 
+  function enter_comment_edit_mode() {
+    if (!current_user_own_comment) return;
+    editing_comment_id = current_user_own_comment.id;
+    document.getElementById('comment_input_field').value = current_user_own_comment.content || '';
+    rating_picker.dataset.value = current_user_own_comment.rating || 0;
+    render_rating_picker();
+    document.getElementById('send_comment_btn').textContent = I18N.t('recipe_detail.comment_update_btn');
+    document.getElementById('cancel_comment_edit_btn').classList.remove('hidden');
+    set_comment_form_already_commented(false);
+    document.getElementById('comment_input_field').focus();
+  }
+
+  function exit_comment_edit_mode() {
+    editing_comment_id = null;
+    document.getElementById('comment_input_field').value = '';
+    rating_picker.dataset.value = 0;
+    render_rating_picker();
+    document.getElementById('send_comment_btn').textContent = I18N.t('recipe_detail.comment_send');
+    document.getElementById('cancel_comment_edit_btn').classList.add('hidden');
+    set_comment_form_already_commented(!!current_user_own_comment);
+  }
+
+  document.getElementById('edit_own_comment_btn')?.addEventListener('click', enter_comment_edit_mode);
+  document.getElementById('cancel_comment_edit_btn')?.addEventListener('click', exit_comment_edit_mode);
+
   // Initialisations
   update_servings_ui();
   load_recipe_comments(recipe.id);
@@ -4564,11 +4645,12 @@ async function load_recipe_comments(recipe_id) {
 
   const { data: comments, error } = await supabase
     .from("comments")
-    .select("id, user_id, content, rating, created_at, profiles(username, avatar_url)")
+    .select("id, user_id, content, rating, created_at, edited_at, profiles(username, avatar_url)")
     .eq("recipe_id", recipe_id)
     .order("created_at", { ascending: false });
 
-  set_comment_form_already_commented(!!(current_user && (comments || []).some(c => c.user_id === current_user.id)));
+  current_user_own_comment = (current_user && (comments || []).find(c => c.user_id === current_user.id)) || null;
+  set_comment_form_already_commented(!!current_user_own_comment);
 
   if (error || !comments || comments.length === 0) {
     container.innerHTML = `<p>${escape_html(I18N.t('recipe_detail.no_comments_yet'))}</p>`;
@@ -4580,6 +4662,7 @@ async function load_recipe_comments(recipe_id) {
       <div class="comment_item_header">
         <strong>${escape_html(c.profiles?.username || I18N.t('common.anonymous'))}</strong>
         ${render_stars_html(c.rating)}
+        ${c.edited_at ? `<span class="comment_edited_label">${escape_html(I18N.t('recipe_detail.comment_edited_label'))}</span>` : ''}
       </div>
       <p>${escape_html(c.content)}</p>
     </div>
@@ -4596,17 +4679,26 @@ async function submit_recipe_comment(recipe_id) {
   const rating_picker = document.getElementById("comment_rating_picker");
   const rating_value = rating_picker ? Number(rating_picker.dataset.value) || 0 : 0;
 
-  const { error } = await supabase
-    .from("comments")
-    .insert([{
-      recipe_id: recipe_id,
-      user_id: current_user.id,
-      content: content,
-      rating: rating_value > 0 ? rating_value : null
-    }]);
+  const was_editing = !!editing_comment_id;
+  const { error } = was_editing
+    ? await supabase
+        .from("comments")
+        .update({ content: content, rating: rating_value > 0 ? rating_value : null, edited_at: new Date().toISOString() })
+        .eq("id", editing_comment_id)
+    : await supabase
+        .from("comments")
+        .insert([{
+          recipe_id: recipe_id,
+          user_id: current_user.id,
+          content: content,
+          rating: rating_value > 0 ? rating_value : null
+        }]);
 
   if (!error) {
     input.value = "";
+    editing_comment_id = null;
+    document.getElementById('send_comment_btn').textContent = I18N.t('recipe_detail.comment_send');
+    document.getElementById('cancel_comment_edit_btn')?.classList.add('hidden');
     if (rating_picker) {
       rating_picker.dataset.value = 0;
       rating_picker.querySelectorAll("i").forEach(s => s.className = "fa-regular fa-star");
@@ -4724,8 +4816,15 @@ document.querySelectorAll('#tab-public-profile .profile_tabs_nav .tab_btn').forE
 });
 document.getElementById('back_to_feed_from_profile_btn')?.addEventListener('click', () => switch_tab('feed'));
 
+document.getElementById('back_to_feed_btn')?.addEventListener('click', () => {
+  switch_tab(recipe_detail_return_tab || 'feed');
+  window.scrollTo(0, 0);
+});
+
+let current_public_profile_user_id = null;
 async function show_public_profile_page(user_id) {
   if (!supabase) return;
+  current_public_profile_user_id = user_id;
   switch_tab('public-profile');
 
   document.getElementById('public_profile_display_name').textContent = I18N.t('common.loading');
@@ -4911,8 +5010,11 @@ I18N.ready.then(() => {
 // puis on la restaure une fois la page repartie dans la nouvelle langue.
 window.addEventListener('dishful:before-lang-switch', () => {
   try {
-    const active_tab = document.querySelector('nav.tabs button.active')?.dataset.tab || 'feed';
+    const active_tab = get_visible_tab_name();
     const state = { tab: active_tab };
+    if (active_tab === 'public-profile') {
+      state.public_profile_user_id = current_public_profile_user_id;
+    }
     if (active_tab === 'publish') {
       state.wizard_step = current_wizard_step;
       state.editing_recipe_id = editing_recipe_id;
@@ -4944,6 +5046,11 @@ function restore_pending_state_after_lang_switch() {
   let state;
   try { state = JSON.parse(raw); } catch (err) { return; }
   if (!state || !state.tab || state.tab === 'recipe-detail') return; // recipe-detail se restaure déjà via ?recipe= dans l'URL
+
+  if (state.tab === 'public-profile' && state.public_profile_user_id) {
+    show_public_profile_page(state.public_profile_user_id);
+    return;
+  }
 
   switch_tab(state.tab);
   if (state.tab !== 'publish') return;

@@ -466,7 +466,10 @@
       "share_title": "Share this recipe",
       "share_text": "Check out \"{{title}}\" on Dishful 🍽️",
       "already_commented": "You've already left your review on this recipe — one comment per recipe and per person.",
-      "your_comment_label": "Your review"
+      "your_comment_label": "Your review",
+      "edit_comment_btn": "Edit",
+      "comment_update_btn": "Update",
+      "comment_edited_label": "(edited)"
     },
     "time": {
       "just_now": "just now",

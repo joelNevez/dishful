@@ -466,7 +466,10 @@
       "share_title": "Partager cette recette",
       "share_text": "Découvre \"{{title}}\" sur Dishful 🍽️",
       "already_commented": "Tu as déjà donné ton avis sur cette recette — un seul commentaire par recette et par personne.",
-      "your_comment_label": "Ton avis"
+      "your_comment_label": "Ton avis",
+      "edit_comment_btn": "Modifier",
+      "comment_update_btn": "Mettre à jour",
+      "comment_edited_label": "(modifié)"
     },
     "time": {
       "just_now": "à l'instant",

@@ -61,7 +61,8 @@ nav.tabs{display:flex;gap:4px;justify-self:center;}
 nav.tabs button{
   background:none;border:none;padding:8px 16px;border-radius:999px;
   font-size:14px;font-weight:600;color:var(--ink-soft);
-  display:flex;align-items:center;gap:7px;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  min-width:150px;
 }
 nav.tabs button.active{background:var(--ink);color:var(--paper);}
 .header-right{display:flex;align-items:center;gap:12px;justify-self:end;}
@@ -975,6 +976,11 @@ label.field-label{
   border:1px solid var(--basil);border-radius:12px;padding:11px 14px;font-size:13.5px;font-weight:600;
   margin-bottom:18px;
 }
+.already_commented_note #edit_own_comment_btn{
+  margin-left:auto;flex-shrink:0;padding:5px 12px;font-size:12.5px;
+}
+.comment_edited_label{font-size:11.5px;font-weight:600;color:var(--ink-soft);font-style:italic;}
+.comment_form_actions{display:flex;align-items:center;gap:10px;}
 .comment_form textarea {
   width: 100%; min-height: 70px; padding: 12px; border-radius: 12px; border: 1px solid var(--line);
   background: var(--paper); font-family: inherit; font-size: 14px; resize: vertical;
