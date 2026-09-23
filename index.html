@@ -116,7 +116,10 @@
     </div>
 
     <div id="feed_panel_ideas" class="feed-subtab-panel hidden">
-      <p class="sub-hint" data-i18n="feed.ideas_hint">Une sélection parmi les recettes les plus aimées de la communauté, avec une variante végé, poisson et viande — change chaque semaine.</p>
+      <div class="ideas-panel-header">
+        <p class="sub-hint" data-i18n="feed.ideas_hint">Un calendrier jour par jour construit à partir des recettes les plus aimées de la communauté — choisis un régime pour chaque jour, change chaque semaine.</p>
+        <button type="button" id="open_fitness_plan_btn" class="text-btn"><i class="fa-solid fa-dumbbell"></i> <span data-i18n="feed.fitness_plan_btn">Recettes fitness</span></button>
+      </div>
       <div class="ideas-calendar" id="feed_ideas_calendar"></div>
     </div>
   </section>
@@ -882,6 +885,16 @@
     <h2 id="app_alert_title"></h2>
     <p id="app_alert_message" class="app-alert-message"></p>
     <button type="button" class="btn-primary app-alert-ok-btn" id="app_alert_ok_btn">Compris</button>
+  </div>
+</div>
+
+<!-- ---------------- POPUP : RECETTES FITNESS (meilleur ratio protéines/calories) ---------------- -->
+<div id="fitness_plan_modal" class="modal hidden">
+  <div class="modal-card modal-card-wide">
+    <button id="close_fitness_plan_btn" type="button" class="close-btn">&times;</button>
+    <h2><i class="fa-solid fa-dumbbell"></i> <span data-i18n="feed.fitness_plan_title">Recettes fitness</span></h2>
+    <p class="sub-hint" data-i18n="feed.fitness_plan_hint">Sélection des recettes les plus riches en protéines pour un minimum de calories — utile pour un objectif de perte de poids.</p>
+    <div class="recipe-grid" id="fitness_plan_grid"></div>
   </div>
 </div>
 

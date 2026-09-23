@@ -1670,30 +1670,63 @@ label.field-label{
 .feed-subtab-btn.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
 .feed-subtab-panel.hidden{display:none;}
 
-/* ---------- "Idées de la semaine" : menu façon calendrier ----------
-   Une ligne par moment du repas (seulement si des recettes existent pour ce
-   créneau), avec jusqu'à 3 colonnes (végé/poisson/viande), chacune seulement
-   si une recette de ce régime existe — jamais de case vide affichée. */
-.ideas-calendar{display:flex;flex-direction:column;gap:16px;max-width:1000px;margin:0 auto;}
-.ideas-row{
+/* ---------- Cartes de résultat de recherche : version allégée de la carte du feed,
+   sans infos sociales (auteur/likes/actions), avec les valeurs nutritionnelles
+   recherchées mises en avant quand elles ont servi de critère. ---------- */
+.search-result-card .recipe-body{padding-bottom:16px;}
+.search-match-line{display:flex;gap:12px;margin:6px 0 2px;flex-wrap:wrap;}
+.search-match-value{
+  display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:800;
+  color:var(--saffron-deep);background:#FFF6E0;padding:4px 10px;border-radius:999px;
+}
+
+.ideas-panel-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+.ideas-panel-header .sub-hint{flex:1;min-width:220px;}
+.ideas-panel-header .text-btn{flex-shrink:0;}
+
+/* ---------- "Idées de la semaine" : calendrier jour par jour ----------
+   Un bloc par jour (lundi → vendredi, puis "week-end"), avec un sélecteur de
+   régime (viande/poisson/végé/mixte) qui s'applique à tous les créneaux repas
+   de ce jour ; un créneau n'apparaît que s'il existe une recette pour ce
+   régime ce jour-là — jamais de case vide affichée. */
+.ideas-calendar{display:flex;flex-direction:column;gap:16px;max-width:1100px;margin:0 auto;}
+.ideas-week-total{
+  background:var(--ink);color:var(--paper);border-radius:14px;padding:13px 18px;
+  font-size:14px;font-weight:600;display:flex;align-items:center;gap:9px;
+}
+.ideas-days-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:16px;}
+.ideas-day-card{
   background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px;
+  display:flex;flex-direction:column;gap:12px;
 }
-.ideas-row-label{
-  font-family:'Fraunces',serif;font-weight:600;font-size:16px;color:var(--ink);
-  display:flex;align-items:center;gap:9px;margin-bottom:14px;
+.ideas-day-header{display:flex;flex-direction:column;gap:10px;}
+.ideas-day-label{
+  font-family:'Fraunces',serif;font-weight:600;font-size:17px;color:var(--ink);margin:0;
 }
-.ideas-row-label i{color:var(--saffron-deep);}
-.ideas-row-cells{display:grid;grid-template-columns:repeat(auto-fit, minmax(170px, 1fr));gap:14px;}
-.ideas-cell{display:flex;flex-direction:column;gap:7px;}
-.ideas-variant-badge{
-  display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;
-  padding:3px 10px;border-radius:999px;text-transform:uppercase;letter-spacing:0.02em;
-  width:fit-content;
+.ideas-day-variants{display:flex;flex-wrap:wrap;gap:6px;}
+.ideas-variant-chip{
+  display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;
+  padding:5px 10px;border-radius:999px;text-transform:uppercase;letter-spacing:0.02em;
+  border:1px solid var(--line);background:var(--paper);color:var(--ink-soft);
+  transition:background .15s ease,border-color .15s ease,color .15s ease;
 }
-.ideas-variant-badge.variant-vege{background:#E9F3E9;color:var(--basil-deep);}
-.ideas-variant-badge.variant-poisson{background:#E3EEF5;color:#2E5C77;}
-.ideas-variant-badge.variant-viande{background:#FBEAE3;color:var(--rust);}
-.ideas-cell .mini_recipe_card{width:100%;}
+.ideas-variant-chip:hover{border-color:var(--saffron);}
+.ideas-variant-chip.active.variant-vege{background:#E9F3E9;color:var(--basil-deep);border-color:var(--basil);}
+.ideas-variant-chip.active.variant-poisson{background:#E3EEF5;color:#2E5C77;border-color:#2E5C77;}
+.ideas-variant-chip.active.variant-viande{background:#FBEAE3;color:var(--rust);border-color:var(--rust);}
+.ideas-variant-chip.active.variant-mixte{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.ideas-day-slots{display:flex;flex-direction:column;gap:12px;}
+.ideas-slot-cell{display:flex;flex-direction:column;gap:6px;}
+.ideas-slot-label{
+  font-size:11.5px;font-weight:700;color:var(--ink-soft);display:flex;align-items:center;gap:6px;
+}
+.ideas-slot-label i{color:var(--saffron-deep);}
+.ideas-slot-cell .mini_recipe_card{width:100%;}
+.ideas-day-total{
+  font-size:12.5px;font-weight:600;color:var(--ink-soft);display:flex;align-items:center;gap:7px;
+  border-top:1px dashed var(--line);padding-top:10px;
+}
+.ideas-day-empty{font-size:13px;color:var(--ink-soft);font-style:italic;margin:0;}
 
 .comment_rating_picker{
   display:flex;align-items:center;gap:10px;background:var(--paper);border:1px solid var(--line);

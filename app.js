@@ -2671,19 +2671,32 @@ function simple_string_hash(str) {
   return Math.abs(h);
 }
 
-// "Idées de la semaine" : un menu façon calendrier construit à partir des recettes les
-// plus aimées de la communauté. Un créneau (petit-déj/déjeuner/dîner/snack) n'apparaît
-// que s'il existe au moins une recette dans sa catégorie ; dans ce créneau, jusqu'à 3
-// variantes (végé/poisson/viande) apparaissent, chacune seulement si une recette de ce
-// régime existe — pas de case vide ni de contenu inventé pour "faire joli".
+// "Idées de la semaine" : un vrai calendrier (lundi → vendredi, puis un bloc "week-end"
+// qui regroupe samedi+dimanche). Pour chaque jour, on choisit un régime (viande / poisson
+// / végé / mixte = sans préférence) qui s'applique à tous les créneaux repas de ce jour ;
+// un créneau n'apparaît que s'il existe au moins une recette pour ce régime ce jour-là —
+// pas de case vide ni de contenu inventé pour "faire joli". Un total nutrition (kcal +
+// protéines) est calculé par jour et pour toute la semaine à partir des recettes
+// réellement affichées.
 const IDEAS_MEAL_SLOTS = [
   { key: 'breakfast', categories: ['Petit-déjeuner'], icon: 'fa-mug-hot' },
   { key: 'lunch', categories: ['Plat', 'Entrée'], icon: 'fa-sun' },
   { key: 'dinner', categories: ['Plat', 'Entrée'], icon: 'fa-moon' },
   { key: 'snack', categories: ['Snack'], icon: 'fa-cookie-bite' },
+  { key: 'dessert', categories: ['Dessert'], icon: 'fa-ice-cream' },
 ];
-const IDEAS_VARIANTS = ['vege', 'poisson', 'viande'];
-const IDEAS_VARIANT_ICON = { vege: 'fa-leaf', poisson: 'fa-fish', viande: 'fa-drumstick-bite' };
+const IDEAS_VARIANTS = ['vege', 'poisson', 'viande', 'mixte'];
+const IDEAS_VARIANT_ICON = { vege: 'fa-leaf', poisson: 'fa-fish', viande: 'fa-drumstick-bite', mixte: 'fa-shuffle' };
+// weekday_offset : décalage en jours depuis un lundi de référence, pour dériver le nom du
+// jour via Intl (voir ideas_day_label) ; null pour le bloc "week-end" (pas un vrai jour).
+const IDEAS_DAYS = [
+  { key: 'mon', weekday_offset: 0 },
+  { key: 'tue', weekday_offset: 1 },
+  { key: 'wed', weekday_offset: 2 },
+  { key: 'thu', weekday_offset: 3 },
+  { key: 'fri', weekday_offset: 4 },
+  { key: 'weekend', weekday_offset: null },
+];
 // Sous-ensemble de "Viandes & Poissons" (COMMON_FOODS) : sert à deviner le régime d'une
 // recette à partir de ses ingrédients — pas de champ "régime" dédié dans les données.
 const FISH_INGREDIENT_NAMES = new Set(['Poisson blanc', 'Saumon', 'Thon', 'Cabillaud', 'Truite', 'Sardine', 'Maquereau', 'Anchois', 'Dorade', 'Crevette', 'Calamar', 'Poulpe', 'Moule', 'Huître', 'Crabe', 'Homard']);
@@ -2695,38 +2708,48 @@ function classify_recipe_diet(recipe) {
   return 'vege';
 }
 
-// Construit le menu de la semaine : { slot_key: { variant: recipe } }, en ne gardant que
-// des créneaux/variantes réellement peuplés. Parmi les recettes les plus aimées d'une
-// variante, une rotation hebdomadaire déterministe (même principe que "Cette semaine")
-// évite de figer indéfiniment sur la toute première recette la plus likée.
-function build_week_menu() {
-  const week_key = get_iso_week_key();
-  const menu = {};
+// Nom du jour localisé (lundi, mardi...) via Intl, à partir d'un lundi de référence fixe
+// (2024-01-01 est un lundi) — évite d'avoir à traduire les noms de jour à la main dans
+// chaque langue, l'API Intl s'en charge correctement (y compris zh/hi/ar).
+function ideas_day_label(day) {
+  if (day.weekday_offset === null) return I18N.t('feed.weekend_label');
+  const d = new Date(Date.UTC(2024, 0, 1 + day.weekday_offset));
+  const label = d.toLocaleDateString(DATE_LOCALE_BY_LANG[I18N.getLang()] || 'fr-FR', { weekday: 'long' });
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+// Bassins de candidats par créneau x régime (y compris "mixte" = tous régimes confondus),
+// triés par popularité — calculé une fois par rendu, réutilisé pour chaque jour/variante.
+function build_ideas_pools() {
+  const pools = {};
   IDEAS_MEAL_SLOTS.forEach(slot => {
     const pool = all_recipes.filter(r => (r.categories || []).some(c => slot.categories.includes(c)));
     if (!pool.length) return;
     const by_variant = { vege: [], poisson: [], viande: [] };
     pool.forEach(r => by_variant[classify_recipe_diet(r)].push(r));
-    const slot_result = {};
-    IDEAS_VARIANTS.forEach(variant => {
-      const candidates = by_variant[variant];
-      if (!candidates.length) return;
-      const most_liked = candidates.slice().sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0)).slice(0, 5);
-      const picked = most_liked
-        .map(r => ({ r, score: simple_string_hash(r.id + week_key + slot.key) }))
-        .sort((a, b) => b.score - a.score)[0].r;
-      slot_result[variant] = picked;
-    });
-    if (Object.keys(slot_result).length) menu[slot.key] = slot_result;
+    const sort_liked = arr => arr.slice().sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0));
+    pools[slot.key] = { vege: sort_liked(by_variant.vege), poisson: sort_liked(by_variant.poisson), viande: sort_liked(by_variant.viande), mixte: sort_liked(pool) };
   });
-  return menu;
+  return pools;
 }
 
-function ideas_recipe_cell_html(recipe, variant) {
+// Choisit une recette pour un (jour, créneau, régime) donné : rotation hebdomadaire
+// déterministe parmi les 5 recettes les plus aimées du régime, pour que les jours de la
+// semaine aient de bonnes chances d'afficher des recettes différentes tout en restant
+// stables tant qu'on ne change pas de semaine (même principe que "Cette semaine").
+function pick_ideas_recipe(pools, day_key, slot_key, variant) {
+  const candidates = pools[slot_key] && pools[slot_key][variant];
+  if (!candidates || !candidates.length) return null;
+  const top = candidates.slice(0, 5);
+  const idx = simple_string_hash(day_key + slot_key + variant + get_iso_week_key()) % top.length;
+  return top[idx];
+}
+
+function ideas_slot_cell_html(slot, recipe) {
   const cover_image = recipe.cover_image || (recipe.images && recipe.images[0]) || '';
   return `
-    <div class="ideas-cell">
-      <span class="ideas-variant-badge variant-${variant}"><i class="fa-solid ${IDEAS_VARIANT_ICON[variant]}"></i> ${escape_html(I18N.t(`feed.variant_${variant}`))}</span>
+    <div class="ideas-slot-cell">
+      <span class="ideas-slot-label"><i class="fa-solid ${slot.icon}"></i> ${escape_html(I18N.t(`feed.slot_${slot.key}`))}</span>
       <div class="mini_recipe_card" data-recipe-id="${recipe.id}">
         <div class="mini_card_img" style="background-image: url('${escape_attr(cover_image)}')"></div>
         <div class="mini_card_info">
@@ -2737,31 +2760,113 @@ function ideas_recipe_cell_html(recipe, variant) {
     </div>`;
 }
 
+// Régime choisi par l'utilisateur pour chaque jour (par défaut "mixte" = sans préférence) ;
+// vit hors de render_feed_ideas pour survivre aux re-rendus.
+let ideas_day_variant = {};
+
+function ideas_nutrition_summary_html(recipes) {
+  if (!recipes.length) return '';
+  let kcal = 0, protein = 0;
+  recipes.forEach(r => {
+    const totals = compute_recipe_nutrition(r.steps, 1);
+    const servings = r.servings || 1;
+    kcal += totals.kcal / servings;
+    protein += totals.protein / servings;
+  });
+  return I18N.t('feed.nutrition_summary', { kcal: Math.round(kcal), protein: Math.round(protein) });
+}
+
 function render_feed_ideas() {
   const container = document.getElementById('feed_ideas_calendar');
   if (!container) return;
-  const menu = build_week_menu();
-  const populated_slots = IDEAS_MEAL_SLOTS.filter(slot => menu[slot.key]);
+  const pools = build_ideas_pools();
 
-  if (!populated_slots.length) {
+  if (!Object.keys(pools).length) {
     container.innerHTML = `<p class="empty-state">${escape_html(I18N.t('feed.no_recipes_category'))}</p>`;
     return;
   }
 
-  container.innerHTML = populated_slots.map(slot => {
-    const variants = menu[slot.key];
-    const cells = IDEAS_VARIANTS.filter(v => variants[v]).map(v => ideas_recipe_cell_html(variants[v], v)).join('');
+  const week_recipes = [];
+  const days_html = IDEAS_DAYS.map(day => {
+    const variant = ideas_day_variant[day.key] || 'mixte';
+    const slot_cells = [];
+    const day_recipes = [];
+    IDEAS_MEAL_SLOTS.forEach(slot => {
+      const recipe = pick_ideas_recipe(pools, day.key, slot.key, variant);
+      if (!recipe) return;
+      slot_cells.push(ideas_slot_cell_html(slot, recipe));
+      day_recipes.push(recipe);
+      week_recipes.push(recipe);
+    });
+
+    const variant_chips = IDEAS_VARIANTS.map(v => `
+      <button type="button" class="ideas-variant-chip variant-${v} ${variant === v ? 'active' : ''}" data-day="${day.key}" data-variant="${v}">
+        <i class="fa-solid ${IDEAS_VARIANT_ICON[v]}"></i> ${escape_html(I18N.t(`feed.variant_${v}`))}
+      </button>`).join('');
+
+    const day_total = ideas_nutrition_summary_html(day_recipes);
+
     return `
-      <div class="ideas-row">
-        <div class="ideas-row-label"><i class="fa-solid ${slot.icon}"></i> ${escape_html(I18N.t(`feed.slot_${slot.key}`))}</div>
-        <div class="ideas-row-cells">${cells}</div>
+      <div class="ideas-day-card">
+        <div class="ideas-day-header">
+          <h4 class="ideas-day-label">${escape_html(ideas_day_label(day))}</h4>
+          <div class="ideas-day-variants">${variant_chips}</div>
+        </div>
+        ${slot_cells.length
+          ? `<div class="ideas-day-slots">${slot_cells.join('')}</div>${day_total ? `<div class="ideas-day-total"><i class="fa-solid fa-chart-simple"></i> ${escape_html(I18N.t('feed.day_total_label'))} : ${day_total}</div>` : ''}`
+          : `<p class="ideas-day-empty">${escape_html(I18N.t('feed.ideas_no_variant_today', { variant: I18N.t(`feed.variant_${variant}`) }))}</p>`}
       </div>`;
   }).join('');
 
+  const week_total = ideas_nutrition_summary_html(week_recipes);
+
+  container.innerHTML = `
+    ${week_total ? `<div class="ideas-week-total"><i class="fa-solid fa-calendar-week"></i> <strong>${escape_html(I18N.t('feed.week_total_label'))}</strong> : ${week_total}</div>` : ''}
+    <div class="ideas-days-grid">${days_html}</div>
+  `;
+
+  container.querySelectorAll('.ideas-variant-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      ideas_day_variant[btn.dataset.day] = btn.dataset.variant;
+      render_feed_ideas();
+    });
+  });
   container.querySelectorAll('.mini_recipe_card').forEach(card => {
     card.addEventListener('click', () => show_recipe_detail_page(card.dataset.recipeId));
   });
 }
+
+// "Recettes fitness" : pas un vrai système de plan de perte de poids (hors scope), juste
+// une recommandation utile — les recettes classées par meilleur ratio protéines/calories
+// par portion, en excluant celles dont la nutrition n'a pas pu être calculée du tout.
+const fitness_plan_modal = document.getElementById('fitness_plan_modal');
+function open_fitness_plan_modal() {
+  if (!fitness_plan_modal) return;
+  const grid = document.getElementById('fitness_plan_grid');
+
+  const scored = all_recipes.map(r => {
+    const totals = compute_recipe_nutrition(r.steps, 1);
+    const servings = r.servings || 1;
+    return { r, kcal: totals.kcal / servings, protein: totals.protein / servings };
+  }).filter(x => x.kcal > 0 && x.protein > 0);
+
+  scored.sort((a, b) => (b.protein / b.kcal) - (a.protein / a.kcal));
+  const top = scored.slice(0, 12);
+
+  if (!top.length) {
+    grid.innerHTML = `<p class="empty-state">${escape_html(I18N.t('feed.fitness_plan_empty'))}</p>`;
+  } else {
+    const match_ctx = { show_kcal: true, show_protein: true };
+    grid.innerHTML = top.map(x => search_result_card_html(x.r, match_ctx, x)).join('');
+    wire_recipe_card_events(grid, top.map(x => x.r));
+    grid.querySelectorAll('.search-result-card').forEach(card => {
+      card.addEventListener('click', () => fitness_plan_modal.classList.add('hidden'));
+    });
+  }
+  fitness_plan_modal.classList.remove('hidden');
+}
+document.getElementById('open_fitness_plan_btn')?.addEventListener('click', open_fitness_plan_modal);
+document.getElementById('close_fitness_plan_btn')?.addEventListener('click', () => fitness_plan_modal.classList.add('hidden'));
 
 // =====================================================================
 // Onglet "Recherche" : trouver une recette selon des objectifs nutritionnels
@@ -2826,7 +2931,14 @@ if (search_country_select) {
 
 async function load_recipes_for_search() {
   await load_recipes();
-  run_search();
+  render_search_prompt_state();
+}
+
+function render_search_prompt_state() {
+  const grid = document.getElementById('search_results_grid');
+  const count_el = document.getElementById('search_results_count');
+  if (count_el) count_el.textContent = '';
+  if (grid) grid.innerHTML = `<p class="empty-state">${escape_html(I18N.t('search.prompt_hint'))}</p>`;
 }
 
 function run_search() {
@@ -2845,14 +2957,18 @@ function run_search() {
   });
 
   // Le calcul nutritionnel (potentiellement coûteux sur beaucoup de recettes) n'est fait
-  // que si un critère nutrition/allergène est réellement demandé.
+  // que si un critère nutrition/allergène est réellement demandé — et réutilisé pour
+  // l'affichage (pas de second calcul) puisqu'on veut aussi montrer ces valeurs sur
+  // les cartes de résultat, vu que c'est justement ce qui a été cherché.
   const needs_nutrition = has_kcal_min || has_kcal_max || has_protein_min || search_excluded_allergens.size > 0;
+  const nutrition_by_id = new Map();
   if (needs_nutrition) {
     results = results.filter(r => {
       const totals = compute_recipe_nutrition(r.steps, 1);
       const servings = r.servings || 1;
       const per_serving_kcal = totals.kcal / servings;
       const per_serving_protein = totals.protein / servings;
+      nutrition_by_id.set(r.id, { kcal: per_serving_kcal, protein: per_serving_protein });
       if (has_kcal_min && per_serving_kcal < kcal_min) return false;
       if (has_kcal_max && per_serving_kcal > kcal_max) return false;
       if (has_protein_min && per_serving_protein < protein_min) return false;
@@ -2870,8 +2986,49 @@ function run_search() {
       : `<p class="empty-state">${escape_html(I18N.t('search.empty'))}</p>`;
     return;
   }
-  grid.innerHTML = results.map(r => recipe_card_html(r)).join('');
+  const match_ctx = { show_kcal: has_kcal_min || has_kcal_max, show_protein: has_protein_min };
+  grid.innerHTML = results.map(r => search_result_card_html(r, match_ctx, nutrition_by_id.get(r.id))).join('');
   wire_recipe_card_events(grid, results);
+}
+
+// Carte de résultat de recherche : volontairement plus légère que la carte du feed (pas
+// d'auteur, de likes ni d'actions sociales — on est en train de comparer des recettes, pas
+// de parcourir un fil d'actualité), et met en avant les valeurs nutritionnelles précises
+// quand elles ont servi de critère de recherche (jusque-là, on savait juste que la recette
+// passait le filtre, sans voir la valeur exacte).
+function search_result_card_html(r, match_ctx, nutrition) {
+  const primary_cat = (r.categories && r.categories[0]) || 'Plat';
+  const cover_image = r.cover_image || (r.images && r.images[0]) || null;
+  const total_time = compute_recipe_total_time(r);
+  const difficulty_label = I18N.td('difficulty', r.difficulty || 'moyen');
+  const show_nutrition = (match_ctx.show_kcal || match_ctx.show_protein) && nutrition;
+  const nutrition_line = show_nutrition
+    ? `<div class="search-match-line">
+        ${match_ctx.show_kcal ? `<span class="search-match-value"><i class="fa-solid fa-fire"></i> ${Math.round(nutrition.kcal)} kcal</span>` : ''}
+        ${match_ctx.show_protein ? `<span class="search-match-value"><i class="fa-solid fa-dumbbell"></i> ${Math.round(nutrition.protein)} g</span>` : ''}
+      </div>`
+    : '';
+
+  return `
+  <article class="recipe-card search-result-card" data-recipe-id="${r.id}">
+    <div class="recipe-card-media">
+      ${cover_image
+        ? `<img class="recipe-cover" src="${escape_attr(cover_image)}" alt="">`
+        : `<div class="recipe-cover recipe-cover-placeholder"><i class="fa-solid fa-utensils"></i></div>`}
+      <div class="recipe-card-media-top">
+        <span class="stripe-badge cat-${escape_html(primary_cat)}">${escape_html(I18N.td('categories', primary_cat))}</span>
+      </div>
+    </div>
+    <div class="recipe-body">
+      <h2 class="recipe-card-title">${escape_html(r.title)}</h2>
+      ${nutrition_line}
+      <div class="recipe-card-stats-row">
+        ${total_time ? `<span class="recipe-card-stat"><i class="fa-solid fa-stopwatch"></i> ${total_time} ${escape_html(I18N.t('common.minutes_short'))}</span>` : ''}
+        <span class="recipe-card-stat"><i class="fa-solid fa-gauge"></i> ${escape_html(difficulty_label)}</span>
+        ${r.servings ? `<span class="recipe-card-stat"><i class="fa-solid fa-users"></i> ${r.servings} ${escape_html(I18N.t('common.servings'))}</span>` : ''}
+      </div>
+    </div>
+  </article>`;
 }
 document.getElementById('run_search_btn')?.addEventListener('click', run_search);
 document.getElementById('reset_search_btn')?.addEventListener('click', () => {
@@ -2883,7 +3040,7 @@ document.getElementById('reset_search_btn')?.addEventListener('click', () => {
   render_search_category_filters();
   render_search_difficulty_filters();
   render_search_allergen_filters();
-  run_search();
+  render_search_prompt_state();
 });
 
 function show_translate_stub() {

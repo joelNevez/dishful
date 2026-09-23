@@ -86,7 +86,7 @@
       "week_hint": "Recipes trending this week (views, likes, reviews received in the last 7 days).",
       "ideas_dinner": "For dinner",
       "ideas_afternoon": "For the afternoon",
-      "ideas_hint": "A selection from the community's most-liked recipes, with a veggie, fish and meat variant — changes every week.",
+      "ideas_hint": "A day-by-day calendar built from the community's most-liked recipes — pick a diet for each day, changes every week.",
       "results_count": "{{count}} recipe(s) found",
       "empty": "No recipes yet.",
       "empty_filtered": "No recipes match these filters.",
@@ -102,7 +102,18 @@
       "slot_snack": "Snack",
       "variant_vege": "Veggie",
       "variant_poisson": "Fish",
-      "variant_viande": "Meat"
+      "variant_viande": "Meat",
+      "weekend_label": "Weekend",
+      "variant_mixte": "Mixed",
+      "slot_dessert": "Dessert",
+      "day_total_label": "Daily total",
+      "week_total_label": "Weekly total",
+      "ideas_no_variant_today": "No \"{{variant}}\" recipe available for this day.",
+      "fitness_plan_btn": "Fitness recipes",
+      "fitness_plan_title": "Fitness recipes",
+      "fitness_plan_hint": "A selection of the recipes richest in protein for the fewest calories — handy for a weight-loss goal.",
+      "fitness_plan_empty": "Not enough recipes with full nutrition info for this yet.",
+      "nutrition_summary": "{{kcal}} kcal · {{protein}}g protein"
     },
     "search": {
       "title": "Search",
@@ -120,7 +131,8 @@
       "run": "Search",
       "reset": "Reset",
       "results_count": "{{count}} recipe(s) found",
-      "empty": "No recipes match these criteria. Try widening your filters."
+      "empty": "No recipes match these criteria. Try widening your filters.",
+      "prompt_hint": "Pick your criteria, then run the search to see recipes appear."
     },
     "leaderboard": {
       "title": "Leaderboard",

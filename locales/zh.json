@@ -86,7 +86,7 @@
       "week_hint": "本周最热门的菜谱（近 7 天的浏览、点赞和评价）。",
       "ideas_dinner": "晚餐灵感",
       "ideas_afternoon": "下午茶灵感",
-      "ideas_hint": "精选社区最受欢迎的菜谱，包含素食、鱼类和肉类三种口味——每周更新。",
+      "ideas_hint": "根据社区最受欢迎的菜谱制作的每日日历——为每天选择一种饮食偏好，每周更新。",
       "results_count": "找到 {{count}} 个菜谱",
       "empty": "暂时还没有菜谱。",
       "empty_filtered": "没有符合这些筛选条件的菜谱。",
@@ -102,7 +102,18 @@
       "slot_snack": "零食",
       "variant_vege": "素食",
       "variant_poisson": "鱼类",
-      "variant_viande": "肉类"
+      "variant_viande": "肉类",
+      "weekend_label": "周末",
+      "variant_mixte": "混合",
+      "slot_dessert": "甜点",
+      "day_total_label": "当日总计",
+      "week_total_label": "本周总计",
+      "ideas_no_variant_today": "这一天没有\"{{variant}}\"食谱。",
+      "fitness_plan_btn": "健身食谱",
+      "fitness_plan_title": "健身食谱",
+      "fitness_plan_hint": "精选高蛋白低热量食谱——适合减脂目标。",
+      "fitness_plan_empty": "目前营养信息完整的食谱还不够多。",
+      "nutrition_summary": "{{kcal}} 千卡 · {{protein}} 克蛋白质"
     },
     "search": {
       "title": "搜索",
@@ -120,7 +131,8 @@
       "run": "搜索",
       "reset": "重置",
       "results_count": "找到 {{count}} 个菜谱",
-      "empty": "没有符合这些条件的菜谱，试着放宽筛选条件。"
+      "empty": "没有符合这些条件的菜谱，试着放宽筛选条件。",
+      "prompt_hint": "先选择筛选条件,然后点击搜索查看结果。"
     },
     "leaderboard": {
       "title": "排行榜",

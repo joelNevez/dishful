@@ -86,7 +86,7 @@
       "week_hint": "Les recettes qui cartonnent cette semaine (vues, likes, avis reçus depuis 7 jours).",
       "ideas_dinner": "Pour le dîner",
       "ideas_afternoon": "Pour l'après-midi",
-      "ideas_hint": "Une sélection parmi les recettes les plus aimées de la communauté, avec une variante végé, poisson et viande — change chaque semaine.",
+      "ideas_hint": "Un calendrier jour par jour construit à partir des recettes les plus aimées de la communauté — choisis un régime pour chaque jour, change chaque semaine.",
       "results_count": "{{count}} recette(s) trouvée(s)",
       "empty": "Aucune recette pour le moment.",
       "empty_filtered": "Aucune recette ne correspond à ces filtres.",
@@ -102,7 +102,18 @@
       "slot_snack": "Snack",
       "variant_vege": "Végé",
       "variant_poisson": "Poisson",
-      "variant_viande": "Viande"
+      "variant_viande": "Viande",
+      "weekend_label": "Week-end",
+      "variant_mixte": "Mixte",
+      "slot_dessert": "Dessert",
+      "day_total_label": "Total du jour",
+      "week_total_label": "Total de la semaine",
+      "ideas_no_variant_today": "Aucune recette « {{variant}} » disponible ce jour.",
+      "fitness_plan_btn": "Recettes fitness",
+      "fitness_plan_title": "Recettes fitness",
+      "fitness_plan_hint": "Sélection des recettes les plus riches en protéines pour un minimum de calories — utile pour un objectif de perte de poids.",
+      "fitness_plan_empty": "Pas encore assez de recettes avec des infos nutritionnelles complètes pour ça.",
+      "nutrition_summary": "{{kcal}} kcal · {{protein}} g de protéines"
     },
     "search": {
       "title": "Recherche",
@@ -120,7 +131,8 @@
       "run": "Rechercher",
       "reset": "Réinitialiser",
       "results_count": "{{count}} recette(s) trouvée(s)",
-      "empty": "Aucune recette ne correspond à ces critères. Essaie d'élargir tes filtres."
+      "empty": "Aucune recette ne correspond à ces critères. Essaie d'élargir tes filtres.",
+      "prompt_hint": "Choisis tes critères puis lance la recherche pour voir apparaître des recettes."
     },
     "leaderboard": {
       "title": "Classement",

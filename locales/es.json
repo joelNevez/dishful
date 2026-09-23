@@ -86,7 +86,7 @@
       "week_hint": "Las recetas que triunfan esta semana (vistas, me gusta y valoraciones recibidas en los últimos 7 días).",
       "ideas_dinner": "Para la cena",
       "ideas_afternoon": "Para la tarde",
-      "ideas_hint": "Una selección de las recetas más gustadas por la comunidad, con una variante vegetariana, de pescado y de carne — cambia cada semana.",
+      "ideas_hint": "Un calendario día a día con las recetas más gustadas por la comunidad — elige un régimen para cada día, cambia cada semana.",
       "results_count": "{{count}} receta(s) encontrada(s)",
       "empty": "Aún no hay recetas.",
       "empty_filtered": "Ninguna receta coincide con estos filtros.",
@@ -102,7 +102,18 @@
       "slot_snack": "Snack",
       "variant_vege": "Vegetariano",
       "variant_poisson": "Pescado",
-      "variant_viande": "Carne"
+      "variant_viande": "Carne",
+      "weekend_label": "Fin de semana",
+      "variant_mixte": "Mixto",
+      "slot_dessert": "Postre",
+      "day_total_label": "Total del día",
+      "week_total_label": "Total de la semana",
+      "ideas_no_variant_today": "No hay ninguna receta \"{{variant}}\" disponible para este día.",
+      "fitness_plan_btn": "Recetas fitness",
+      "fitness_plan_title": "Recetas fitness",
+      "fitness_plan_hint": "Selección de las recetas más ricas en proteínas con el mínimo de calorías — útil para un objetivo de pérdida de peso.",
+      "fitness_plan_empty": "Todavía no hay suficientes recetas con información nutricional completa para esto.",
+      "nutrition_summary": "{{kcal}} kcal · {{protein}} g de proteína"
     },
     "search": {
       "title": "Buscar",
@@ -120,7 +131,8 @@
       "run": "Buscar",
       "reset": "Restablecer",
       "results_count": "{{count}} receta(s) encontrada(s)",
-      "empty": "Ninguna receta coincide con estos criterios. Prueba a ampliar tus filtros."
+      "empty": "Ninguna receta coincide con estos criterios. Prueba a ampliar tus filtros.",
+      "prompt_hint": "Elige tus criterios y luego inicia la búsqueda para ver aparecer las recetas."
     },
     "leaderboard": {
       "title": "Clasificación",
