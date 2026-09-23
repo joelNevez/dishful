@@ -1126,6 +1126,15 @@ label.field-label{
 .step_media_preview{
   max-width:220px;max-height:160px;border-radius:9px;border:1px solid var(--line);display:block;margin-top:8px;
 }
+/* Filet de sécurité si l'image/vidéo d'une étape est cassée (URL invalide, fichier
+   supprimé...) : remplace l'icône "cassée" native du navigateur par une pastille cohérente
+   avec le style déjà utilisé pour une recette sans photo de couverture. */
+.step_media_placeholder{
+  display:flex;align-items:center;justify-content:center;font-size:26px;color:var(--paper);
+  background:linear-gradient(135deg, var(--basil), var(--basil-deep));
+  width:220px;height:160px;
+}
+.cooking_step_media.step_media_placeholder{width:100%;height:200px;max-height:280px;}
 .step_external_link{
   display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--basil-deep);font-weight:600;margin-top:6px;
 }
@@ -1684,24 +1693,29 @@ label.field-label{
 .ideas-panel-header .sub-hint{flex:1;min-width:220px;}
 .ideas-panel-header .text-btn{flex-shrink:0;}
 
-/* ---------- "Idées de la semaine" : calendrier jour par jour ----------
-   Un bloc par jour (lundi → vendredi, puis "week-end"), avec un sélecteur de
-   régime (viande/poisson/végé/mixte) qui s'applique à tous les créneaux repas
-   de ce jour ; un créneau n'apparaît que s'il existe une recette pour ce
-   régime ce jour-là — jamais de case vide affichée. */
+/* ---------- "Idées de la semaine" : calendrier jour par jour, en onglets ----------
+   Un jour (lundi → vendredi, puis "week-end") = un onglet horizontal ; un seul jour
+   affiché à la fois (les 6 jours empilés d'un coup étaient illisibles). À l'intérieur,
+   un sélecteur de régime (viande/poisson/végé/mixte) s'applique à tous les créneaux
+   repas de ce jour ; un créneau n'apparaît que s'il existe une recette pour ce régime
+   ce jour-là — jamais de case vide affichée. */
 .ideas-calendar{display:flex;flex-direction:column;gap:16px;max-width:1100px;margin:0 auto;}
 .ideas-week-total{
   background:var(--ink);color:var(--paper);border-radius:14px;padding:13px 18px;
   font-size:14px;font-weight:600;display:flex;align-items:center;gap:9px;
 }
-.ideas-days-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:16px;}
-.ideas-day-card{
-  background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px;
-  display:flex;flex-direction:column;gap:12px;
+.ideas-day-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;}
+.ideas-day-tab{
+  flex:1 1 0;min-width:92px;text-align:center;white-space:nowrap;
+  background:var(--card);border:1px solid var(--line);padding:11px 14px;border-radius:999px;
+  font-size:13.5px;font-weight:700;color:var(--ink-soft);
+  transition:background .15s ease,border-color .15s ease,color .15s ease;
 }
-.ideas-day-header{display:flex;flex-direction:column;gap:10px;}
-.ideas-day-label{
-  font-family:'Fraunces',serif;font-weight:600;font-size:17px;color:var(--ink);margin:0;
+.ideas-day-tab:hover{border-color:var(--saffron);color:var(--ink);}
+.ideas-day-tab.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.ideas-day-panel{
+  background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;
+  display:flex;flex-direction:column;gap:14px;
 }
 .ideas-day-variants{display:flex;flex-wrap:wrap;gap:6px;}
 .ideas-variant-chip{
@@ -1715,7 +1729,7 @@ label.field-label{
 .ideas-variant-chip.active.variant-poisson{background:#E3EEF5;color:#2E5C77;border-color:#2E5C77;}
 .ideas-variant-chip.active.variant-viande{background:#FBEAE3;color:var(--rust);border-color:var(--rust);}
 .ideas-variant-chip.active.variant-mixte{background:var(--ink);color:var(--paper);border-color:var(--ink);}
-.ideas-day-slots{display:flex;flex-direction:column;gap:12px;}
+.ideas-day-slots{display:grid;grid-template-columns:repeat(auto-fit, minmax(190px, 1fr));gap:16px;}
 .ideas-slot-cell{display:flex;flex-direction:column;gap:6px;}
 .ideas-slot-label{
   font-size:11.5px;font-weight:700;color:var(--ink-soft);display:flex;align-items:center;gap:6px;

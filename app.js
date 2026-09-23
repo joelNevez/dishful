@@ -2760,9 +2760,10 @@ function ideas_slot_cell_html(slot, recipe) {
     </div>`;
 }
 
-// Régime choisi par l'utilisateur pour chaque jour (par défaut "mixte" = sans préférence) ;
-// vit hors de render_feed_ideas pour survivre aux re-rendus.
+// Régime choisi par l'utilisateur pour chaque jour (par défaut "mixte" = sans préférence),
+// et jour actuellement affiché — vivent hors de render_feed_ideas pour survivre aux re-rendus.
 let ideas_day_variant = {};
+let ideas_selected_day = IDEAS_DAYS[0].key;
 
 function ideas_nutrition_summary_html(recipes) {
   if (!recipes.length) return '';
@@ -2776,6 +2777,9 @@ function ideas_nutrition_summary_html(recipes) {
   return I18N.t('feed.nutrition_summary', { kcal: Math.round(kcal), protein: Math.round(protein) });
 }
 
+// Les 6 jours ne sont plus tous affichés en même temps (illisible, trop de scroll) : un
+// jour = un onglet horizontal, un seul jour affiché à la fois. Le total hebdo, lui, reste
+// calculé sur les 7 jours pour rester utile même sans les parcourir un par un.
 function render_feed_ideas() {
   const container = document.getElementById('feed_ideas_calendar');
   if (!container) return;
@@ -2787,51 +2791,72 @@ function render_feed_ideas() {
   }
 
   const week_recipes = [];
-  const days_html = IDEAS_DAYS.map(day => {
+  IDEAS_DAYS.forEach(day => {
     const variant = ideas_day_variant[day.key] || 'mixte';
-    const slot_cells = [];
-    const day_recipes = [];
     IDEAS_MEAL_SLOTS.forEach(slot => {
       const recipe = pick_ideas_recipe(pools, day.key, slot.key, variant);
-      if (!recipe) return;
-      slot_cells.push(ideas_slot_cell_html(slot, recipe));
-      day_recipes.push(recipe);
-      week_recipes.push(recipe);
+      if (recipe) week_recipes.push(recipe);
     });
-
-    const variant_chips = IDEAS_VARIANTS.map(v => `
-      <button type="button" class="ideas-variant-chip variant-${v} ${variant === v ? 'active' : ''}" data-day="${day.key}" data-variant="${v}">
-        <i class="fa-solid ${IDEAS_VARIANT_ICON[v]}"></i> ${escape_html(I18N.t(`feed.variant_${v}`))}
-      </button>`).join('');
-
-    const day_total = ideas_nutrition_summary_html(day_recipes);
-
-    return `
-      <div class="ideas-day-card">
-        <div class="ideas-day-header">
-          <h4 class="ideas-day-label">${escape_html(ideas_day_label(day))}</h4>
-          <div class="ideas-day-variants">${variant_chips}</div>
-        </div>
-        ${slot_cells.length
-          ? `<div class="ideas-day-slots">${slot_cells.join('')}</div>${day_total ? `<div class="ideas-day-total"><i class="fa-solid fa-chart-simple"></i> ${escape_html(I18N.t('feed.day_total_label'))} : ${day_total}</div>` : ''}`
-          : `<p class="ideas-day-empty">${escape_html(I18N.t('feed.ideas_no_variant_today', { variant: I18N.t(`feed.variant_${variant}`) }))}</p>`}
-      </div>`;
-  }).join('');
-
+  });
   const week_total = ideas_nutrition_summary_html(week_recipes);
+
+  const tabs_html = IDEAS_DAYS.map(day => `
+    <button type="button" class="ideas-day-tab ${ideas_selected_day === day.key ? 'active' : ''}" data-day="${day.key}">
+      ${escape_html(ideas_day_label(day))}
+    </button>`).join('');
 
   container.innerHTML = `
     ${week_total ? `<div class="ideas-week-total"><i class="fa-solid fa-calendar-week"></i> <strong>${escape_html(I18N.t('feed.week_total_label'))}</strong> : ${week_total}</div>` : ''}
-    <div class="ideas-days-grid">${days_html}</div>
+    <div class="ideas-day-tabs">${tabs_html}</div>
+    <div class="ideas-day-panel" id="ideas_day_panel"></div>
   `;
 
-  container.querySelectorAll('.ideas-variant-chip').forEach(btn => {
+  container.querySelectorAll('.ideas-day-tab').forEach(btn => {
     btn.addEventListener('click', () => {
-      ideas_day_variant[btn.dataset.day] = btn.dataset.variant;
+      ideas_selected_day = btn.dataset.day;
       render_feed_ideas();
     });
   });
-  container.querySelectorAll('.mini_recipe_card').forEach(card => {
+
+  render_ideas_day_panel(pools);
+}
+
+function render_ideas_day_panel(pools) {
+  const panel = document.getElementById('ideas_day_panel');
+  if (!panel) return;
+  const day = IDEAS_DAYS.find(d => d.key === ideas_selected_day) || IDEAS_DAYS[0];
+  const variant = ideas_day_variant[day.key] || 'mixte';
+
+  const slot_cells = [];
+  const day_recipes = [];
+  IDEAS_MEAL_SLOTS.forEach(slot => {
+    const recipe = pick_ideas_recipe(pools, day.key, slot.key, variant);
+    if (!recipe) return;
+    slot_cells.push(ideas_slot_cell_html(slot, recipe));
+    day_recipes.push(recipe);
+  });
+
+  const variant_chips = IDEAS_VARIANTS.map(v => `
+    <button type="button" class="ideas-variant-chip variant-${v} ${variant === v ? 'active' : ''}" data-variant="${v}">
+      <i class="fa-solid ${IDEAS_VARIANT_ICON[v]}"></i> ${escape_html(I18N.t(`feed.variant_${v}`))}
+    </button>`).join('');
+
+  const day_total = ideas_nutrition_summary_html(day_recipes);
+
+  panel.innerHTML = `
+    <div class="ideas-day-variants">${variant_chips}</div>
+    ${slot_cells.length
+      ? `<div class="ideas-day-slots">${slot_cells.join('')}</div>${day_total ? `<div class="ideas-day-total"><i class="fa-solid fa-chart-simple"></i> ${escape_html(I18N.t('feed.day_total_label'))} : ${day_total}</div>` : ''}`
+      : `<p class="ideas-day-empty">${escape_html(I18N.t('feed.ideas_no_variant_today', { variant: I18N.t(`feed.variant_${variant}`) }))}</p>`}
+  `;
+
+  panel.querySelectorAll('.ideas-variant-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      ideas_day_variant[day.key] = btn.dataset.variant;
+      render_feed_ideas();
+    });
+  });
+  panel.querySelectorAll('.mini_recipe_card').forEach(card => {
     card.addEventListener('click', () => show_recipe_detail_page(card.dataset.recipeId));
   });
 }
@@ -3148,6 +3173,40 @@ function escape_html(str) {
   return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 }
 function escape_attr(str) { return escape_html(str); }
+
+// Le champ vidéo principal accepte explicitement un lien YouTube/Vimeo (pas seulement un
+// fichier direct) — un <video src="..."> ne peut PAS lire une page YouTube/Vimeo, il faut
+// une <iframe> d'intégration. Sans cette détection, coller un lien YouTube/Vimeo donnait
+// un lecteur vide qui ne s'affichait jamais.
+function video_embed_html(url) {
+  if (!url) return '';
+  const yt_match = url.match(/(?:youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{6,})/);
+  if (yt_match) {
+    return `<iframe src="https://www.youtube-nocookie.com/embed/${yt_match[1]}" title="video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+  }
+  const vimeo_match = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if (vimeo_match) {
+    return `<iframe src="https://player.vimeo.com/video/${vimeo_match[1]}" title="video" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
+  }
+  return `<video src="${escape_attr(url)}" controls></video>`;
+}
+
+// Filet de sécurité global : une image/vidéo d'étape dont l'URL est cassée (fichier
+// supprimé du storage, aperçu local expiré...) affichait l'icône "image cassée" native du
+// navigateur, moche et incohérente avec le reste de l'appli. On la remplace par le même
+// style de pastille que le visuel de recette manquant (recipe-cover-placeholder). Écouteur
+// unique en phase de capture car "error" sur <img>/<video> ne remonte pas (pas de bubbling).
+document.addEventListener('error', (e) => {
+  const el = e.target;
+  if (!el || !el.tagName) return;
+  const is_step_media = (el.tagName === 'IMG' || el.tagName === 'VIDEO') &&
+    (el.classList.contains('step_media_preview') || el.classList.contains('cooking_step_media'));
+  if (!is_step_media) return;
+  const placeholder = document.createElement('div');
+  placeholder.className = el.className + ' step_media_placeholder';
+  placeholder.innerHTML = '<i class="fa-solid fa-image"></i>';
+  el.replaceWith(placeholder);
+}, true);
 
 // Date relative façon fil d'actualité ("il y a 2 j") plutôt qu'une date brute.
 const DATE_LOCALE_BY_LANG = { fr: 'fr-FR', en: 'en-GB', pt: 'pt-PT', es: 'es-ES', zh: 'zh-CN', hi: 'hi-IN', ar: 'ar-SA' };
@@ -4513,8 +4572,8 @@ async function show_recipe_detail_page(recipe_id) {
   container.innerHTML = `
     <article class="recipe_full_view" id="recipe_article">
       <div class="media_wrapper">
-        ${recipe.video_url 
-          ? `<video src="${escape_attr(recipe.video_url)}" controls></video>` 
+        ${recipe.video_url
+          ? video_embed_html(recipe.video_url)
           : `<img src="${escape_attr(recipe.cover_image || recipe.images?.[0] || '')}" alt="">`}
       </div>
       ${(recipe.images && recipe.images.length) ? `
