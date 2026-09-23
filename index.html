@@ -582,6 +582,7 @@
           </div>
         </div>
         <div class="profile_level_box">
+          <span class="profile_quick_stats" id="profile_quick_stats"></span>
           <span id="profile_level">Niv. 1</span>
           <div class="xp_bar"><div id="profile_xp_fill" class="xp_fill"></div></div>
           <span id="profile_xp_text">0 / 100 XP</span>
@@ -591,10 +592,10 @@
     </div>
 
     <div class="profile_tabs_nav">
-      <button class="tab_btn active" data-tab="tab_info"><span data-i18n="profile.tab_info">Informations</span></button>
-      <button class="tab_btn" data-tab="tab_badges"><span data-i18n="profile.tab_badges">Badges & Succès</span></button>
-      <button class="tab_btn" data-tab="tab_recipes"><span data-i18n="profile.tab_recipes">Mes Recettes</span></button>
-      <button class="tab_btn" data-tab="tab_journal"><span data-i18n="profile.tab_journal">Journal</span></button>
+      <button class="tab_btn active" data-tab="tab_info"><i class="fa-solid fa-gear"></i> <span data-i18n="profile.tab_info">Informations</span></button>
+      <button class="tab_btn" data-tab="tab_badges"><i class="fa-solid fa-medal"></i> <span data-i18n="profile.tab_badges">Badges & Succès</span></button>
+      <button class="tab_btn" data-tab="tab_recipes"><i class="fa-solid fa-table-cells"></i> <span data-i18n="profile.tab_recipes">Mes Recettes</span></button>
+      <button class="tab_btn" data-tab="tab_journal"><i class="fa-solid fa-bowl-food"></i> <span data-i18n="profile.tab_journal">Journal</span></button>
     </div>
 
     <div id="tab_info" class="tab_content active">
@@ -751,6 +752,7 @@
           </div>
         </div>
         <div class="profile_level_box">
+          <span class="profile_quick_stats" id="public_profile_quick_stats"></span>
           <span id="public_profile_level">Niv. 1</span>
           <div class="xp_bar"><div id="public_profile_xp_fill" class="xp_fill"></div></div>
           <span id="public_profile_xp_text">0 / 100 XP</span>
@@ -761,8 +763,8 @@
     <p class="sub-hint" id="public_profile_bio" style="margin:14px 0;"></p>
 
     <div class="profile_tabs_nav">
-      <button class="tab_btn active" data-ptab="public_tab_badges"><span data-i18n="public_profile.tab_badges">Badges & Succès</span></button>
-      <button class="tab_btn" data-ptab="public_tab_recipes"><span data-i18n="public_profile.tab_recipes">Recettes publiées</span></button>
+      <button class="tab_btn active" data-ptab="public_tab_badges"><i class="fa-solid fa-medal"></i> <span data-i18n="public_profile.tab_badges">Badges & Succès</span></button>
+      <button class="tab_btn" data-ptab="public_tab_recipes"><i class="fa-solid fa-table-cells"></i> <span data-i18n="public_profile.tab_recipes">Recettes publiées</span></button>
     </div>
 
     <div id="public_tab_badges" class="tab_content active">
@@ -1021,6 +1023,15 @@
     <button type="button" id="confirm_log_meal_btn" class="btn-primary"><span data-i18n="recipe_detail.log_meal_confirm_btn">Ajouter au journal</span></button>
   </div>
 </div>
+
+<!-- ---------------- NAVIGATION MOBILE (barre basse façon Instagram) ---------------- -->
+<nav class="mobile-tabbar" id="mobile_tabbar">
+  <button type="button" class="mobile-tab-btn active" data-mobiletab="feed" data-i18n-aria="nav.feed" aria-label="Feed"><i class="fa-solid fa-house"></i></button>
+  <button type="button" class="mobile-tab-btn" data-mobiletab="search" data-i18n-aria="nav.search" aria-label="Recherche"><i class="fa-solid fa-magnifying-glass"></i></button>
+  <button type="button" class="mobile-tab-btn mobile-tab-publish" data-mobiletab="publish" data-i18n-aria="nav.publish" aria-label="Publier"><i class="fa-solid fa-square-plus"></i></button>
+  <button type="button" class="mobile-tab-btn" data-mobiletab="leaderboard" data-i18n-aria="nav.leaderboard" aria-label="Classement"><i class="fa-solid fa-trophy"></i></button>
+  <button type="button" class="mobile-tab-btn mobile-tab-profile" id="mobile_profile_tab_btn" data-i18n-aria="common.my_profile" aria-label="Mon profil"><i class="fa-solid fa-circle-user"></i></button>
+</nav>
 
 <script src="i18n.js"></script>
 <script src="app.js"></script>

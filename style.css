@@ -484,6 +484,14 @@ label.field-label{
   min-width: 180px;
 }
 
+.profile_quick_stats {
+  display: block;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
 .xp_bar {
   width: 100%;
   height: 8px;
@@ -2037,4 +2045,105 @@ label.field-label{
   transform-origin:0 0;pointer-events:none;user-select:none;
 }
 .crop-zoom-row{display:flex;align-items:center;gap:12px;color:var(--ink-soft);font-size:14px;}
+
+/* =====================================================================
+   MODE MOBILE — sous 700px, l'appli passe en mise en page "à la Instagram" :
+   barre de navigation fixe en bas d'écran à la place des onglets du header,
+   photos plein cadre dans le feed (en-tête auteur au-dessus, actions et
+   légende en dessous), et grille carrée de vignettes sur les pages profil.
+   Le reste (formulaires, pages détail...) garde sa mise en page habituelle,
+   juste réadaptée en une colonne par les media queries déjà existantes.
+
+   Astuce utilisée pour le feed et le profil : passer un conteneur en
+   `display:contents` fait que SES enfants rejoignent directement le
+   flex/grid du parent (l'élément lui-même disparaît de la mise en page,
+   sans toucher au HTML) — ça permet de réordonner header/photo/légende
+   indépendamment de l'ordre du DOM, généré une seule fois par recipe_card_html().
+   ===================================================================== */
+.mobile-tabbar{display:none;}
+
+@media (max-width:700px){
+
+  /* ---------- Header allégé + barre de navigation basse ---------- */
+  nav.tabs{display:none;}
+  .avatar-header{display:none;}
+  header.top{padding:12px 16px;}
+  .brand .tagline{display:none;}
+  body{padding-bottom:64px;}
+
+  .mobile-tabbar{
+    display:flex;align-items:center;justify-content:space-around;
+    position:fixed;left:0;right:0;bottom:0;z-index:40;
+    background:var(--card);border-top:1px solid var(--line);
+    padding:6px 6px calc(6px + env(safe-area-inset-bottom));
+  }
+  .mobile-tab-btn{
+    background:none;border:none;color:var(--ink-soft);font-size:22px;
+    width:46px;height:46px;display:flex;align-items:center;justify-content:center;
+    border-radius:12px;flex-shrink:0;
+  }
+  .mobile-tab-btn.active{color:var(--ink);}
+  .mobile-tab-publish{
+    color:#fff;background:linear-gradient(135deg, var(--saffron), var(--rust));
+    font-size:18px;width:42px;height:42px;border-radius:12px;
+  }
+  .mobile-tab-publish.active{color:#fff;}
+
+  /* ---------- Feed : cartes plein cadre façon post Instagram ---------- */
+  .recipe-grid{display:block;max-width:100%;margin:0;gap:0;}
+  .recipe-card{
+    border:none;border-bottom:10px solid var(--paper-deep);
+    border-radius:0;box-shadow:none;margin:0;
+  }
+  .recipe-card:hover{transform:none;box-shadow:none;}
+  .recipe-card:hover .recipe-cover{transform:none;}
+
+  /* Les enfants de .recipe-body rejoignent le flex de .recipe-card : on peut
+     alors replacer l'en-tête auteur AU-DESSUS de la photo, comme Instagram. */
+  .recipe-body{display:contents;}
+
+  .recipe-card-header{order:1;padding:10px 12px;margin:0;}
+  .recipe-card-avatar{width:32px;height:32px;font-size:13px;}
+  .recipe-card-media{order:2;height:auto;aspect-ratio:1/1;}
+  .recipe-actions{order:3;border-top:none;margin-top:0;padding:10px 12px;flex-wrap:nowrap;}
+  .recipe-actions .action-btn i{font-size:18px;}
+  .search-match-line{order:4;padding:0 12px;}
+  .recipe-card-title{order:5;padding:2px 12px 0;margin:0;font-size:15px;-webkit-line-clamp:3;}
+  .recipe-card-stats-row{order:6;padding:6px 12px 0;margin:0;font-size:11.5px;color:var(--ink-soft);}
+  .chips-row{order:7;padding:0 12px 12px;margin:8px 0 0;}
+  .chips-row .tag-chip{background:none;padding:0;font-weight:700;color:var(--saffron-deep);}
+  .chips-row .tag-chip::before{content:"#";}
+
+  /* ---------- Profil : en-tête + grille carrée façon Instagram ---------- */
+  .profile_container{padding:16px;}
+  .profile_banner{height:100px;}
+  .profile_header_content{padding:14px 16px;align-items:flex-start;}
+
+  /* Même astuce display:contents : avatar et bloc "niveau" (notre seule vraie
+     statistique, faute de compteur d'abonnés) se retrouvent côte à côte
+     comme avatar+stats sur Instagram, nom/pseudo passent en dessous. */
+  .profile_avatar_box{display:contents;}
+  .avatar_wrapper{order:1;}
+  .avatar_circle{width:84px;height:84px;font-size:30px;}
+  .profile_level_box{order:2;flex:1;text-align:left;min-width:0;padding-left:14px;}
+  .profile_identity{order:3;flex-basis:100%;margin-top:12px;}
+  #logout_btn_profile{order:4;flex-basis:100%;justify-content:center;border:1px solid var(--line);border-radius:10px;padding:9px;margin-top:4px;}
+
+  .profile_tabs_nav{gap:0;justify-content:space-around;}
+  .tab_btn{flex:1;padding:12px 4px;}
+  .tab_btn span{display:none;}
+  .tab_btn i{font-size:18px;}
+
+  #tab_recipes.tab_content,
+  #public_tab_recipes.tab_content{
+    padding:0;background:none;border:none;box-shadow:none;margin:0 -16px;
+  }
+  #tab_recipes h3, #tab_recipes .saved_filters_row,
+  #public_tab_recipes h3{padding:0 16px;}
+
+  .mini_grid{grid-template-columns:repeat(3, 1fr);gap:2px;margin:0 0 20px;}
+  .mini_recipe_card{border:none;border-radius:0;background:none;}
+  .mini_card_img{height:auto;aspect-ratio:1/1;}
+  .mini_card_info{display:none;}
+}
 .crop-zoom-row input[type=range]{flex:1;accent-color:var(--rust);}

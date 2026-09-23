@@ -799,6 +799,17 @@ const auth_modal = document.getElementById('auth_modal');
 document.getElementById('open_auth_btn').addEventListener('click', () => auth_modal.classList.remove('hidden'));
 document.getElementById('close_auth_btn').addEventListener('click', () => auth_modal.classList.add('hidden'));
 
+// Barre de navigation mobile (bas d'écran, façon Instagram) : les 4 premiers
+// boutons relaient simplement switch_tab, le bouton profil dépend de l'état de
+// connexion (profil si connecté, sinon ouvre la modale d'auth) comme l'avatar
+// du header desktop.
+document.querySelectorAll('.mobile-tab-btn[data-mobiletab]').forEach(btn => {
+  btn.addEventListener('click', () => switch_tab(btn.dataset.mobiletab));
+});
+document.getElementById('mobile_profile_tab_btn')?.addEventListener('click', () => {
+  if (current_user) switch_tab('profile'); else auth_modal.classList.remove('hidden');
+});
+
 // =====================================================================
 // 1. INIT SUPABASE
 // =====================================================================
@@ -3862,6 +3873,11 @@ async function render_badges_tab() {
     : 0;
   const user_level = current_profile?.user_level || 1;
 
+  const quick_stats_el = document.getElementById("profile_quick_stats");
+  if (quick_stats_el) {
+    quick_stats_el.textContent = `${total_published} ${I18N.t('profile.unit_recipes')} · ${total_likes} ${I18N.t('profile.unit_likes')}`;
+  }
+
   const equipped_badge_id = current_profile?.equipped_badge || null;
   const all_badges = [...recipe_badge_list, ...like_badge_list, ...level_badge_list];
   const active_badge = all_badges.find((b) => b.id === equipped_badge_id);
@@ -4024,6 +4040,10 @@ function switch_tab(tab_name) {
   document.querySelectorAll("nav.tabs button").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.tab === tab_name);
   });
+  document.querySelectorAll(".mobile-tab-btn[data-mobiletab]").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.mobiletab === tab_name);
+  });
+  document.getElementById("mobile_profile_tab_btn")?.classList.toggle("active", tab_name === "profile");
 
   ["feed", "publish", "profile", "recipe-detail", "leaderboard", "public-profile", "search"].forEach((tab_id) => {
     const page_element = document.getElementById("tab-" + tab_id);
@@ -5478,6 +5498,10 @@ async function show_public_profile_page(user_id) {
   document.getElementById('public_profile_level').textContent = I18N.t('profile.level_short_display', { n: user_level });
   document.getElementById('public_profile_xp_text').textContent = I18N.t('profile.level_progress', { xp: xp_in_current_level, level: user_level, total: xp_points });
   document.getElementById('public_profile_xp_fill').style.width = `${xp_percentage}%`;
+  const public_quick_stats_el = document.getElementById('public_profile_quick_stats');
+  if (public_quick_stats_el) {
+    public_quick_stats_el.textContent = `${total_published} ${I18N.t('profile.unit_recipes')} · ${total_likes} ${I18N.t('profile.unit_likes')}`;
+  }
 
   const equipped_badge_id = profile.equipped_badge || null;
   const all_badges = [...recipe_badge_list, ...like_badge_list, ...level_badge_list];
