@@ -534,6 +534,24 @@
       "leaderboard_body": "Entdecke die beliebtesten Köche und Rezepte von Dishful — Gesamtwertung oder der letzten 7 Tage.",
       "profile_title": "Dein Profil",
       "profile_body": "Verwalte deine Daten, schalte Abzeichen frei, finde deine veröffentlichten und gespeicherten Rezepte, und verfolge deine Kalorien im Tagebuch."
+    },
+    "tutorial": {
+      "skip_btn": "Überspringen",
+      "back_btn": "Zurück",
+      "next_btn": "Weiter",
+      "finish_btn": "Los geht's!",
+      "welcome_title": "Willkommen bei Dishful!",
+      "welcome_body": "Dein Konto ist bereit! Machen wir eine kurze Tour durch die wichtigsten Seiten, bevor es losgeht — dauert nur 30 Sekunden.",
+      "feed_title": "Der Feed",
+      "feed_body": "Das ist deine Startseite: Rezepte der ganzen Community, Ideen der Woche und Fitness-Rezepte.",
+      "search_title": "Die Suche",
+      "search_body": "Suche ein bestimmtes Rezept mit erweiterten Filtern: Kalorien, Eiweiß, Kategorie, zu vermeidende Allergene...",
+      "publish_title": "Veröffentlichen",
+      "publish_body": "Teile deine eigenen Rezepte Schritt für Schritt, mit Fotos und Video. Du bekommst XP für jede Veröffentlichung!",
+      "leaderboard_title": "Die Rangliste",
+      "leaderboard_body": "Klettere in der Rangliste, indem du veröffentlichst und Likes sammelst, und schalte Abzeichen für dein Profil frei.",
+      "profile_title": "Dein Profil",
+      "profile_body": "Finde deine Rezepte, deine Abzeichen und das Tagebuch, um deine Kalorien täglich zu verfolgen."
     }
   },
   "data": {

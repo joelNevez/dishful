@@ -937,6 +937,21 @@
   </div>
 </div>
 
+<!-- ---------------- POPUP : TUTORIEL DE BIENVENUE (nouveau compte) ---------------- -->
+<div id="welcome_tutorial_modal" class="modal hidden">
+  <div class="modal-card tutorial-card">
+    <button id="skip_welcome_tutorial_btn" type="button" class="close-btn" data-i18n-title="tutorial.skip_btn" title="Passer"><i class="fa-solid fa-xmark"></i></button>
+    <div class="tutorial-icon" id="tutorial_step_icon"><i class="fa-solid fa-hand-sparkles"></i></div>
+    <h2 id="tutorial_step_title"></h2>
+    <p id="tutorial_step_body" class="tutorial-step-body"></p>
+    <div class="tutorial-progress-dots" id="tutorial_progress_dots"></div>
+    <div class="tutorial-nav-row">
+      <button type="button" class="tutorial-back-btn hidden" id="tutorial_back_btn" data-i18n="tutorial.back_btn">Précédent</button>
+      <button type="button" class="btn-primary tutorial-next-btn" id="tutorial_next_btn" data-i18n="tutorial.next_btn">Suivant</button>
+    </div>
+  </div>
+</div>
+
 <!-- ---------------- POPUP : RECETTES FITNESS (meilleur ratio protéines/calories) ---------------- -->
 <div id="fitness_plan_modal" class="modal hidden">
   <div class="modal-card modal-card-wide">

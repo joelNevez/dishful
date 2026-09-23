@@ -534,6 +534,24 @@
       "leaderboard_body": "Discover Dishful's most-loved chefs and recipes — all-time or from the last 7 days.",
       "profile_title": "Your Profile",
       "profile_body": "Manage your info, unlock badges, find your published and saved recipes, and track your calories in the Journal."
+    },
+    "tutorial": {
+      "skip_btn": "Skip",
+      "back_btn": "Back",
+      "next_btn": "Next",
+      "finish_btn": "Let's go!",
+      "welcome_title": "Welcome to Dishful!",
+      "welcome_body": "Your account is ready! Let's take a quick tour of the main pages before you dive in — it only takes 30 seconds.",
+      "feed_title": "The Feed",
+      "feed_body": "This is your home page: recipes from the whole community, weekly ideas and fitness recipes.",
+      "search_title": "Search",
+      "search_body": "Look for a specific recipe with advanced filters: calories, protein, category, allergens to avoid...",
+      "publish_title": "Publish",
+      "publish_body": "Share your own recipes step by step, with photos and video. You earn XP for every recipe you publish!",
+      "leaderboard_title": "Leaderboard",
+      "leaderboard_body": "Climb the ranking by publishing and collecting likes, and unlock badges to show off on your profile.",
+      "profile_title": "Your Profile",
+      "profile_body": "Find your recipes, your badges, and the Journal to track your calories day to day."
     }
   },
   "data": {

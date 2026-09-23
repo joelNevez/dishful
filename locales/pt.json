@@ -534,6 +534,24 @@
       "leaderboard_body": "Descobre os chefs e as receitas mais apreciados do Dishful — classificação geral ou dos últimos 7 dias.",
       "profile_title": "O teu Perfil",
       "profile_body": "Gere as tuas informações, desbloqueia badges, encontra as tuas receitas publicadas e guardadas, e acompanha as tuas calorias no Diário."
+    },
+    "tutorial": {
+      "skip_btn": "Saltar",
+      "back_btn": "Anterior",
+      "next_btn": "Seguinte",
+      "finish_btn": "Vamos lá!",
+      "welcome_title": "Bem-vindo ao Dishful!",
+      "welcome_body": "A tua conta está pronta! Vamos fazer uma visita rápida às páginas principais antes de começares — demora só 30 segundos.",
+      "feed_title": "O Feed",
+      "feed_body": "Esta é a tua página inicial: as receitas de toda a comunidade, as ideias da semana e as receitas fitness.",
+      "search_title": "A Pesquisa",
+      "search_body": "Procura uma receita específica com filtros avançados: calorias, proteínas, categoria, alergénios a evitar...",
+      "publish_title": "Publicar",
+      "publish_body": "Partilha as tuas receitas passo a passo, com fotos e vídeo. Ganhas XP a cada publicação!",
+      "leaderboard_title": "A Classificação",
+      "leaderboard_body": "Sobe na classificação a publicar e a receber gostos, e desbloqueia badges para mostrar no teu perfil.",
+      "profile_title": "O teu Perfil",
+      "profile_body": "Encontra as tuas receitas, os teus badges, e o Diário para acompanhares as tuas calorias todos os dias."
     }
   },
   "data": {

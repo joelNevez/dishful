@@ -989,6 +989,7 @@ signup_form.addEventListener('submit', async (e) => {
 
   // Le profil (username généré, prénom/nom/nationalité) est créé automatiquement
   // côté base de données par un trigger sur auth.users — pas besoin de l'insérer ici.
+  mark_welcome_tutorial_pending();
   message_text.className = 'msg';
   message_text.textContent = auth_data.session
     ? I18N.t('auth.account_created_session')
@@ -1042,6 +1043,8 @@ async function refresh_session() {
   render_user_zone();
   render_profile_tab();
   render_recipes();
+
+  if (user) maybe_show_welcome_tutorial();
 }
 
 if (supabase) {
@@ -4082,6 +4085,7 @@ function maybe_show_page_hint(tab_name) {
   if (!PAGE_HINT_TABS.has(tab_name)) return;
   if (session_shown_hints.has(tab_name)) return;
   if (get_dismissed_hints().includes(tab_name)) return;
+  if (!document.getElementById('welcome_tutorial_modal')?.classList.contains('hidden')) return;
   const modal = document.getElementById('page_hint_modal');
   if (!modal) return;
   session_shown_hints.add(tab_name);
@@ -4099,6 +4103,85 @@ function close_page_hint() {
 }
 document.getElementById('close_page_hint_btn')?.addEventListener('click', close_page_hint);
 document.getElementById('page_hint_ok_btn')?.addEventListener('click', close_page_hint);
+
+// =====================================================================
+// Tutoriel de bienvenue : déclenché une seule fois, juste après la création
+// d'un nouveau compte (pas à chaque connexion). Marqué "en attente" dès
+// l'inscription réussie (même si la confirmation par e-mail retarde la
+// première session), puis affiché et purgé dès que le profil se charge.
+// =====================================================================
+const WELCOME_TUTORIAL_STEPS = [
+  { icon: 'fa-hand-sparkles', key: 'welcome' },
+  { icon: 'fa-house', key: 'feed' },
+  { icon: 'fa-magnifying-glass', key: 'search' },
+  { icon: 'fa-square-plus', key: 'publish' },
+  { icon: 'fa-trophy', key: 'leaderboard' },
+  { icon: 'fa-user', key: 'profile' },
+];
+let tutorial_step_index = 0;
+
+function mark_welcome_tutorial_pending() {
+  try { localStorage.setItem('dishful_pending_welcome_tutorial', '1'); } catch (err) { /* pas bloquant */ }
+}
+
+function maybe_show_welcome_tutorial() {
+  let pending = false;
+  try { pending = localStorage.getItem('dishful_pending_welcome_tutorial') === '1'; } catch (err) { return; }
+  if (!pending) return;
+  try { localStorage.removeItem('dishful_pending_welcome_tutorial'); } catch (err) { /* pas bloquant */ }
+  show_welcome_tutorial();
+}
+
+function show_welcome_tutorial() {
+  const modal = document.getElementById('welcome_tutorial_modal');
+  if (!modal) return;
+  document.getElementById('page_hint_modal')?.classList.add('hidden');
+  tutorial_step_index = 0;
+  render_tutorial_step();
+  modal.classList.remove('hidden');
+}
+
+function render_tutorial_step() {
+  const step = WELCOME_TUTORIAL_STEPS[tutorial_step_index];
+  document.getElementById('tutorial_step_icon').innerHTML = `<i class="fa-solid ${step.icon}"></i>`;
+  document.getElementById('tutorial_step_title').textContent = I18N.t(`tutorial.${step.key}_title`);
+  document.getElementById('tutorial_step_body').textContent = I18N.t(`tutorial.${step.key}_body`);
+  const dots = document.getElementById('tutorial_progress_dots');
+  if (dots) {
+    dots.innerHTML = WELCOME_TUTORIAL_STEPS.map((_, i) =>
+      `<span class="tutorial-dot${i === tutorial_step_index ? ' active' : ''}"></span>`
+    ).join('');
+  }
+  document.getElementById('tutorial_back_btn')?.classList.toggle('hidden', tutorial_step_index === 0);
+  const is_last = tutorial_step_index === WELCOME_TUTORIAL_STEPS.length - 1;
+  const next_btn = document.getElementById('tutorial_next_btn');
+  if (next_btn) next_btn.textContent = I18N.t(is_last ? 'tutorial.finish_btn' : 'tutorial.next_btn');
+}
+
+function close_welcome_tutorial() {
+  const modal = document.getElementById('welcome_tutorial_modal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  try {
+    localStorage.setItem('dishful_seen_welcome_tutorial', '1');
+    const dismissed = get_dismissed_hints();
+    PAGE_HINT_TABS.forEach(tab => { if (!dismissed.includes(tab)) dismissed.push(tab); session_shown_hints.add(tab); });
+    localStorage.setItem('dishful_dismissed_hints', JSON.stringify(dismissed));
+  } catch (err) { /* pas bloquant */ }
+}
+
+document.getElementById('skip_welcome_tutorial_btn')?.addEventListener('click', close_welcome_tutorial);
+document.getElementById('tutorial_back_btn')?.addEventListener('click', () => {
+  if (tutorial_step_index > 0) { tutorial_step_index--; render_tutorial_step(); }
+});
+document.getElementById('tutorial_next_btn')?.addEventListener('click', () => {
+  if (tutorial_step_index < WELCOME_TUTORIAL_STEPS.length - 1) {
+    tutorial_step_index++;
+    render_tutorial_step();
+  } else {
+    close_welcome_tutorial();
+  }
+});
 
 // 'all' (classement historique) ou 'week' (uniquement les 7 derniers jours).
 let leaderboard_period = 'all';
