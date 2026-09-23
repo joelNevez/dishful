@@ -210,31 +210,82 @@ label.field-label{
 }
 .filter-chip.active{background:var(--saffron);color:#fff;border-color:var(--saffron-deep);}
 
-/* Un vrai fil : une colonne, centrée, plutôt qu'une grille de vignettes. */
-.recipe-grid{display:flex;flex-direction:column;gap:26px;max-width:560px;margin:0 auto;}
+/* Une grille de cartes "magazine culinaire" — plusieurs colonnes, photo courte et
+   cadrée, titre lisible EN DESSOUS de la photo (jamais en surimpression) : on veut
+   que ça se parcoure et se compare d'un coup d'œil comme un livre de recettes,
+   pas comme un fil de photos qui défile à la Instagram. */
+.recipe-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(272px, 1fr));
+  gap:24px;
+  max-width:1220px;
+  margin:0 auto;
+  align-items:start;
+}
 
 .recipe-card{
+  display:flex;flex-direction:column;
   background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
   overflow:hidden;position:relative;cursor:pointer;
   transition:transform 0.18s ease, box-shadow 0.18s ease;
   box-shadow:0 3px 14px rgba(43,36,28,0.05);
 }
 .recipe-card:hover{
-  transform:translateY(-3px);
+  transform:translateY(-4px);
   box-shadow:0 18px 36px rgba(43,36,28,0.13);
   border-color:var(--saffron);
 }
 
-/* ---------- En-tête auteur, façon post de fil d'actualité ---------- */
+/* ---------- Média : cadré court, jamais plein cadre façon story ---------- */
+.recipe-card-media{position:relative;height:176px;overflow:hidden;background:var(--paper-deep);flex-shrink:0;}
+.recipe-cover{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.35s ease;}
+.recipe-card:hover .recipe-cover{transform:scale(1.06);}
+.recipe-cover-placeholder{
+  display:flex;align-items:center;justify-content:center;font-size:34px;color:var(--paper);
+  background:linear-gradient(135deg, var(--basil), var(--basil-deep));
+}
+.recipe-card-media-top{
+  position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;
+}
+.stripe-badge{
+  font-size:10.5px;font-weight:800;color:#fff;padding:5px 11px;border-radius:999px;
+  text-transform:uppercase;letter-spacing:0.02em;background:var(--basil);box-shadow:0 2px 8px rgba(0,0,0,0.2);
+  flex-shrink:0;
+}
+.stripe-badge.cat-Dessert{background:#C77DAE;}
+.stripe-badge.cat-Entrée{background:var(--saffron);}
+.stripe-badge.cat-Plat{background:var(--rust);}
+.stripe-badge.cat-Boisson{background:#4E7FA0;}
+.stripe-badge.cat-Snack{background:var(--basil);}
+.stripe-badge.cat-Petit-déjeuner{background:#C99A3E;}
+
+/* Étoiles plus soignées : dégradé doré, toujours sur la photo (seul élément qui y reste). */
+.recipe-card-rating-badge{
+  font-size:11.5px;font-weight:800;color:#4A3200;
+  background:linear-gradient(135deg, #FFE9A8, #F0C24B);
+  padding:5px 10px;border-radius:999px;
+  display:inline-flex;align-items:center;gap:5px;box-shadow:0 4px 12px rgba(0,0,0,0.22);
+  margin-left:auto;
+}
+.recipe-card-rating-badge i{color:#B8790C;font-size:11px;}
+.recipe-card-rating-badge em{font-style:normal;font-weight:600;opacity:0.75;}
+
+/* ---------- Corps : titre + auteur + infos, tout en clair sous la photo ---------- */
+.recipe-body{padding:14px 16px 16px;display:flex;flex-direction:column;flex:1;}
+.recipe-card-title{
+  font-family:'Fraunces',serif;font-weight:600;font-size:17px;line-height:1.28;
+  margin:0 0 10px;color:var(--ink);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
 .recipe-card-header{
-  display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 16px;
+  display:flex;align-items:center;gap:9px;margin-bottom:11px;
 }
 .recipe-card-author{
-  background:none;border:none;padding:0;display:flex;align-items:center;gap:10px;cursor:pointer;min-width:0;
+  background:none;border:none;padding:0;display:flex;align-items:center;gap:9px;cursor:pointer;min-width:0;
 }
-.recipe-card-avatar{width:38px;height:38px;font-size:14px;flex-shrink:0;}
+.recipe-card-avatar{width:30px;height:30px;font-size:12px;flex-shrink:0;}
 .recipe-card-author-info{display:flex;flex-direction:column;gap:1px;align-items:flex-start;min-width:0;}
-.recipe-card-author-name{font-size:13.5px;font-weight:700;color:var(--ink);}
+.recipe-card-author-name{font-size:12.5px;font-weight:700;color:var(--ink);}
 .recipe-card-author:hover .recipe-card-author-name{color:var(--rust);}
 .official-badge{
   display:inline-flex;align-items:center;gap:4px;background:var(--basil);color:#fff;
@@ -246,54 +297,11 @@ label.field-label{
   color:#4A3200;font-size:10px;font-weight:800;padding:2px 8px;border-radius:999px;margin-left:6px;
   text-transform:uppercase;letter-spacing:0.02em;vertical-align:middle;
 }
-.recipe-card-author-sub{font-size:11.5px;color:var(--ink-soft);}
+.recipe-card-author-sub{font-size:11px;color:var(--ink-soft);}
 
-/* ---------- Média avec titre en surimpression ---------- */
-.recipe-card-media{position:relative;height:340px;overflow:hidden;background:var(--paper-deep);}
-.recipe-cover{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.35s ease;}
-.recipe-card:hover .recipe-cover{transform:scale(1.06);}
-.recipe-cover-placeholder{
-  display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--paper);
-  background:linear-gradient(135deg, var(--basil), var(--basil-deep));
-}
-.recipe-card-media-scrim{
-  position:absolute;inset:0;
-  background:linear-gradient(to top, rgba(20,16,10,0.88) 0%, rgba(20,16,10,0.35) 45%, rgba(20,16,10,0) 70%);
-  pointer-events:none;
-}
-.recipe-card-media-top{
-  position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:flex-end;align-items:flex-start;gap:8px;
-}
-.stripe-badge{
-  font-size:11px;font-weight:800;color:#fff;padding:5px 12px;border-radius:999px;
-  text-transform:uppercase;letter-spacing:0.02em;background:var(--basil);box-shadow:0 2px 8px rgba(0,0,0,0.2);
-  flex-shrink:0;
-}
-.stripe-badge.cat-Dessert{background:#C77DAE;}
-.stripe-badge.cat-Entrée{background:var(--saffron);}
-.stripe-badge.cat-Plat{background:var(--rust);}
-.stripe-badge.cat-Boisson{background:#4E7FA0;}
-.stripe-badge.cat-Snack{background:var(--basil);}
-.stripe-badge.cat-Petit-déjeuner{background:#C99A3E;}
-
-/* Étoiles plus soignées : dégradé doré, meilleure lisibilité sur la photo. */
-.recipe-card-rating-badge{
-  font-size:12.5px;font-weight:800;color:#4A3200;
-  background:linear-gradient(135deg, #FFE9A8, #F0C24B);
-  padding:6px 12px;border-radius:999px;
-  display:inline-flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(0,0,0,0.22);
-}
-.recipe-card-rating-badge i{color:#B8790C;font-size:12px;}
-.recipe-card-rating-badge em{font-style:normal;font-weight:600;opacity:0.75;}
-.recipe-card-media-title{
-  position:absolute;left:16px;right:16px;bottom:14px;color:#fff;font-size:22px;line-height:1.2;
-  margin:0;text-shadow:0 2px 8px rgba(0,0,0,0.4);
-}
-
-.recipe-body{padding:16px 18px 18px;}
 .chips-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
 .tag-chip{font-size:11px;padding:3px 10px;border-radius:999px;background:var(--paper-deep);color:var(--ink-soft);font-weight:600;}
-.recipe-actions{display:flex;align-items:center;gap:14px;border-top:1px solid var(--line);padding-top:12px;margin-top:4px;flex-wrap:wrap;}
+.recipe-actions{display:flex;align-items:center;gap:14px;border-top:1px solid var(--line);padding-top:12px;margin-top:auto;flex-wrap:wrap;}
 .action-btn{
   background:none;border:none;font-size:13px;font-weight:600;color:var(--ink-soft);
   display:flex;align-items:center;gap:6px;
@@ -786,7 +794,7 @@ label.field-label{
   display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap;
 }
 .recipe_full_view h2 {
-  font-size: 2rem; line-height: 1.15; margin: 0; color: var(--ink);
+  font-size: 2.2rem; line-height: 1.12; margin: 0; color: var(--ink);
 }
 
 .country_badge {
@@ -820,6 +828,12 @@ label.field-label{
   padding: 6px 13px; border-radius: 999px;
 }
 .recipe_meta_bar > div i { color: var(--rust); }
+/* Une couleur différente par type d'info : ça se repère plus vite qu'une rangée
+   de pastilles toutes identiques. */
+.recipe_meta_bar > div:nth-child(1) i { color: var(--rust); }
+.recipe_meta_bar > div:nth-child(2) i { color: #4E7FA0; }
+.recipe_meta_bar > div:nth-child(3) i { color: var(--saffron-deep); }
+.recipe_meta_bar > div:nth-child(4) i { color: var(--basil-deep); }
 
 .servings_calculator { gap: 10px !important; }
 .servings_calculator button {
@@ -870,18 +884,33 @@ label.field-label{
 .steps_jump_pill:hover{border-color:var(--saffron);color:var(--ink);}
 .steps_jump_pill.active{background:var(--rust);color:#fff;border-color:var(--rust);}
 
-/* ---------- Étapes (vue normale) : grandes cartes bien séparées, une par étape ---------- */
-.steps_list { list-style: none; counter-reset: recipe-step; display: flex; flex-direction: column; gap: 22px; }
+/* ---------- Étapes (vue normale) : grandes cartes bien séparées, une par étape ----------
+   Un fil vertical relie les numéros entre eux (comme une recette qu'on suit du doigt),
+   et une bande de couleur à gauche de chaque carte identifie son type (four/plaque/
+   friture/repos) au premier coup d'œil, avant même de lire le badge. */
+.steps_list { list-style: none; counter-reset: recipe-step; display: flex; flex-direction: column; gap: 0; position: relative; }
 .steps_list > li {
   counter-increment: recipe-step; position: relative; background: var(--paper);
-  border: 1px solid var(--line); border-radius: 16px; padding: 26px 26px 26px 78px;
+  border: 1px solid var(--line); border-left: 5px solid var(--line); border-radius: 16px;
+  padding: 26px 26px 26px 78px; margin-bottom: 22px;
   box-shadow: 0 4px 16px rgba(43,36,28,0.05);
 }
+.steps_list > li.type-prep{border-left-color:var(--basil);}
+.steps_list > li.type-oven{border-left-color:var(--rust);}
+.steps_list > li.type-stovetop{border-left-color:var(--saffron-deep);}
+.steps_list > li.type-fryer{border-left-color:#9C5A1F;}
+.steps_list > li.type-rest{border-left-color:#4E7FA0;}
 .steps_list > li::before {
   content: counter(recipe-step); position: absolute; left: 20px; top: 26px;
   width: 40px; height: 40px; border-radius: 50%; background: var(--rust); color: #fff;
   font-weight: 800; font-size: 17px; font-family:'Fraunces',serif; display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 10px rgba(184,75,34,0.3);
+  box-shadow: 0 4px 10px rgba(184,75,34,0.3); z-index: 1;
+}
+/* Trait pointillé qui relie chaque numéro au suivant, pour lire les étapes comme une suite. */
+.steps_list > li:not(:last-child)::after{
+  content:''; position:absolute; left:39px; top:66px; bottom:-22px; width:2px;
+  background-image: linear-gradient(var(--line) 60%, transparent 0%);
+  background-size: 2px 8px; background-repeat: repeat-y;
 }
 .steps_list > li p { margin: 10px 0 0; font-size: 16.5px; line-height: 1.6; color: var(--ink); }
 .steps_list .step_media_preview {
@@ -895,6 +924,7 @@ label.field-label{
 @media (max-width:600px){
   .steps_list > li{padding:22px 18px 22px 66px;}
   .steps_list > li::before{left:14px;top:22px;width:34px;height:34px;font-size:15px;}
+  .steps_list > li:not(:last-child)::after{left:33px;top:58px;}
 }
 
 /* ---------- Actions / likes ---------- */
@@ -1345,11 +1375,19 @@ label.field-label{
 }
 .step-ing-picker-option:hover{background:var(--paper);}
 
-/* ---------- Badges type d'étape (page recette) ---------- */
+/* ---------- Badges type d'étape (page recette) ----------
+   Une couleur par type d'étape, répétée en accent sur le bord de la carte : ça permet
+   de repérer d'un coup d'œil "ça chauffe" (four/plaque/friture), "ça prépare" ou
+   "ça attend", sans avoir à lire chaque étiquette une par une. */
 .step_type_badge{
   display:inline-flex;align-items:center;gap:6px;background:var(--basil);color:#fff;
   font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;margin-right:6px;margin-bottom:6px;
 }
+.step_type_badge.type-prep{background:var(--basil);}
+.step_type_badge.type-oven{background:var(--rust);}
+.step_type_badge.type-stovetop{background:var(--saffron-deep);}
+.step_type_badge.type-fryer{background:#9C5A1F;}
+.step_type_badge.type-rest{background:#4E7FA0;}
 
 /* ==========================================================
    Ajouts : photo de couverture obligatoire + onglet Aperçu
@@ -1364,8 +1402,8 @@ label.field-label{
 .cover-photo-dropzone:hover{border-color:var(--saffron);}
 .cover-photo-dropzone.has-image{border-style:solid;padding:0;}
 .cover-photo-dropzone.has-image img{width:100%;height:100%;object-fit:cover;}
-.cover-photo-dropzone.has-image::after{
-  content:"Changer la photo";position:absolute;bottom:0;left:0;right:0;
+.cover-photo-change-label{
+  position:absolute;bottom:0;left:0;right:0;
   background:rgba(43,36,28,0.65);color:#fff;font-size:11px;font-weight:700;text-align:center;padding:6px;
 }
 
@@ -1384,10 +1422,14 @@ label.field-label{
 
 /* ---------- Sections étiquetées "Ingrédients" / "Outils" dans une étape,
    pour ne plus avoir un tas de tags indifférenciés ---------- */
-.step_detail_block{margin-top:10px;}
+.step_detail_block{
+  margin-top:12px;background:var(--card);border:1px solid var(--line);border-radius:11px;
+  padding:10px 13px;
+}
+.step_detail_block + .step_detail_block{margin-top:8px;}
 .step_detail_label{
   display:flex;align-items:center;gap:6px;font-size:10.5px;text-transform:uppercase;
-  letter-spacing:0.03em;color:var(--ink-soft);font-weight:700;margin-bottom:5px;
+  letter-spacing:0.03em;color:var(--ink-soft);font-weight:700;margin-bottom:7px;
 }
 
 /* ==========================================================
@@ -1456,6 +1498,11 @@ label.field-label{
   display:inline-flex;align-items:center;gap:8px;background:var(--basil);color:#fff;
   font-size:13px;font-weight:700;padding:5px 14px;border-radius:999px;margin-bottom:14px;
 }
+.cooking_step_type.type-prep{background:var(--basil);}
+.cooking_step_type.type-oven{background:var(--rust);}
+.cooking_step_type.type-stovetop{background:var(--saffron-deep);}
+.cooking_step_type.type-fryer{background:#9C5A1F;}
+.cooking_step_type.type-rest{background:#4E7FA0;}
 .cooking_step_media{width:100%;max-height:280px;object-fit:cover;border-radius:12px;margin-bottom:16px;display:block;}
 .cooking_step_text{font-size:21px;line-height:1.55;color:var(--ink);margin-bottom:18px;font-family:'Fraunces',serif;}
 .cooking_step_section{margin-bottom:14px;}

@@ -699,7 +699,7 @@ function populate_nationality_select() {
   country_list.forEach((country) => {
     const country_option = document.createElement("option");
     country_option.value = country.code;
-    country_option.textContent = `${country.flag} ${country.name}`;
+    country_option.textContent = `${country.flag} ${I18N.td('countries', country.name)}`;
     nationality_select.appendChild(country_option);
   });
 }
@@ -1157,12 +1157,7 @@ render_time_filters();
 
 // Sélecteur de pays des filtres, réutilise country_list (déjà défini plus haut, avec emoji)
 const filter_country_select = document.getElementById('filter_country_select');
-country_list.slice().sort((a, b) => a.name.localeCompare(b.name, 'fr')).forEach(c => {
-  const opt = document.createElement('option');
-  opt.value = c.code;
-  opt.textContent = `${c.flag} ${c.name}`;
-  filter_country_select.appendChild(opt);
-});
+populate_country_select(filter_country_select);
 filter_country_select.addEventListener('change', () => {
   active_country_filter = filter_country_select.value || null;
   update_active_filters_badge();
@@ -1215,19 +1210,34 @@ function update_active_filters_badge() {
 // =====================================================================
 const country_select = document.getElementById('recipe_country_select');
 
-country_list
-  .slice()
-  .sort((a, b) => a.name.localeCompare(b.name, 'fr'))
-  .forEach((country) => {
-    const opt = document.createElement('option');
-    opt.value = country.code;
-    opt.textContent = `${country.flag} ${country.name}`;
-    country_select.appendChild(opt);
-  });
+// Repeuple un <select> de pays avec les noms traduits dans la langue courante, en
+// conservant la valeur sélectionnée — réutilisé pour les 3 sélecteurs de pays de
+// l'app (recette, filtres feed, filtres recherche) et relancé une fois I18N prêt.
+function populate_country_select(select_el) {
+  if (!select_el) return;
+  const previous_value = select_el.value;
+  const placeholder = select_el.querySelector('option[value=""]');
+  select_el.innerHTML = '';
+  if (placeholder) select_el.appendChild(placeholder);
+  country_list
+    .slice()
+    .sort((a, b) => I18N.td('countries', a.name).localeCompare(I18N.td('countries', b.name), I18N.getLang()))
+    .forEach((country) => {
+      const opt = document.createElement('option');
+      opt.value = country.code;
+      opt.textContent = `${country.flag} ${I18N.td('countries', country.name)}`;
+      select_el.appendChild(opt);
+    });
+  select_el.value = previous_value;
+}
+populate_country_select(country_select);
 
 function country_name_from_code(code) {
   const found = country_list.find(c => c.code === code);
   return found ? found.name : code;
+}
+function country_display_name_from_code(code) {
+  return I18N.td('countries', country_name_from_code(code));
 }
 function country_flag_from_code(code) {
   const found = country_list.find(c => c.code === code);
@@ -1429,7 +1439,7 @@ function render_recipe_preview() {
   const tags = Array.from(document.querySelectorAll('#tag_chips input:checked')).map(i => i.value);
   const custom_tags = document.getElementById('custom_tags_input').value.split(',').map(t => t.trim()).filter(Boolean);
   const country_code_val = country_select.value;
-  const country_display = country_code_val ? country_name_from_code(country_code_val) : null;
+  const country_display = country_code_val ? country_display_name_from_code(country_code_val) : null;
   const servings = document.getElementById('recipe_servings_input').value || 4;
   const difficulty = document.getElementById('recipe_difficulty_select')?.value || 'moyen';
   const total_time = compute_total_time();
@@ -1515,8 +1525,8 @@ function render_recipe_preview() {
                     ? `<img class="step_media_preview" src="${escape_attr(media.url)}" alt="">`
                     : `<video class="step_media_preview" src="${escape_attr(media.url)}" controls></video>`)
                 : (s.external_url ? `<a href="${escape_attr(s.external_url)}" target="_blank" rel="noopener" class="step_external_link"><i class="fa-solid fa-link"></i> ${escape_html(I18N.t('recipe_detail.external_media'))}</a>` : '');
-              return `<li>
-                <span class="step_type_badge"><i class="fa-solid ${type_info.icon}"></i> ${escape_html(I18N.td('step_types', type_key))}${s.oven_temp ? ' · ' + s.oven_temp + '°C' : ''}</span>
+              return `<li class="type-${type_key}">
+                <span class="step_type_badge type-${type_key}"><i class="fa-solid ${type_info.icon}"></i> ${escape_html(I18N.td('step_types', type_key))}${s.oven_temp ? ' · ' + s.oven_temp + '°C' : ''}</span>
                 ${s.time_min ? `<span class="step_time_badge"><i class="fa-solid fa-stopwatch"></i> ${s.time_min} ${escape_html(I18N.t('common.minutes_short'))}</span>` : ''}
                 <p>${escape_html(s.text || '')}</p>
                 ${step_detail_blocks_html(ing_tags, tool_tags)}
@@ -2132,7 +2142,7 @@ function render_cover_photo_preview() {
   const dropzone = document.getElementById('cover_photo_dropzone');
   const url = cover_image_preview_url || existing_cover_image_url;
   if (url) {
-    dropzone.innerHTML = `<img src="${escape_attr(url)}" alt="">`;
+    dropzone.innerHTML = `<img src="${escape_attr(url)}" alt=""><span class="cover-photo-change-label">${escape_html(I18N.t('publish.change_photo'))}</span>`;
     dropzone.classList.add('has-image');
   } else {
     dropzone.innerHTML = `<i class="fa-solid fa-camera"></i><span>${escape_html(I18N.t('publish.cover_choose'))}</span>`;
@@ -2708,12 +2718,7 @@ render_search_allergen_filters();
 
 const search_country_select = document.getElementById('search_country_select');
 if (search_country_select) {
-  country_list.slice().sort((a, b) => a.name.localeCompare(b.name, 'fr')).forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c.code;
-    opt.textContent = `${c.flag} ${c.name}`;
-    search_country_select.appendChild(opt);
-  });
+  populate_country_select(search_country_select);
   search_country_select.addEventListener('change', () => { search_country = search_country_select.value || null; });
 }
 
@@ -2799,32 +2804,28 @@ function recipe_card_html(r) {
 
   return `
   <article class="recipe-card" data-recipe-id="${r.id}">
-    <div class="recipe-card-header">
-      <button type="button" class="recipe-card-author" data-author-id="${escape_attr(r.author_id)}">
-        <span class="avatar recipe-card-avatar">${author_avatar_url ? `<img src="${escape_attr(author_avatar_url)}" alt="">` : author_initial}</span>
-        <span class="recipe-card-author-info">
-          <span class="recipe-card-author-name">${escape_html(author_name)}${official_badge_html(r.author_id)}${ceo_badge_html(r.author_id)}</span>
-          <span class="recipe-card-author-sub">${r.country ? flag_html + ' ' + escape_html(r.country) + ' · ' : ''}${format_relative_date(r.created_at)}</span>
-        </span>
-      </button>
-      <span class="stripe-badge cat-${escape_html(primary_cat)}">${escape_html(I18N.td('categories', primary_cat))}</span>
-    </div>
-
     <div class="recipe-card-media">
       ${cover_image
         ? `<img class="recipe-cover" src="${escape_attr(cover_image)}" alt="">`
         : `<div class="recipe-cover recipe-cover-placeholder"><i class="fa-solid fa-utensils"></i></div>`}
-      <div class="recipe-card-media-scrim"></div>
-      ${r.rating_count ? `
-        <div class="recipe-card-media-top">
-          <span class="recipe-card-rating-badge"><i class="fa-solid fa-star"></i> ${Number(r.rating_avg).toFixed(1)} <em>(${r.rating_count})</em></span>
-        </div>
-      ` : ''}
-      <h2 class="recipe-card-media-title">${escape_html(r.title)}</h2>
+      <div class="recipe-card-media-top">
+        <span class="stripe-badge cat-${escape_html(primary_cat)}">${escape_html(I18N.td('categories', primary_cat))}</span>
+        ${r.rating_count ? `<span class="recipe-card-rating-badge"><i class="fa-solid fa-star"></i> ${Number(r.rating_avg).toFixed(1)} <em>(${r.rating_count})</em></span>` : ''}
+      </div>
     </div>
     <div class="recipe-body">
+      <h2 class="recipe-card-title">${escape_html(r.title)}</h2>
+      <div class="recipe-card-header">
+        <button type="button" class="recipe-card-author" data-author-id="${escape_attr(r.author_id)}">
+          <span class="avatar recipe-card-avatar">${author_avatar_url ? `<img src="${escape_attr(author_avatar_url)}" alt="">` : author_initial}</span>
+          <span class="recipe-card-author-info">
+            <span class="recipe-card-author-name">${escape_html(author_name)}${official_badge_html(r.author_id)}${ceo_badge_html(r.author_id)}</span>
+            <span class="recipe-card-author-sub">${r.country ? flag_html + ' ' + escape_html(I18N.td('countries', r.country)) + ' · ' : ''}${format_relative_date(r.created_at)}</span>
+          </span>
+        </button>
+      </div>
       <div class="recipe-card-stats-row">
-        ${total_time ? `<span class="recipe-card-stat"><i class="fa-solid fa-stopwatch"></i> ${total_time} min</span>` : ''}
+        ${total_time ? `<span class="recipe-card-stat"><i class="fa-solid fa-stopwatch"></i> ${total_time} ${escape_html(I18N.t('common.minutes_short'))}</span>` : ''}
         <span class="recipe-card-stat"><i class="fa-solid fa-gauge"></i> ${escape_html(difficulty_label)}</span>
         ${r.servings ? `<span class="recipe-card-stat"><i class="fa-solid fa-users"></i> ${r.servings} ${escape_html(I18N.t('common.servings'))}</span>` : ''}
         ${r.views_count ? `<span class="recipe-card-stat"><i class="fa-solid fa-eye"></i> ${r.views_count}</span>` : ''}
@@ -3445,7 +3446,7 @@ function render_mini_recipes_grid(container_id, recipes) {
         <div class="mini_card_img" style="background-image: url('${escape_attr(cover_image)}')"></div>
         <div class="mini_card_info">
           <h4>${escape_html(r.title)}</h4>
-          <span class="mini_card_meta">${r.country ? escape_html(r.country) : escape_html(I18N.t('common.recipe'))} · ❤️ ${r.likes_count || 0}</span>
+          <span class="mini_card_meta">${r.country ? escape_html(I18N.td('countries', r.country)) : escape_html(I18N.t('common.recipe'))} · ❤️ ${r.likes_count || 0}</span>
         </div>
       </div>
     `;
@@ -3466,7 +3467,7 @@ function populate_saved_filters(saved_recipes) {
   const tags = [...new Set(saved_recipes.flatMap((r) => [...(r.categories || []), ...(r.tags || [])]))];
 
   country_select.innerHTML = `<option value="">${escape_html(I18N.t('common.all_countries'))}</option>` +
-    countries.map((c) => `<option value="${escape_attr(c)}">${escape_html(c)}</option>`).join("");
+    countries.map((c) => `<option value="${escape_attr(c)}">${escape_html(I18N.td('countries', c))}</option>`).join("");
 
   tag_select.innerHTML = `<option value="">${escape_html(I18N.t('profile.all_tags'))}</option>` +
     tags.map((t) => `<option value="${escape_attr(t)}">${escape_html(I18N.td(CATEGORIES.includes(t) ? 'categories' : 'tags', t))}</option>`).join("");
@@ -4033,7 +4034,7 @@ async function show_recipe_detail_page(recipe_id) {
     const tool_html = (step.tools || []).map(t => `<span class="tag-chip tool-tag-chip">${t.emoji || '🔧'} ${escape_html(I18N.td('tools', t.name))}</span>`).join('');
 
     document.getElementById('cooking_step_card').innerHTML = `
-      <div class="cooking_step_type"><i class="fa-solid ${type_info.icon}"></i> ${escape_html(I18N.td('step_types', type_key))}${step.oven_temp ? ' · ' + step.oven_temp + '°C' : ''}</div>
+      <div class="cooking_step_type type-${type_key}"><i class="fa-solid ${type_info.icon}"></i> ${escape_html(I18N.td('step_types', type_key))}${step.oven_temp ? ' · ' + step.oven_temp + '°C' : ''}</div>
       ${media_html}
       <p class="cooking_step_text">${escape_html(step.text || '')}</p>
       ${ing_html ? `<div class="cooking_step_section"><h5><i class="fa-solid fa-carrot"></i> ${escape_html(I18N.t('recipe_detail.ingredients_title'))}</h5><div class="step_ing_tags">${ing_html}</div></div>` : ''}
@@ -4074,8 +4075,8 @@ async function show_recipe_detail_page(recipe_id) {
       return `<span class="tag-chip">${scaled_amount}${escape_html(unit_label(ing.unit))} ${escape_html(I18N.td('foods', ing.name || ''))}</span>`;
     }).join('');
     const tool_chips = (step.tools || []).map(t => `<span class="tag-chip tool-tag-chip">${t.emoji || '🔧'} ${escape_html(I18N.td('tools', t.name))}</span>`).join('');
-    return `<li>
-      <span class="step_type_badge"><i class="fa-solid ${type_info.icon}"></i> ${escape_html(I18N.td('step_types', type_key))}${step.oven_temp ? ' · ' + step.oven_temp + '°C' : ''}</span>
+    return `<li class="type-${type_key}">
+      <span class="step_type_badge type-${type_key}"><i class="fa-solid ${type_info.icon}"></i> ${escape_html(I18N.td('step_types', type_key))}${step.oven_temp ? ' · ' + step.oven_temp + '°C' : ''}</span>
       ${step.time_min ? `<span class="step_time_badge"><i class="fa-solid fa-stopwatch"></i> ${step.time_min} ${escape_html(I18N.t('common.minutes_short'))}</span>` : ''}
       <p>${escape_html(step.text || '')}</p>
       ${step_detail_blocks_html(scaled_ings, tool_chips)}
@@ -4197,7 +4198,7 @@ async function show_recipe_detail_page(recipe_id) {
       <div class="recipe_header">
         <div class="title_row">
           <h2>${escape_html(recipe.title)}</h2>
-          <span class="country_badge">${recipe.country_code ? (country_flag_from_code(recipe.country_code) || '🌍') + ' ' : ''}${escape_html(recipe.country || I18N.t('recipe_detail.unknown_origin'))}</span>
+          <span class="country_badge">${recipe.country_code ? (country_flag_from_code(recipe.country_code) || '🌍') + ' ' : ''}${escape_html(recipe.country ? I18N.td('countries', recipe.country) : I18N.t('recipe_detail.unknown_origin'))}</span>
         </div>
         ${recipe.description ? `<p class="recipe_description">${escape_html(recipe.description)}</p>` : ''}
 
@@ -4752,6 +4753,9 @@ I18N.ready.then(() => {
   render_search_allergen_filters();
   populate_nationality_select();
   render_user_zone();
+  populate_country_select(country_select);
+  populate_country_select(filter_country_select);
+  populate_country_select(search_country_select);
 });
 
 (async function boot() {
