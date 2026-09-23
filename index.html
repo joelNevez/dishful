@@ -14,7 +14,11 @@
 
 <header class="top">
   <button type="button" class="brand brand-btn" id="brand_home_btn">
-    <i class="fa-solid fa-utensils brand-icon"></i>
+    <svg class="brand-icon" viewBox="0 0 48 48" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <path d="M7 25c0 9.4 7.6 15 17 15s17-5.6 17-15" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/>
+      <path d="M5 25h38" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/>
+      <path d="M17 13c-1.8-2.2-1.8-4.4 0-6.6M24 13c-1.8-2.2-1.8-4.4 0-6.6M31 13c-1.8-2.2-1.8-4.4 0-6.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+    </svg>
     <span class="display">Dishful</span>
     <span class="tagline" data-i18n="nav.tagline">partage et cuisine</span>
   </button>
@@ -24,19 +28,21 @@
     <button data-tab="publish"><i class="fa-solid fa-plus"></i> <span data-i18n="nav.publish">Publier</span></button>
     <button data-tab="leaderboard"><i class="fa-solid fa-trophy"></i> <span data-i18n="nav.leaderboard">Classement</span></button>
   </nav>
-  <div class="lang-switcher" id="lang_switcher">
-    <button type="button" class="lang-switcher-toggle" id="lang_switcher_toggle" data-i18n-aria="nav.change_language" aria-label="Changer de langue">
-      <span id="lang_switcher_current">🇫🇷</span> <i class="fa-solid fa-chevron-down"></i>
-    </button>
-    <div class="lang-switcher-menu" id="lang_switcher_menu">
-      <button type="button" class="lang-switcher-btn" data-lang="fr"><span>🇫🇷</span> Français</button>
-      <button type="button" class="lang-switcher-btn" data-lang="en"><span>🇬🇧</span> English</button>
-      <button type="button" class="lang-switcher-btn" data-lang="pt"><span>🇵🇹</span> Português</button>
-      <button type="button" class="lang-switcher-btn" data-lang="es"><span>🇪🇸</span> Español</button>
+  <div class="header-right">
+    <div class="lang-switcher" id="lang_switcher">
+      <button type="button" class="lang-switcher-toggle" id="lang_switcher_toggle" data-i18n-aria="nav.change_language" aria-label="Changer de langue">
+        <span id="lang_switcher_current">🇫🇷</span> <i class="fa-solid fa-chevron-down"></i>
+      </button>
+      <div class="lang-switcher-menu" id="lang_switcher_menu">
+        <button type="button" class="lang-switcher-btn" data-lang="fr"><span>🇫🇷</span> Français</button>
+        <button type="button" class="lang-switcher-btn" data-lang="en"><span>🇬🇧</span> English</button>
+        <button type="button" class="lang-switcher-btn" data-lang="pt"><span>🇵🇹</span> Português</button>
+        <button type="button" class="lang-switcher-btn" data-lang="es"><span>🇪🇸</span> Español</button>
+      </div>
     </div>
-  </div>
-  <div class="user-zone" id="user_zone">
-    <button id="open_auth_btn" class="text-btn"><i class="fa-solid fa-right-to-bracket"></i> <span data-i18n="nav.login">Se connecter</span></button>
+    <div class="user-zone" id="user_zone">
+      <button id="open_auth_btn" class="text-btn"><i class="fa-solid fa-right-to-bracket"></i> <span data-i18n="nav.login">Se connecter</span></button>
+    </div>
   </div>
 </header>
 
@@ -107,12 +113,8 @@
     </div>
 
     <div id="feed_panel_ideas" class="feed-subtab-panel hidden">
-      <div class="feed-ideas-toggle" id="feed_ideas_toggle">
-        <button type="button" class="feed-ideas-btn active" data-mealtime="diner"><i class="fa-solid fa-utensils"></i> <span data-i18n="feed.ideas_dinner">Pour le dîner</span></button>
-        <button type="button" class="feed-ideas-btn" data-mealtime="apres_midi"><i class="fa-solid fa-cookie-bite"></i> <span data-i18n="feed.ideas_afternoon">Pour l'après-midi</span></button>
-      </div>
-      <p class="sub-hint" data-i18n="feed.ideas_hint">Une sélection qui change chaque semaine — reviens la semaine prochaine pour de nouvelles idées !</p>
-      <div class="recipe-grid" id="feed_ideas_grid"></div>
+      <p class="sub-hint" data-i18n="feed.ideas_hint">Une sélection parmi les recettes les plus aimées de la communauté, avec une variante végé, poisson et viande — change chaque semaine.</p>
+      <div class="ideas-calendar" id="feed_ideas_calendar"></div>
     </div>
   </section>
 
@@ -852,6 +854,31 @@
       <button type="button" class="btn-secondary" id="cancel_deletion_request_btn" data-i18n="deletion.cancel">Annuler</button>
       <button type="button" class="btn-secondary danger" id="confirm_deletion_request_btn"><i class="fa-solid fa-paper-plane"></i> <span data-i18n="deletion.confirm">Envoyer la demande</span></button>
     </div>
+  </div>
+</div>
+
+<!-- ---------------- POPUP : PARTAGER UNE RECETTE (n'importe laquelle, pas juste la sienne) ---------------- -->
+<div id="share_recipe_modal" class="modal hidden">
+  <div class="modal-card">
+    <button id="close_share_recipe_btn" type="button" class="close-btn">&times;</button>
+    <h2><i class="fa-solid fa-share-nodes"></i> <span data-i18n="recipe_detail.share_title">Partager cette recette</span></h2>
+    <div class="share-buttons-grid">
+      <button type="button" class="share-btn share-btn-x" id="share_recipe_x_btn"><i class="fa-brands fa-x-twitter"></i> X</button>
+      <button type="button" class="share-btn share-btn-facebook" id="share_recipe_facebook_btn"><i class="fa-brands fa-facebook"></i> Facebook</button>
+      <button type="button" class="share-btn share-btn-whatsapp" id="share_recipe_whatsapp_btn"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
+      <button type="button" class="share-btn share-btn-copy" id="share_recipe_copy_btn"><i class="fa-solid fa-link"></i> <span data-i18n="publish_success.copy_link">Copier le lien</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ---------------- POPUP : ALERTE / VALIDATION (remplace alert() natif) ---------------- -->
+<div id="app_alert_modal" class="modal hidden">
+  <div class="modal-card app-alert-card">
+    <button id="close_app_alert_btn" type="button" class="close-btn">&times;</button>
+    <div class="app-alert-icon type-info"><i class="fa-solid fa-circle-info"></i></div>
+    <h2 id="app_alert_title"></h2>
+    <p id="app_alert_message" class="app-alert-message"></p>
+    <button type="button" class="btn-primary app-alert-ok-btn" id="app_alert_ok_btn">Compris</button>
   </div>
 </div>
 

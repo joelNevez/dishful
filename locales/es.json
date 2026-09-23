@@ -57,7 +57,12 @@
       "equipped": "Equipado",
       "equip": "Equipar",
       "unlocked": "Desbloqueado",
-      "user_not_found": "Usuario no encontrado"
+      "user_not_found": "Usuario no encontrado",
+      "alert_title_error": "Falta algo",
+      "alert_title_success": "¡Hecho!",
+      "alert_title_info": "Aviso",
+      "alert_ok": "Entendido",
+      "alert_title_generic_error": "Error"
     },
     "feed": {
       "title": "Las últimas recetas",
@@ -81,7 +86,7 @@
       "week_hint": "Las recetas que triunfan esta semana (vistas, me gusta y valoraciones recibidas en los últimos 7 días).",
       "ideas_dinner": "Para la cena",
       "ideas_afternoon": "Para la tarde",
-      "ideas_hint": "Una selección que cambia cada semana — ¡vuelve la próxima semana para nuevas ideas!",
+      "ideas_hint": "Una selección de las recetas más gustadas por la comunidad, con una variante vegetariana, de pescado y de carne — cambia cada semana.",
       "results_count": "{{count}} receta(s) encontrada(s)",
       "empty": "Aún no hay recetas.",
       "empty_filtered": "Ninguna receta coincide con estos filtros.",
@@ -90,7 +95,14 @@
       "loading_week_trends": "Cargando las tendencias de la semana...",
       "not_enough_activity": "Todavía no hay suficiente actividad esta semana para hacer una clasificación. Vuelve pronto, o explora la pestaña \"Todo\" mientras tanto!",
       "no_recipes_category": "Aún no hay recetas en esta categoría.",
-      "loading_recipes": "Cargando las recetas..."
+      "loading_recipes": "Cargando las recetas...",
+      "slot_breakfast": "Desayuno",
+      "slot_lunch": "Comida",
+      "slot_dinner": "Cena",
+      "slot_snack": "Snack",
+      "variant_vege": "Vegetariano",
+      "variant_poisson": "Pescado",
+      "variant_viande": "Carne"
     },
     "search": {
       "title": "Buscar",
@@ -450,7 +462,11 @@
       "comments_load_error": "No se pudieron cargar los comentarios (Supabase no disponible).",
       "no_comments_yet": "Aún no hay comentarios. ¡Sé el primero!",
       "loading_recipe": "Cargando la receta...",
-      "recipe_not_found": "Receta no encontrada."
+      "recipe_not_found": "Receta no encontrada.",
+      "share_title": "Compartir esta receta",
+      "share_text": "Descubre \"{{title}}\" en Dishful 🍽️",
+      "already_commented": "Ya has dejado tu opinión sobre esta receta — un solo comentario por receta y por persona.",
+      "your_comment_label": "Tu opinión"
     },
     "time": {
       "just_now": "ahora mismo",

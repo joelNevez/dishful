@@ -57,7 +57,12 @@
       "equipped": "Equipado",
       "equip": "Equipar",
       "unlocked": "Desbloqueado",
-      "user_not_found": "Utilizador não encontrado"
+      "user_not_found": "Utilizador não encontrado",
+      "alert_title_error": "Falta qualquer coisa",
+      "alert_title_success": "Feito!",
+      "alert_title_info": "Aviso",
+      "alert_ok": "Entendi",
+      "alert_title_generic_error": "Erro"
     },
     "feed": {
       "title": "As últimas receitas",
@@ -81,7 +86,7 @@
       "week_hint": "As receitas em destaque esta semana (visualizações, gostos, avaliações recebidas nos últimos 7 dias).",
       "ideas_dinner": "Para o jantar",
       "ideas_afternoon": "Para a tarde",
-      "ideas_hint": "Uma seleção que muda todas as semanas — volta para a semana que vem para novas ideias!",
+      "ideas_hint": "Uma seleção das receitas mais gostadas pela comunidade, com uma variante vegetariana, de peixe e de carne — muda todas as semanas.",
       "results_count": "{{count}} receita(s) encontrada(s)",
       "empty": "Ainda não há receitas.",
       "empty_filtered": "Nenhuma receita corresponde a estes filtros.",
@@ -90,7 +95,14 @@
       "loading_week_trends": "A carregar as tendências da semana...",
       "not_enough_activity": "Ainda não há atividade suficiente esta semana para montar uma classificação. Volta em breve, ou explora o separador \"Tudo\" entretanto!",
       "no_recipes_category": "Ainda não há receitas nesta categoria.",
-      "loading_recipes": "A carregar as receitas..."
+      "loading_recipes": "A carregar as receitas...",
+      "slot_breakfast": "Pequeno-almoço",
+      "slot_lunch": "Almoço",
+      "slot_dinner": "Jantar",
+      "slot_snack": "Snack",
+      "variant_vege": "Vegetariano",
+      "variant_poisson": "Peixe",
+      "variant_viande": "Carne"
     },
     "search": {
       "title": "Pesquisa",
@@ -450,7 +462,11 @@
       "comments_load_error": "Não foi possível carregar os comentários (Supabase indisponível).",
       "no_comments_yet": "Ainda sem comentários. Sê o primeiro!",
       "loading_recipe": "A carregar a receita...",
-      "recipe_not_found": "Receita não encontrada."
+      "recipe_not_found": "Receita não encontrada.",
+      "share_title": "Partilhar esta receita",
+      "share_text": "Descobre \"{{title}}\" na Dishful 🍽️",
+      "already_commented": "Já deixaste a tua opinião sobre esta receita — apenas um comentário por receita e por pessoa.",
+      "your_comment_label": "A tua opinião"
     },
     "time": {
       "just_now": "agora mesmo",

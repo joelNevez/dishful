@@ -884,8 +884,13 @@ function normalize_for_search(str) {
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
+const DISHFUL_LOGO_SVG = `<svg class="dishful-loading-icon" viewBox="0 0 48 48" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <path d="M7 25c0 9.4 7.6 15 17 15s17-5.6 17-15" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M5 25h38" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M17 13c-1.8-2.2-1.8-4.4 0-6.6M24 13c-1.8-2.2-1.8-4.4 0-6.6M31 13c-1.8-2.2-1.8-4.4 0-6.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+</svg>`;
 function dishful_loading_html(label) {
-  return `<div class="dishful-loading"><i class="fa-solid fa-utensils dishful-loading-icon"></i><span>${escape_html(label || I18N.t('common.loading'))}</span></div>`;
+  return `<div class="dishful-loading">${DISHFUL_LOGO_SVG}<span>${escape_html(label || I18N.t('common.loading'))}</span></div>`;
 }
 
 function compute_recipe_total_time(recipe) {
@@ -2090,7 +2095,7 @@ document.getElementById('step_editor_video_input').addEventListener('change', (e
 
 document.getElementById('save_step_editor_btn').addEventListener('click', () => {
   const text = document.getElementById('step_editor_text').value.trim();
-  if (!text) { alert(I18N.t('modal.step_editor.error_description')); return; }
+  if (!text) { show_alert_modal(I18N.t('modal.step_editor.error_description'), { type: 'error' }); return; }
 
   const creates_product = document.getElementById('step_editor_creates_product').checked;
   const output_product = creates_product ? document.getElementById('step_editor_output_product').value.trim() : '';
@@ -2371,6 +2376,39 @@ function recipe_share_url(recipe_id) {
   return `${location.origin}${location.pathname}?recipe=${recipe_id}`;
 }
 
+// Popup de partage générique, disponible sur N'IMPORTE QUELLE recette (pas seulement
+// celle qu'on vient soi-même de publier — voir open_publish_success_modal ci-dessus
+// pour ce cas précis, qui a son propre popup avec le message "+20 XP").
+const share_recipe_modal = document.getElementById('share_recipe_modal');
+function open_share_recipe_modal(recipe) {
+  if (!share_recipe_modal) return;
+  const share_url = recipe_share_url(recipe.id);
+  const share_text = I18N.t('recipe_detail.share_text', { title: recipe.title });
+
+  document.getElementById('share_recipe_x_btn').onclick = () => {
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(share_text)}&url=${encodeURIComponent(share_url)}`, '_blank', 'noopener');
+  };
+  document.getElementById('share_recipe_facebook_btn').onclick = () => {
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(share_url)}`, '_blank', 'noopener');
+  };
+  document.getElementById('share_recipe_whatsapp_btn').onclick = () => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(share_text + ' ' + share_url)}`, '_blank', 'noopener');
+  };
+  document.getElementById('share_recipe_copy_btn').onclick = async () => {
+    const btn = document.getElementById('share_recipe_copy_btn');
+    try {
+      await navigator.clipboard.writeText(share_url);
+      btn.innerHTML = `<i class="fa-solid fa-check"></i> ${escape_html(I18N.t('publish_success.copied'))}`;
+      setTimeout(() => { btn.innerHTML = `<i class="fa-solid fa-link"></i> ${escape_html(I18N.t('publish_success.copy_link'))}`; }, 1800);
+    } catch {
+      window.prompt(I18N.t('publish_success.copy_prompt'), share_url);
+    }
+  };
+
+  share_recipe_modal.classList.remove('hidden');
+}
+document.getElementById('close_share_recipe_btn')?.addEventListener('click', () => share_recipe_modal.classList.add('hidden'));
+
 function open_publish_success_modal(recipe) {
   if (!publish_success_modal) return;
   const share_url = recipe_share_url(recipe.id);
@@ -2630,36 +2668,97 @@ function simple_string_hash(str) {
   return Math.abs(h);
 }
 
-const MEALTIME_CATEGORIES = { diner: ['Plat', 'Entrée'], apres_midi: ['Snack', 'Dessert'] };
-let active_feed_ideas_mealtime = 'diner';
+// "Idées de la semaine" : un menu façon calendrier construit à partir des recettes les
+// plus aimées de la communauté. Un créneau (petit-déj/déjeuner/dîner/snack) n'apparaît
+// que s'il existe au moins une recette dans sa catégorie ; dans ce créneau, jusqu'à 3
+// variantes (végé/poisson/viande) apparaissent, chacune seulement si une recette de ce
+// régime existe — pas de case vide ni de contenu inventé pour "faire joli".
+const IDEAS_MEAL_SLOTS = [
+  { key: 'breakfast', categories: ['Petit-déjeuner'], icon: 'fa-mug-hot' },
+  { key: 'lunch', categories: ['Plat', 'Entrée'], icon: 'fa-sun' },
+  { key: 'dinner', categories: ['Plat', 'Entrée'], icon: 'fa-moon' },
+  { key: 'snack', categories: ['Snack'], icon: 'fa-cookie-bite' },
+];
+const IDEAS_VARIANTS = ['vege', 'poisson', 'viande'];
+const IDEAS_VARIANT_ICON = { vege: 'fa-leaf', poisson: 'fa-fish', viande: 'fa-drumstick-bite' };
+// Sous-ensemble de "Viandes & Poissons" (COMMON_FOODS) : sert à deviner le régime d'une
+// recette à partir de ses ingrédients — pas de champ "régime" dédié dans les données.
+const FISH_INGREDIENT_NAMES = new Set(['Poisson blanc', 'Saumon', 'Thon', 'Cabillaud', 'Truite', 'Sardine', 'Maquereau', 'Anchois', 'Dorade', 'Crevette', 'Calamar', 'Poulpe', 'Moule', 'Huître', 'Crabe', 'Homard']);
+const MEAT_INGREDIENT_NAMES = new Set(['Poulet', 'Dinde', 'Canard', 'Lapin', 'Bœuf haché', 'Steak', 'Rôti de bœuf', 'Agneau', 'Porc', 'Bacon', 'Jambon', 'Lardons', 'Saucisse', 'Chorizo', 'Merguez', 'Boudin', 'Foie gras']);
+function classify_recipe_diet(recipe) {
+  const names = (recipe.ingredients || []).map(i => typeof i === 'string' ? i : i.name);
+  if (names.some(n => FISH_INGREDIENT_NAMES.has(n))) return 'poisson';
+  if (names.some(n => MEAT_INGREDIENT_NAMES.has(n))) return 'viande';
+  return 'vege';
+}
+
+// Construit le menu de la semaine : { slot_key: { variant: recipe } }, en ne gardant que
+// des créneaux/variantes réellement peuplés. Parmi les recettes les plus aimées d'une
+// variante, une rotation hebdomadaire déterministe (même principe que "Cette semaine")
+// évite de figer indéfiniment sur la toute première recette la plus likée.
+function build_week_menu() {
+  const week_key = get_iso_week_key();
+  const menu = {};
+  IDEAS_MEAL_SLOTS.forEach(slot => {
+    const pool = all_recipes.filter(r => (r.categories || []).some(c => slot.categories.includes(c)));
+    if (!pool.length) return;
+    const by_variant = { vege: [], poisson: [], viande: [] };
+    pool.forEach(r => by_variant[classify_recipe_diet(r)].push(r));
+    const slot_result = {};
+    IDEAS_VARIANTS.forEach(variant => {
+      const candidates = by_variant[variant];
+      if (!candidates.length) return;
+      const most_liked = candidates.slice().sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0)).slice(0, 5);
+      const picked = most_liked
+        .map(r => ({ r, score: simple_string_hash(r.id + week_key + slot.key) }))
+        .sort((a, b) => b.score - a.score)[0].r;
+      slot_result[variant] = picked;
+    });
+    if (Object.keys(slot_result).length) menu[slot.key] = slot_result;
+  });
+  return menu;
+}
+
+function ideas_recipe_cell_html(recipe, variant) {
+  const cover_image = recipe.cover_image || (recipe.images && recipe.images[0]) || '';
+  return `
+    <div class="ideas-cell">
+      <span class="ideas-variant-badge variant-${variant}"><i class="fa-solid ${IDEAS_VARIANT_ICON[variant]}"></i> ${escape_html(I18N.t(`feed.variant_${variant}`))}</span>
+      <div class="mini_recipe_card" data-recipe-id="${recipe.id}">
+        <div class="mini_card_img" style="background-image: url('${escape_attr(cover_image)}')"></div>
+        <div class="mini_card_info">
+          <h4>${escape_html(recipe.title)}</h4>
+          <span class="mini_card_meta"><i class="fa-solid fa-heart"></i> ${recipe.likes_count || 0}</span>
+        </div>
+      </div>
+    </div>`;
+}
 
 function render_feed_ideas() {
-  const grid = document.getElementById('feed_ideas_grid');
-  if (!grid) return;
-  const cats = MEALTIME_CATEGORIES[active_feed_ideas_mealtime];
-  const week_key = get_iso_week_key();
-  const pool = all_recipes.filter(r => (r.categories || []).some(c => cats.includes(c)));
-  const ranked = pool
-    .map(r => ({ recipe: r, score: simple_string_hash(r.id + week_key) }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 12)
-    .map(x => x.recipe);
+  const container = document.getElementById('feed_ideas_calendar');
+  if (!container) return;
+  const menu = build_week_menu();
+  const populated_slots = IDEAS_MEAL_SLOTS.filter(slot => menu[slot.key]);
 
-  if (!ranked.length) {
-    grid.innerHTML = `<p class="empty-state">${escape_html(I18N.t('feed.no_recipes_category'))}</p>`;
+  if (!populated_slots.length) {
+    container.innerHTML = `<p class="empty-state">${escape_html(I18N.t('feed.no_recipes_category'))}</p>`;
     return;
   }
-  grid.innerHTML = ranked.map(r => recipe_card_html(r)).join('');
-  wire_recipe_card_events(grid, ranked);
-}
-document.querySelectorAll('.feed-ideas-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.feed-ideas-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    active_feed_ideas_mealtime = btn.dataset.mealtime;
-    render_feed_ideas();
+
+  container.innerHTML = populated_slots.map(slot => {
+    const variants = menu[slot.key];
+    const cells = IDEAS_VARIANTS.filter(v => variants[v]).map(v => ideas_recipe_cell_html(variants[v], v)).join('');
+    return `
+      <div class="ideas-row">
+        <div class="ideas-row-label"><i class="fa-solid ${slot.icon}"></i> ${escape_html(I18N.t(`feed.slot_${slot.key}`))}</div>
+        <div class="ideas-row-cells">${cells}</div>
+      </div>`;
+  }).join('');
+
+  container.querySelectorAll('.mini_recipe_card').forEach(card => {
+    card.addEventListener('click', () => show_recipe_detail_page(card.dataset.recipeId));
   });
-});
+}
 
 // =====================================================================
 // Onglet "Recherche" : trouver une recette selon des objectifs nutritionnels
@@ -2785,7 +2884,7 @@ document.getElementById('reset_search_btn')?.addEventListener('click', () => {
 });
 
 function show_translate_stub() {
-  alert(I18N.t('common.translate_stub'));
+  show_alert_modal(I18N.t('common.translate_stub'), { type: 'info' });
 }
 
 function recipe_card_html(r) {
@@ -2879,6 +2978,27 @@ function format_relative_date(iso) {
   if (weeks < 5) return I18N.t('time.weeks_ago', { count: weeks });
   return new Date(iso).toLocaleDateString(DATE_LOCALE_BY_LANG[I18N.getLang()] || 'fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 }
+
+// Popup d'alerte/validation réutilisable, à la place de alert() natif (moins lisible,
+// pas stylée, bloque le fil d'exécution sans donner de contexte). `type` ∈ 'error' |
+// 'success' | 'info' — choisit l'icône/couleur et, si `title` n'est pas fourni, un
+// titre par défaut adapté.
+const app_alert_modal = document.getElementById('app_alert_modal');
+const ALERT_ICON_BY_TYPE = { error: 'fa-triangle-exclamation', success: 'fa-circle-check', info: 'fa-circle-info' };
+function show_alert_modal(message, opts) {
+  opts = opts || {};
+  const type = opts.type || 'info';
+  if (!app_alert_modal) { alert(message); return; }
+  const icon_el = app_alert_modal.querySelector('.app-alert-icon');
+  icon_el.className = `app-alert-icon type-${type}`;
+  icon_el.innerHTML = `<i class="fa-solid ${ALERT_ICON_BY_TYPE[type] || ALERT_ICON_BY_TYPE.info}"></i>`;
+  document.getElementById('app_alert_title').textContent = opts.title || I18N.t(`common.alert_title_${type}`);
+  document.getElementById('app_alert_message').textContent = message;
+  document.getElementById('app_alert_ok_btn').textContent = I18N.t('common.alert_ok');
+  app_alert_modal.classList.remove('hidden');
+}
+document.getElementById('close_app_alert_btn')?.addEventListener('click', () => app_alert_modal.classList.add('hidden'));
+document.getElementById('app_alert_ok_btn')?.addEventListener('click', () => app_alert_modal.classList.add('hidden'));
 
 // Petite notification flottante réutilisable (confirmation d'ajout, etc.)
 let toast_hide_timeout = null;
@@ -3246,7 +3366,7 @@ const profile_form = document.getElementById("profile_form");
       if (!supabase) return;
 
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return alert(I18N.t('common.login_required'));
+      if (!user) return show_alert_modal(I18N.t('common.login_required'), { type: 'info' });
 
     const nationality_code_val = document.getElementById("profile_nationality").value;
     const nationality_country = country_list.find(c => c.code === nationality_code_val);
@@ -3269,9 +3389,9 @@ const profile_form = document.getElementById("profile_form");
         .eq("id", user.id);
 
       if (error) {
-        alert(I18N.t('common.error_prefix') + error.message);
+        show_alert_modal(error.message, { type: 'error', title: I18N.t('common.alert_title_generic_error') });
       } else {
-        alert(I18N.t('profile.saved_profile_msg'));
+        show_alert_modal(I18N.t('profile.saved_profile_msg'), { type: 'success' });
         await refresh_session();
       }
     });
@@ -3290,7 +3410,7 @@ async function upload_profile_image(file, image_type) {
 
   const { error } = await supabase.storage.from("avatars").upload(file_path, file);
   if (error) {
-    alert(I18N.t('common.error_upload_image') + error.message);
+    show_alert_modal(I18N.t('common.error_upload_image') + error.message, { type: 'error', title: I18N.t('common.alert_title_generic_error') });
     return null;
   }
 
@@ -3994,7 +4114,7 @@ async function show_recipe_detail_page(recipe_id) {
         stop_cooking_timer();
         if (display) display.classList.add('cooking_timer_done');
         if (btn) btn.innerHTML = `<i class="fa-solid fa-check"></i> ${escape_html(I18N.t('recipe_detail.timer_finished'))}`;
-        alert(I18N.t('recipe_detail.timer_done'));
+        show_alert_modal(I18N.t('recipe_detail.timer_done'), { type: 'success' });
       }
     }, 1000);
   }
@@ -4209,6 +4329,7 @@ async function show_recipe_detail_page(recipe_id) {
               <button id="edit_recipe_btn" class="secondary_btn"><i class="fa-solid fa-pen"></i> ${escape_html(I18N.t('common.edit'))}</button>
               <button id="request_delete_recipe_btn" class="secondary_btn danger"><i class="fa-solid fa-trash-can"></i> ${escape_html(I18N.t('recipe_detail.report_delete'))}</button>
             ` : ''}
+            <button id="share_recipe_btn" class="secondary_btn"><i class="fa-solid fa-share-nodes"></i> ${escape_html(I18N.t('recipe_detail.share'))}</button>
             <button id="toggle_cooking_mode_btn" class="secondary_btn"><i class="fa-solid fa-book-open"></i> ${escape_html(I18N.t('recipe_detail.cook_mode'))}</button>
           </div>
         </div>
@@ -4303,6 +4424,7 @@ async function show_recipe_detail_page(recipe_id) {
           <textarea id="comment_input_field" placeholder="${escape_attr(I18N.t('recipe_detail.comment_placeholder'))}"></textarea>
           <button id="send_comment_btn">${escape_html(I18N.t('recipe_detail.comment_send'))}</button>
         </div>
+        <p class="already_commented_note hidden" id="already_commented_note"><i class="fa-solid fa-circle-check"></i> ${escape_html(I18N.t('recipe_detail.already_commented'))}</p>
         <div id="recipe_comments_list">${dishful_loading_html(I18N.t('recipe_detail.loading_comments'))}</div>
       </section>
     </article>
@@ -4378,6 +4500,8 @@ async function show_recipe_detail_page(recipe_id) {
     open_deletion_request_modal(recipe.id);
   });
 
+  document.getElementById("share_recipe_btn").onclick = () => open_share_recipe_modal(recipe);
+
   document.getElementById("author_profile_link").onclick = (e) => {
     e.preventDefault();
     open_user_profile(recipe.author_id);
@@ -4423,6 +4547,16 @@ function render_stars_html(rating) {
 }
 
 // Charger les commentaires réels depuis Supabase
+// Un seul avis par personne et par recette (imposé aussi côté base par une contrainte
+// unique sur recipe_id+user_id) : on masque le formulaire et on affiche un petit
+// message dès que l'utilisateur connecté a déjà un commentaire sur cette recette.
+function set_comment_form_already_commented(already_commented) {
+  const form = document.querySelector('.comment_form');
+  const note = document.getElementById('already_commented_note');
+  if (form) form.classList.toggle('hidden', already_commented);
+  if (note) note.classList.toggle('hidden', !already_commented);
+}
+
 async function load_recipe_comments(recipe_id) {
   const container = document.getElementById("recipe_comments_list");
   if (!container) return;
@@ -4430,9 +4564,11 @@ async function load_recipe_comments(recipe_id) {
 
   const { data: comments, error } = await supabase
     .from("comments")
-    .select("id, content, rating, created_at, profiles(username, avatar_url)")
+    .select("id, user_id, content, rating, created_at, profiles(username, avatar_url)")
     .eq("recipe_id", recipe_id)
     .order("created_at", { ascending: false });
+
+  set_comment_form_already_commented(!!(current_user && (comments || []).some(c => c.user_id === current_user.id)));
 
   if (error || !comments || comments.length === 0) {
     container.innerHTML = `<p>${escape_html(I18N.t('recipe_detail.no_comments_yet'))}</p>`;
@@ -4477,6 +4613,14 @@ async function submit_recipe_comment(recipe_id) {
     }
     load_recipe_comments(recipe_id);
     load_recipes(); // rafraîchit rating_avg / rating_count en cache pour le feed et le classement
+  } else if (error.code === '23505') {
+    // Filet de sécurité : un doublon peut théoriquement passer le contrôle client (double-clic,
+    // deux onglets ouverts...) — la contrainte unique en base le bloque, on l'explique proprement
+    // plutôt que de laisser échouer silencieusement.
+    set_comment_form_already_commented(true);
+    show_alert_modal(I18N.t('recipe_detail.already_commented'), { type: 'info' });
+  } else {
+    show_alert_modal(error.message, { type: 'error', title: I18N.t('common.alert_title_generic_error') });
   }
 }
 
@@ -4674,11 +4818,11 @@ function validate_current_step(step_number) {
   if (step_number === 1) {
     const title_val = document.getElementById("recipe_title_input").value.trim();
     if (!title_val) {
-      alert(I18N.t('publish.error_title'));
+      show_alert_modal(I18N.t('publish.error_title'), { type: 'error' });
       return false;
     }
     if (!cover_image_file && !existing_cover_image_url) {
-      alert(I18N.t('publish.error_cover'));
+      show_alert_modal(I18N.t('publish.error_cover'), { type: 'error' });
       return false;
     }
   }
@@ -4686,25 +4830,25 @@ function validate_current_step(step_number) {
   if (step_number === 2) {
     const checked_cats = document.querySelectorAll("#category_chips input:checked");
     if (checked_cats.length === 0) {
-      alert(I18N.t('publish.error_category'));
+      show_alert_modal(I18N.t('publish.error_category'), { type: 'error' });
       return false;
     }
     if (!country_select.value) {
-      alert(I18N.t('publish.error_country'));
+      show_alert_modal(I18N.t('publish.error_country'), { type: 'error' });
       return false;
     }
   }
 
   if (step_number === 3) {
     if (ingredient_pool.length === 0) {
-      alert(I18N.t('publish.error_ingredients'));
+      show_alert_modal(I18N.t('publish.error_ingredients'), { type: 'error' });
       return false;
     }
   }
 
   if (step_number === 4) {
     if (recipe_steps.length === 0) {
-      alert(I18N.t('publish.error_steps'));
+      show_alert_modal(I18N.t('publish.error_steps'), { type: 'error' });
       return false;
     }
   }
@@ -4758,6 +4902,90 @@ I18N.ready.then(() => {
   populate_country_select(search_country_select);
 });
 
+// =====================================================================
+// Changer de langue recharge la page (voir i18n.js) — ce qui, sans précaution,
+// ramènerait toujours au feed et effacerait un brouillon de recette en cours
+// de rédaction. On sauvegarde donc l'onglet actif (et, sur l'assistant de
+// publication, tout le brouillon texte/ingrédients/étapes — pas les fichiers
+// image pas encore envoyés, impossibles à sérialiser) juste avant le rechargement,
+// puis on la restaure une fois la page repartie dans la nouvelle langue.
+window.addEventListener('dishful:before-lang-switch', () => {
+  try {
+    const active_tab = document.querySelector('nav.tabs button.active')?.dataset.tab || 'feed';
+    const state = { tab: active_tab };
+    if (active_tab === 'publish') {
+      state.wizard_step = current_wizard_step;
+      state.editing_recipe_id = editing_recipe_id;
+      state.title = document.getElementById('recipe_title_input')?.value || '';
+      state.description = document.getElementById('recipe_description_input')?.value || '';
+      state.servings = document.getElementById('recipe_servings_input')?.value || '';
+      state.difficulty = document.getElementById('recipe_difficulty_select')?.value || '';
+      state.country_code = country_select?.value || '';
+      state.categories = Array.from(document.querySelectorAll('#category_chips input:checked')).map(i => i.value);
+      state.tags = Array.from(document.querySelectorAll('#tag_chips input:checked')).map(i => i.value);
+      state.custom_tags = document.getElementById('custom_tags_input')?.value || '';
+      state.video_url = document.getElementById('recipe_video_url_input')?.value || '';
+      state.ingredient_pool = ingredient_pool;
+      state.recipe_steps = recipe_steps.map(({ _image_file, _video_file, ...rest }) => rest);
+      state.existing_cover_image_url = existing_cover_image_url;
+      state.existing_gallery_urls = existing_gallery_urls;
+    }
+    sessionStorage.setItem('dishful_pending_restore', JSON.stringify(state));
+  } catch (err) {
+    console.error('[Dishful] Échec sauvegarde avant changement de langue :', err);
+  }
+});
+
+function restore_pending_state_after_lang_switch() {
+  let raw;
+  try { raw = sessionStorage.getItem('dishful_pending_restore'); } catch (err) { return; }
+  if (!raw) return;
+  try { sessionStorage.removeItem('dishful_pending_restore'); } catch (err) {}
+  let state;
+  try { state = JSON.parse(raw); } catch (err) { return; }
+  if (!state || !state.tab || state.tab === 'recipe-detail') return; // recipe-detail se restaure déjà via ?recipe= dans l'URL
+
+  switch_tab(state.tab);
+  if (state.tab !== 'publish') return;
+
+  document.getElementById('recipe_title_input').value = state.title || '';
+  if (document.getElementById('recipe_description_input')) document.getElementById('recipe_description_input').value = state.description || '';
+  if (state.servings) document.getElementById('recipe_servings_input').value = state.servings;
+  if (document.getElementById('recipe_difficulty_select') && state.difficulty) document.getElementById('recipe_difficulty_select').value = state.difficulty;
+  if (state.country_code) country_select.value = state.country_code;
+  document.querySelectorAll('#category_chips .chip').forEach(chip => {
+    const checked = (state.categories || []).includes(chip.dataset.value);
+    chip.querySelector('input').checked = checked;
+    chip.classList.toggle('checked', checked);
+  });
+  const suggested_tags_used = [];
+  document.querySelectorAll('#tag_chips .chip').forEach(chip => {
+    const checked = (state.tags || []).includes(chip.dataset.value);
+    chip.querySelector('input').checked = checked;
+    chip.classList.toggle('checked', checked);
+    if (checked) suggested_tags_used.push(chip.dataset.value);
+  });
+  if (document.getElementById('custom_tags_input')) document.getElementById('custom_tags_input').value = state.custom_tags || '';
+  if (document.getElementById('recipe_video_url_input')) document.getElementById('recipe_video_url_input').value = state.video_url || '';
+
+  editing_recipe_id = state.editing_recipe_id || null;
+  existing_cover_image_url = state.existing_cover_image_url || null;
+  existing_gallery_urls = state.existing_gallery_urls || [];
+  ingredient_pool = state.ingredient_pool || [];
+  recipe_steps = state.recipe_steps || [];
+
+  render_cover_photo_preview();
+  render_image_thumbs();
+  update_image_preview_text();
+  render_ingredient_pool_chips();
+  render_steps_compact_list();
+  if (editing_recipe_id) {
+    document.getElementById('publish_form_title').textContent = I18N.t('publish.title_edit');
+    document.querySelector('#recipe_form button[type="submit"]').innerHTML = `<i class="fa-solid fa-floppy-disk"></i> ${escape_html(I18N.t('publish.submit_edit'))}`;
+  }
+  switch_wizard_step(state.wizard_step || 1);
+}
+
 (async function boot() {
   if (!supabase) return;
   try {
@@ -4767,6 +4995,7 @@ I18N.ready.then(() => {
     // Lien direct partagé (?recipe=...) : ouvre directement la recette concernée.
     const shared_recipe_id = new URLSearchParams(location.search).get('recipe');
     if (shared_recipe_id) show_recipe_detail_page(shared_recipe_id);
+    restore_pending_state_after_lang_switch();
   } catch (err) {
     console.error('[Dishful] Erreur au démarrage :', err);
   }

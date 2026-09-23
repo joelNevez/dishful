@@ -57,7 +57,12 @@
       "equipped": "Equipped",
       "equip": "Equip",
       "unlocked": "Unlocked",
-      "user_not_found": "User not found"
+      "user_not_found": "User not found",
+      "alert_title_error": "Something's missing",
+      "alert_title_success": "Done!",
+      "alert_title_info": "Heads up",
+      "alert_ok": "Got it",
+      "alert_title_generic_error": "Error"
     },
     "feed": {
       "title": "Latest recipes",
@@ -81,7 +86,7 @@
       "week_hint": "Recipes trending this week (views, likes, reviews received in the last 7 days).",
       "ideas_dinner": "For dinner",
       "ideas_afternoon": "For the afternoon",
-      "ideas_hint": "A selection that changes every week — come back next week for new ideas!",
+      "ideas_hint": "A selection from the community's most-liked recipes, with a veggie, fish and meat variant — changes every week.",
       "results_count": "{{count}} recipe(s) found",
       "empty": "No recipes yet.",
       "empty_filtered": "No recipes match these filters.",
@@ -90,7 +95,14 @@
       "loading_week_trends": "Loading this week's trends...",
       "not_enough_activity": "Not enough activity this week yet to build a ranking. Check back soon, or explore the \"All\" tab in the meantime!",
       "no_recipes_category": "No recipes in this category yet.",
-      "loading_recipes": "Loading recipes..."
+      "loading_recipes": "Loading recipes...",
+      "slot_breakfast": "Breakfast",
+      "slot_lunch": "Lunch",
+      "slot_dinner": "Dinner",
+      "slot_snack": "Snack",
+      "variant_vege": "Veggie",
+      "variant_poisson": "Fish",
+      "variant_viande": "Meat"
     },
     "search": {
       "title": "Search",
@@ -450,7 +462,11 @@
       "comments_load_error": "Could not load comments (Supabase unavailable).",
       "no_comments_yet": "No comments yet. Be the first!",
       "loading_recipe": "Loading recipe...",
-      "recipe_not_found": "Recipe not found."
+      "recipe_not_found": "Recipe not found.",
+      "share_title": "Share this recipe",
+      "share_text": "Check out \"{{title}}\" on Dishful 🍽️",
+      "already_commented": "You've already left your review on this recipe — one comment per recipe and per person.",
+      "your_comment_label": "Your review"
     },
     "time": {
       "just_now": "just now",

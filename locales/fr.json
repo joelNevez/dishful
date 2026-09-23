@@ -57,7 +57,12 @@
       "equipped": "Équipé",
       "equip": "Équiper",
       "unlocked": "Débloqué",
-      "user_not_found": "Utilisateur introuvable"
+      "user_not_found": "Utilisateur introuvable",
+      "alert_title_error": "Il manque quelque chose",
+      "alert_title_success": "C'est fait !",
+      "alert_title_info": "À savoir",
+      "alert_ok": "Compris",
+      "alert_title_generic_error": "Erreur"
     },
     "feed": {
       "title": "Les dernières recettes",
@@ -81,7 +86,7 @@
       "week_hint": "Les recettes qui cartonnent cette semaine (vues, likes, avis reçus depuis 7 jours).",
       "ideas_dinner": "Pour le dîner",
       "ideas_afternoon": "Pour l'après-midi",
-      "ideas_hint": "Une sélection qui change chaque semaine — reviens la semaine prochaine pour de nouvelles idées !",
+      "ideas_hint": "Une sélection parmi les recettes les plus aimées de la communauté, avec une variante végé, poisson et viande — change chaque semaine.",
       "results_count": "{{count}} recette(s) trouvée(s)",
       "empty": "Aucune recette pour le moment.",
       "empty_filtered": "Aucune recette ne correspond à ces filtres.",
@@ -90,7 +95,14 @@
       "loading_week_trends": "Chargement des tendances de la semaine...",
       "not_enough_activity": "Pas encore assez d'activité cette semaine pour établir un classement. Reviens bientôt, ou découvre l'onglet \"Tout\" en attendant !",
       "no_recipes_category": "Pas encore de recette dans cette catégorie pour l'instant.",
-      "loading_recipes": "Chargement des recettes..."
+      "loading_recipes": "Chargement des recettes...",
+      "slot_breakfast": "Petit-déjeuner",
+      "slot_lunch": "Déjeuner",
+      "slot_dinner": "Dîner",
+      "slot_snack": "Snack",
+      "variant_vege": "Végé",
+      "variant_poisson": "Poisson",
+      "variant_viande": "Viande"
     },
     "search": {
       "title": "Recherche",
@@ -450,7 +462,11 @@
       "comments_load_error": "Impossible de charger les commentaires (Supabase indisponible).",
       "no_comments_yet": "Aucun commentaire pour l'instant. Soyez le premier !",
       "loading_recipe": "Chargement de la recette...",
-      "recipe_not_found": "Recette introuvable."
+      "recipe_not_found": "Recette introuvable.",
+      "share_title": "Partager cette recette",
+      "share_text": "Découvre \"{{title}}\" sur Dishful 🍽️",
+      "already_commented": "Tu as déjà donné ton avis sur cette recette — un seul commentaire par recette et par personne.",
+      "your_comment_label": "Ton avis"
     },
     "time": {
       "just_now": "à l'instant",

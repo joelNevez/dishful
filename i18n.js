@@ -97,6 +97,10 @@ window.I18N = (function () {
   // traquer chaque endroit du code qui affiche du texte traduit.
   function set_lang(lang) {
     if (!SUPPORTED.includes(lang) || lang === current) return;
+    // Laisse app.js sauver l'état de la page courante (onglet, brouillon en cours dans
+    // l'assistant de publication...) dans sessionStorage avant le rechargement, pour ne
+    // pas perdre ce qu'on était en train de faire juste en changeant de langue.
+    window.dispatchEvent(new CustomEvent('dishful:before-lang-switch'));
     localStorage.setItem('dishful_lang', lang);
     location.reload();
   }
