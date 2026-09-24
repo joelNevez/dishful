@@ -137,7 +137,8 @@
       "prompt_hint": "اختر معاييرك ثم ابدأ البحث لتظهر لك الوصفات.",
       "text_placeholder": "البحث عن عنوان وصفة...",
       "difficulty_country": "الصعوبة والبلد",
-      "kcal_protein": "السعرات الحرارية والبروتين"
+      "kcal_protein": "السعرات الحرارية والبروتين",
+      "filters_toggle": "الفلاتر"
     },
     "leaderboard": {
       "title": "لوحة الصدارة",
@@ -248,7 +249,8 @@
       "publishing": "جارٍ النشر...",
       "updated_success": "تم تحديث الوصفة!",
       "published_success": "تم نشر الوصفة! حصلت على +20 نقطة خبرة.",
-      "change_photo": "تغيير الصورة"
+      "change_photo": "تغيير الصورة",
+      "details_group_label": "الحصص والصعوبة والبلد *"
     },
     "modal": {
       "ingredient_picker": {
@@ -262,7 +264,8 @@
         "selection_empty": "انقر على الأطعمة لتظهر هنا.",
         "toast_added_multiple": "تمت إضافة {{count}} مكوّنات",
         "toast_added_single": "تمت إضافة \"{{name}}\" إلى الوصفة",
-        "toast_custom_added": "تمت إضافة \"{{name}}\" إلى القائمة — انقر على \"إضافة\" للتأكيد."
+        "toast_custom_added": "تمت إضافة \"{{name}}\" إلى القائمة — انقر على \"إضافة\" للتأكيد.",
+        "category_toggle": "تصفية حسب الفئة"
       },
       "step_editor": {
         "title_add": "إضافة خطوة",
@@ -623,7 +626,8 @@
       "Épices & Condiments": "بهارات وتوابل",
       "Fruits secs & Oléagineux": "مكسرات وبذور",
       "Sucré & Pâtisserie": "حلويات ومعجنات",
-      "Boissons & Autres": "مشروبات وأخرى"
+      "Boissons & Autres": "مشروبات وأخرى",
+      "Fruits & Légumes": "الفواكه والخضروات"
     },
     "tools": {
       "Four": "فرن",

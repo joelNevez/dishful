@@ -137,7 +137,8 @@
       "prompt_hint": "Elige tus criterios y luego inicia la búsqueda para ver aparecer las recetas.",
       "text_placeholder": "Buscar un título de receta...",
       "difficulty_country": "Dificultad y país",
-      "kcal_protein": "Calorías y proteínas"
+      "kcal_protein": "Calorías y proteínas",
+      "filters_toggle": "Filtros"
     },
     "leaderboard": {
       "title": "Clasificación",
@@ -248,7 +249,8 @@
       "publishing": "Publicando...",
       "updated_success": "¡Receta actualizada!",
       "published_success": "¡Receta publicada! +20 XP ganados.",
-      "change_photo": "Cambiar la foto"
+      "change_photo": "Cambiar la foto",
+      "details_group_label": "Porciones, dificultad y país *"
     },
     "modal": {
       "ingredient_picker": {
@@ -262,7 +264,8 @@
         "selection_empty": "Haz clic en alimentos para verlos aparecer aquí.",
         "toast_added_multiple": "{{count}} ingredientes añadidos",
         "toast_added_single": "\"{{name}}\" añadido a la receta",
-        "toast_custom_added": "\"{{name}}\" añadido a la lista — haz clic en \"Añadir\" para confirmarlo."
+        "toast_custom_added": "\"{{name}}\" añadido a la lista — haz clic en \"Añadir\" para confirmarlo.",
+        "category_toggle": "Filtrar por categoría"
       },
       "step_editor": {
         "title_add": "Añadir un paso",
@@ -623,7 +626,8 @@
       "Épices & Condiments": "Especias y Condimentos",
       "Fruits secs & Oléagineux": "Frutos secos",
       "Sucré & Pâtisserie": "Dulces y Repostería",
-      "Boissons & Autres": "Bebidas y Otros"
+      "Boissons & Autres": "Bebidas y Otros",
+      "Fruits & Légumes": "Frutas y Verduras"
     },
     "tools": {
       "Four": "Horno",

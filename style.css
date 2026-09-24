@@ -1160,9 +1160,6 @@ label.field-label{
   padding-bottom: 0.5rem;
   overflow-x: auto;
 }
-/* Indicateur compact (flèches précédent/suivant) réservé au mode mobile,
-   où la rangée d'onglets ci-dessus cède sa place — voir plus bas. */
-.wizard-steps-nav-compact{display:none;}
 
 .wizard-step-btn {
   background: none;
@@ -1423,6 +1420,15 @@ label.field-label{
 .step-picker-footer{display:flex;gap:10px;}
 .step-picker-footer .confirm-add-btn{flex:1;margin-bottom:0;}
 .step-picker-footer .btn-secondary{flex:0 0 auto;margin-top:0;}
+/* Repliable : 9 catégories + "Tout" en permanence à l'écran, ça fait
+   beaucoup pour choisir un simple filtre facultatif. */
+.food-category-toggle{margin-bottom:14px;}
+.food-category-toggle summary{
+  list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;
+  font-size:12.5px;font-weight:700;color:var(--ink-soft);padding:6px 2px;
+}
+.food-category-toggle summary::-webkit-details-marker{display:none;}
+.food-category-toggle[open] summary{color:var(--ink);margin-bottom:8px;}
 .food-category-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
 .food-cat-tab{
   padding:6px 13px;border-radius:999px;border:1px solid var(--line);background:var(--paper);
@@ -1498,6 +1504,20 @@ label.field-label{
 }
 .step-editor-section .field-label{margin-top:0;}
 .step-editor-section .sub-hint{margin:-6px 0 0;}
+
+/* Les 5 sections de l'éditeur d'étape (type / description / média /
+   ingrédients / outils) sont chacune un <details> repliable — beaucoup de
+   champs à la fois sinon, surtout sur mobile. */
+.step-editor-section > summary{
+  list-style:none;cursor:pointer;display:flex;align-items:center;gap:9px;
+  font-size:14px;font-weight:700;color:var(--ink);
+}
+.step-editor-section > summary::-webkit-details-marker{display:none;}
+.step-editor-section > summary::after{
+  content:"\f078";font-family:"Font Awesome 6 Free";font-weight:900;font-size:11px;
+  color:var(--ink-soft);margin-left:auto;transition:transform .15s ease;
+}
+.step-editor-section[open] > summary::after{transform:rotate(180deg);}
 
 /* Hauteur FIXE (pas max-height) pour les listes ingrédients/outils de l'éditeur
    d'étape : la case garde toujours la même taille, qu'il y ait 1 ou 20 éléments —
@@ -1685,6 +1705,49 @@ label.field-label{
 .search-text-row i{color:var(--ink-soft);}
 .search-text-row input{flex:1;border:none;background:none;padding:0;font-size:14px;}
 .search-text-row input:focus{outline:none;}
+
+/* Le "Filtres" englobant : replié par défaut, ne laisse voir que la barre
+   de recherche texte au premier coup d'œil — les 4 groupes de filtres
+   individuels (toujours repliables un par un) n'apparaissent qu'une fois
+   ouvert. */
+.search-filters-toggle{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--paper);}
+.search-filters-toggle > summary{
+  list-style:none;cursor:pointer;padding:12px 14px;font-size:13.5px;font-weight:700;
+  color:var(--ink);display:flex;align-items:center;gap:9px;
+}
+.search-filters-toggle > summary::-webkit-details-marker{display:none;}
+.search-filters-toggle > summary::after{
+  content:"\f078";font-family:"Font Awesome 6 Free";font-weight:900;font-size:11px;
+  color:var(--ink-soft);margin-left:auto;transition:transform .15s ease;
+}
+.search-filters-toggle[open] > summary::after{transform:rotate(180deg);}
+.search-filters-toggle[open] > summary{border-bottom:1px solid var(--line);}
+.search-filters-toggle > .search-filter-group{
+  margin:12px;
+}
+.search-filters-toggle > .search-filter-group + .search-filter-group{margin-top:0;}
+
+/* Sections du formulaire de publication (catégories / portions-difficulté-
+   pays / tags) : mêmes repliables que la recherche, plutôt que tous les
+   champs et boutons d'un coup. Les groupes avec un champ obligatoire (*)
+   restent ouverts par défaut pour ne pas cacher ce qui bloque la
+   validation ; seuls les tags (facultatifs) partent repliés. */
+.publish-step-group{border:1px solid var(--line);border-radius:12px;padding:0 14px 14px;overflow:hidden;margin-bottom:12px;}
+.publish-step-group:not([open]){padding-bottom:0;}
+/* Marge négative : le résumé revient border-to-border malgré le padding du
+   parent (qui, lui, sert à inset le contenu une fois ouvert). */
+.publish-step-group summary{
+  list-style:none;cursor:pointer;margin:0 -14px;padding:12px 14px;font-size:13.5px;font-weight:700;
+  color:var(--ink);display:flex;align-items:center;gap:9px;
+}
+.publish-step-group summary::-webkit-details-marker{display:none;}
+.publish-step-group summary::after{
+  content:"\f078";font-family:"Font Awesome 6 Free";font-weight:900;font-size:11px;
+  color:var(--ink-soft);margin-left:auto;transition:transform .15s ease;
+}
+.publish-step-group[open] summary::after{transform:rotate(180deg);}
+.publish-step-group[open] summary{border-bottom:1px solid var(--line);margin-bottom:12px;}
+.publish-step-group > *:not(summary) + *:not(summary){margin-top:10px;}
 
 .search-filter-group{border:1px solid var(--line);border-radius:12px;padding:0;overflow:hidden;}
 .search-filter-group summary{
@@ -2301,11 +2364,13 @@ label.field-label{
   .filter-block label{font-size:11.5px;}
   .feed-results-count{margin-bottom:8px;font-size:12px;}
 
+  #tab-search > .sub-hint{display:none;}
   .search-filters-card{padding:12px;gap:10px;margin:12px 0;border-radius:14px;}
   .search-filters-actions{gap:10px;}
   .search-filters-actions .btn-primary{padding:10px 16px;font-size:13px;}
   .search-range-row input{width:76px;}
   .search-text-row{padding:9px 14px;}
+  .search-filters-toggle > summary{padding:10px 12px;font-size:12.5px;}
   .search-filter-group summary{padding:10px 12px;font-size:12.5px;}
   .search-filter-group > .filter-row,
   .search-filter-group > .filter-row-split{padding:12px;}
@@ -2318,27 +2383,33 @@ label.field-label{
   .leaderboard-row{padding:10px 12px;gap:10px;border-radius:12px;}
   .leaderboard-avatar{width:38px;height:38px;font-size:14px;}
   .leaderboard-rank{width:24px;font-size:16px;}
-  .leaderboard-identity{min-width:0;}
-  .leaderboard-level{min-width:0;}
+  /* .leaderboard-identity gardait flex-shrink:0 (hérité de la règle desktop) :
+     un nom long forçait toute la ligne à s'élargir et écrasait la colonne
+     niveau/XP juste à côté (jusqu'à faire passer "1 240 XP" à la ligne mot
+     par mot). Colonne niveau/XP à largeur fixe (assez pour le badge + le
+     texte sur une seule ligne) et identité qui prend le reste avec un nom
+     tronqué proprement (…) au lieu de pousser tout le reste. */
+  .leaderboard-identity{min-width:0;flex:1 1 auto;}
+  .leaderboard-level{flex:0 0 116px;min-width:0;}
+  .leaderboard-level-badge{font-size:10.5px;padding:3px 8px;}
+  .leaderboard-xp-text{font-size:10.5px;}
+  .leaderboard-name-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
+  /* Le nom + la pastille "c'est moi" tenaient sur une seule ligne : sur un
+     écran étroit ça écrase le nom (voire le fait déborder sur la colonne
+     niveau/XP juste à côté). En colonne, la pastille passe simplement sous
+     le nom au lieu de se battre avec lui pour la largeur. Même chose pour
+     le pseudo d'auteur (cas des classements de recettes, où la pastille
+     est accolée à "par @untel" plutôt qu'au nom). */
+  .leaderboard-name, .leaderboard-username{display:flex;flex-direction:column;align-items:flex-start;gap:3px;max-width:100%;}
+  .its-me-badge{font-size:9px;padding:2px 7px;}
 
   /* ---------- Publier : formulaire édition, pas une carte flottante ---------- */
   .publish-card, .profile-card{padding:16px;border-radius:14px;max-width:100%;}
   .publish-card h1, .profile-card h1{font-size:18px;}
-  /* La rangée d'onglets scrollable cède la place à l'indicateur compact
-     ci-dessous (flèches précédent/suivant) : plus besoin de scroller
-     horizontalement pour trouver l'étape suivante. */
+  /* Un seul moyen de naviguer entre les étapes sur mobile : les boutons
+     Précédent/Suivant déjà présents en bas de chaque étape (avec leur
+     validation) — la rangée d'onglets scrollable en double faisait doublon. */
   .wizard-steps-nav{display:none;}
-  .wizard-steps-nav-compact{
-    display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px;
-  }
-  .wizard-compact-arrow{
-    width:34px;height:34px;border-radius:50%;background:var(--card);border:1px solid var(--line);
-    color:var(--ink-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;
-  }
-  .wizard-compact-arrow:disabled{opacity:0.35;}
-  .wizard-compact-label{
-    flex:1;max-width:220px;text-align:center;font-size:13px;font-weight:700;color:var(--ink);
-  }
   .wizard-actions{margin-top:12px;padding-top:10px;flex-wrap:wrap;gap:10px;}
   .cover-photo-dropzone{padding:18px 14px;}
   .cover-photo-dropzone i{font-size:20px;}
@@ -2362,7 +2433,9 @@ label.field-label{
   .modal-card-wide{width:100%;max-height:calc(100vh - 28px);overflow-y:auto;padding:16px;}
   .modal-card-wide h2{font-size:16px;margin-bottom:10px;}
   #ingredient_search_input{font-size:14px;}
+  .food-category-toggle summary{font-size:12px;}
   .food-category-tabs{gap:5px;margin-bottom:10px;}
+  .food-cat-tab{padding:5px 10px;font-size:11.5px;}
   /* Ici la carte ET le nuage de sélection sont empilés SOUS un même parent
      flex centré (.ingredient-picker-layout) : c'est ce parent qu'il faut
      borner + faire défiler comme UN SEUL bloc, sinon on aurait un scroll
@@ -2384,6 +2457,27 @@ label.field-label{
   .step-editor-grid-2col{display:flex;flex-direction:column;gap:14px;}
   .time-clock-dial{display:none;}
   .time-picker-display input{font-size:16px;}
+
+  /* .form_row réserve toujours 2 colonnes en grid même quand le second
+     champ est display:none (ex. Température masquée hors "Four") : le
+     champ visible ne récupère jamais la place laissée par le voisin caché
+     et se retrouve écrasé (le picker +/- + "min" n'a alors presque plus de
+     place). En 1 colonne sur mobile, un champ seul reprend toute la largeur. */
+  .form_row{grid-template-columns:1fr;gap:10px;}
+
+  /* Sections repliables de l'éditeur d'étape : contenus nettement plus
+     compacts (padding, police) qu'en desktop, pour tenir sans scroll géant. */
+  .step-editor-section{padding:10px 12px;margin-bottom:10px;gap:8px;}
+  .step-editor-section > summary{margin:0 -12px;padding:10px 12px;font-size:12.5px;}
+  .step-editor-section[open] > summary{margin-bottom:8px;}
+  .step-editor-grid-2col{gap:10px;}
+  .step-type-selector{gap:6px;margin-bottom:0;}
+  .step-type-btn{padding:7px 8px;font-size:11.5px;min-width:0;}
+  .step-type-btn i{font-size:14px;}
+  #step_editor_text{font-size:14px;padding:9px 10px;}
+  .step-editor-section .field-label{font-size:12.5px;margin-bottom:4px;}
+  .field-label-row{font-size:12.5px;margin-top:6px;}
+  #step_editor_linked_list, #step_editor_tools_list{height:220px;}
 
   /* ---------- Détail recette : on garde l'esprit "carte", en plus compact ---------- */
   .recipe_detail_container{padding:0 12px 40px;margin:12px auto;}
@@ -2470,11 +2564,10 @@ label.field-label{
 
   /* ---------- Idées de la semaine : sélecteur de jour compact + aperçus
      compacts en grille (2 par ligne, juste photo + nom + calories) ---------- */
-  /* Le texte d'intro n'apportait rien qu'on ne voit pas déjà en utilisant la
-     page ; il ne fait que repousser recettes/jours plus bas sur un petit
-     écran. Le bouton "Recettes fitness" reste, seul sur sa ligne. */
-  #feed_panel_ideas .ideas-panel-header .sub-hint{display:none;}
-  .ideas-panel-header{justify-content:flex-end;}
+  /* Le texte d'intro et le bouton "Recettes fitness" n'apportaient rien
+     qu'on ne voit pas déjà en utilisant la page ; ils ne faisaient que
+     repousser recettes/jours plus bas sur un petit écran. */
+  .ideas-panel-header{display:none;}
   .ideas-week-total{font-size:12px;padding:8px 12px;}
   .ideas-day-tabs{display:none;margin-top:8px;}
   .ideas-day-tabs.expanded{display:flex;}

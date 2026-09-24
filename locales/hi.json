@@ -137,7 +137,8 @@
       "prompt_hint": "अपने मानदंड चुनें, फिर रेसिपी देखने के लिए खोजें।",
       "text_placeholder": "रेसिपी का नाम खोजें...",
       "difficulty_country": "कठिनाई और देश",
-      "kcal_protein": "कैलोरी और प्रोटीन"
+      "kcal_protein": "कैलोरी और प्रोटीन",
+      "filters_toggle": "फ़िल्टर"
     },
     "leaderboard": {
       "title": "लीडरबोर्ड",
@@ -248,7 +249,8 @@
       "publishing": "पब्लिश हो रहा है...",
       "updated_success": "रेसिपी अपडेट हो गई!",
       "published_success": "रेसिपी पब्लिश हो गई! +20 XP मिले।",
-      "change_photo": "फोटो बदलें"
+      "change_photo": "फोटो बदलें",
+      "details_group_label": "सर्विंग, कठिनाई और देश *"
     },
     "modal": {
       "ingredient_picker": {
@@ -262,7 +264,8 @@
         "selection_empty": "फूड आइटम्स पर क्लिक करें, वे यहां दिखने लगेंगे।",
         "toast_added_multiple": "{{count}} इंग्रीडिएंट्स जोड़े गए",
         "toast_added_single": "\"{{name}}\" रेसिपी में जोड़ा गया",
-        "toast_custom_added": "\"{{name}}\" लिस्ट में जोड़ा गया — कन्फर्म करने के लिए \"जोड़ें\" पर क्लिक करें।"
+        "toast_custom_added": "\"{{name}}\" लिस्ट में जोड़ा गया — कन्फर्म करने के लिए \"जोड़ें\" पर क्लिक करें।",
+        "category_toggle": "श्रेणी के अनुसार फ़िल्टर करें"
       },
       "step_editor": {
         "title_add": "स्टेप जोड़ें",
@@ -623,7 +626,8 @@
       "Épices & Condiments": "मसाले और चटनी",
       "Fruits secs & Oléagineux": "मेवे और बीज",
       "Sucré & Pâtisserie": "मिठाई और बेकिंग",
-      "Boissons & Autres": "ड्रिंक्स और अन्य"
+      "Boissons & Autres": "ड्रिंक्स और अन्य",
+      "Fruits & Légumes": "फल और सब्ज़ियाँ"
     },
     "tools": {
       "Four": "ओवन",

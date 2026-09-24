@@ -137,7 +137,8 @@
       "prompt_hint": "Pick your criteria, then run the search to see recipes appear.",
       "text_placeholder": "Search a recipe title...",
       "difficulty_country": "Difficulty & country",
-      "kcal_protein": "Calories & protein"
+      "kcal_protein": "Calories & protein",
+      "filters_toggle": "Filters"
     },
     "leaderboard": {
       "title": "Leaderboard",
@@ -248,7 +249,8 @@
       "publishing": "Publishing...",
       "updated_success": "Recipe updated!",
       "published_success": "Recipe published! +20 XP earned.",
-      "change_photo": "Change photo"
+      "change_photo": "Change photo",
+      "details_group_label": "Servings, difficulty & country *"
     },
     "modal": {
       "ingredient_picker": {
@@ -262,7 +264,8 @@
         "selection_empty": "Click on foods to see them appear here.",
         "toast_added_multiple": "{{count}} ingredients added",
         "toast_added_single": "\"{{name}}\" added to the recipe",
-        "toast_custom_added": "\"{{name}}\" added to the list — click \"Add\" to confirm."
+        "toast_custom_added": "\"{{name}}\" added to the list — click \"Add\" to confirm.",
+        "category_toggle": "Filter by category"
       },
       "step_editor": {
         "title_add": "Add a step",
@@ -623,7 +626,8 @@
       "Épices & Condiments": "Spices & Condiments",
       "Fruits secs & Oléagineux": "Nuts & Seeds",
       "Sucré & Pâtisserie": "Sweets & Baking",
-      "Boissons & Autres": "Drinks & Other"
+      "Boissons & Autres": "Drinks & Other",
+      "Fruits & Légumes": "Fruits & Vegetables"
     },
     "tools": {
       "Four": "Oven",

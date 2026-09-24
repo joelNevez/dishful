@@ -205,6 +205,22 @@ const COMMON_FOODS = [
   {name:"Bouillon de volaille", emoji:"🍲", cat:"Boissons & Autres"}, {name:"Lait concentré", emoji:"🥛", cat:"Boissons & Autres"}
 ];
 const FOOD_CATEGORIES = [...new Set(COMMON_FOODS.map(f => f.cat))];
+// Regroupement purement visuel de deux catégories dans le sélecteur d'ingrédients
+// mobile (9 onglets de catégorie + "Tout" ne tenaient pas sur un écran de
+// téléphone, même repliés) : les données de COMMON_FOODS ne changent pas, seul
+// l'onglet affiché fusionne les deux catégories sous un même filtre.
+const FOOD_CATEGORY_GROUPS = { 'Fruits & Légumes': ['Fruits', 'Légumes'] };
+const FOOD_CATEGORY_GROUPED_CATS = new Set(Object.values(FOOD_CATEGORY_GROUPS).flat());
+function food_category_tab_entries() {
+  const entries = Object.keys(FOOD_CATEGORY_GROUPS).map(key => ({ key, label: I18N.td('food_categories', key) }));
+  FOOD_CATEGORIES.forEach(c => { if (!FOOD_CATEGORY_GROUPED_CATS.has(c)) entries.push({ key: c, label: I18N.td('food_categories', c) }); });
+  return entries;
+}
+function food_matches_active_category(food) {
+  if (!active_food_category) return true;
+  const group = FOOD_CATEGORY_GROUPS[active_food_category];
+  return group ? group.includes(food.cat) : food.cat === active_food_category;
+}
 
 // =====================================================================
 // Valeurs nutritionnelles + allergènes courants, pour 100g (ou 100ml pour les
@@ -1504,7 +1520,7 @@ function add_ingredient_to_pool(name, emoji) {
 function render_food_category_tabs() {
   const container = document.getElementById('food_category_tabs');
   container.innerHTML = `<button type="button" class="food-cat-tab ${!active_food_category ? 'active' : ''}" data-cat="">${escape_html(I18N.t('common.all'))}</button>` +
-    FOOD_CATEGORIES.map(c => `<button type="button" class="food-cat-tab ${active_food_category === c ? 'active' : ''}" data-cat="${escape_attr(c)}">${escape_html(I18N.td('food_categories', c))}</button>`).join('');
+    food_category_tab_entries().map(({ key, label }) => `<button type="button" class="food-cat-tab ${active_food_category === key ? 'active' : ''}" data-cat="${escape_attr(key)}">${escape_html(label)}</button>`).join('');
   container.querySelectorAll('.food-cat-tab').forEach(btn => {
     btn.addEventListener('click', () => {
       active_food_category = btn.dataset.cat || null;
@@ -1526,7 +1542,7 @@ function render_food_picker_grid() {
   const search = document.getElementById('ingredient_search_input').value.trim().toLowerCase();
   const grid = document.getElementById('food_picker_grid');
   let list = [...COMMON_FOODS, ...custom_food_entries];
-  if (active_food_category) list = list.filter(f => f.cat === active_food_category);
+  if (active_food_category) list = list.filter(food_matches_active_category);
   if (search) list = list.filter(f => normalize_for_search(f.name).includes(normalize_for_search(search)) || normalize_for_search(I18N.td('foods', f.name)).includes(normalize_for_search(search)));
 
   if (list.length === 0) {
@@ -3310,7 +3326,8 @@ function search_result_card_html(r, match_ctx, nutrition) {
 // soit) : on les referme systématiquement après une recherche, qu'ils aient
 // servi ou non, pour que les résultats prennent toute la place.
 function collapse_search_filter_groups() {
-  document.querySelectorAll('#tab-search .search-filter-group[open]').forEach(el => el.removeAttribute('open'));
+  document.querySelectorAll('#tab-search .search-filter-group[open], #tab-search .search-filters-toggle[open]')
+    .forEach(el => el.removeAttribute('open'));
 }
 function run_search_and_collapse() {
   run_search();
@@ -4516,7 +4533,7 @@ async function load_leaderboard() {
         <span class="leaderboard-rank">${i + 1}</span>
         <div class="avatar leaderboard-avatar">${avatar_html}</div>
         <div class="leaderboard-identity">
-          <span class="leaderboard-name">${escape_html(display_name)}${is_me ? ` <span class="its-me-badge"><i class="fa-solid fa-star"></i> ${escape_html(I18N.t('leaderboard.its_me'))}</span>` : ''}</span>
+          <span class="leaderboard-name"><span class="leaderboard-name-text">${escape_html(display_name)}</span>${is_me ? ` <span class="its-me-badge"><i class="fa-solid fa-star"></i> ${escape_html(I18N.t('leaderboard.its_me'))}</span>` : ''}</span>
           <span class="leaderboard-username">@${escape_html(p.username || '')}</span>
         </div>
         <div class="leaderboard-level">
@@ -4590,7 +4607,7 @@ async function load_weekly_chefs_ranking(container) {
         <span class="leaderboard-rank">${i + 1}</span>
         <div class="avatar leaderboard-avatar">${avatar_html}</div>
         <div class="leaderboard-identity">
-          <span class="leaderboard-name">${escape_html(display_name)}${is_me ? ` <span class="its-me-badge"><i class="fa-solid fa-star"></i> ${escape_html(I18N.t('leaderboard.its_me'))}</span>` : ''}</span>
+          <span class="leaderboard-name"><span class="leaderboard-name-text">${escape_html(display_name)}</span>${is_me ? ` <span class="its-me-badge"><i class="fa-solid fa-star"></i> ${escape_html(I18N.t('leaderboard.its_me'))}</span>` : ''}</span>
           <span class="leaderboard-username">@${escape_html(p.username || '')}</span>
         </div>
         <div class="leaderboard-level">
@@ -4756,7 +4773,7 @@ function render_chef_aggregate_rows(container, ranked, kind, is_weekly) {
         <span class="leaderboard-rank">${i + 1}</span>
         <div class="avatar leaderboard-avatar">${avatar_html}</div>
         <div class="leaderboard-identity">
-          <span class="leaderboard-name">${escape_html(display_name)}${is_me ? ` <span class="its-me-badge"><i class="fa-solid fa-star"></i> ${escape_html(I18N.t('leaderboard.its_me'))}</span>` : ''}</span>
+          <span class="leaderboard-name"><span class="leaderboard-name-text">${escape_html(display_name)}</span>${is_me ? ` <span class="its-me-badge"><i class="fa-solid fa-star"></i> ${escape_html(I18N.t('leaderboard.its_me'))}</span>` : ''}</span>
           <span class="leaderboard-username">@${escape_html(p.username || '')}</span>
         </div>
         <div class="leaderboard-level">${stat_html}</div>
@@ -4782,7 +4799,7 @@ function recipe_ranking_row_html(r, rank, kind) {
       <span class="leaderboard-rank">${rank + 1}</span>
       ${cover ? `<img class="leaderboard-avatar" style="border-radius:10px;object-fit:cover;" src="${escape_attr(cover)}" alt="">` : `<div class="avatar leaderboard-avatar">🍽️</div>`}
       <div class="leaderboard-identity" style="min-width:160px;">
-        <span class="leaderboard-name">${escape_html(r.title)}</span>
+        <span class="leaderboard-name"><span class="leaderboard-name-text">${escape_html(r.title)}</span></span>
         <span class="leaderboard-username">${escape_html(I18N.t('leaderboard.by_author', { author }))}${is_me ? ` <span class="its-me-badge"><i class="fa-solid fa-star"></i> ${escape_html(I18N.t('leaderboard.its_me'))}</span>` : ''}</span>
       </div>
       <div class="leaderboard-level">${stat_html}</div>
@@ -5834,31 +5851,9 @@ function switch_wizard_step(target_step) {
   document.querySelector(`.wizard-step-btn[data-step="${target_step}"]`)?.classList.add("active");
 
   current_wizard_step = target_step;
-  update_wizard_compact_nav(target_step);
 
   if (target_step === 6 && typeof render_recipe_preview === 'function') render_recipe_preview();
 }
-
-// Version mobile de la nav du wizard : le libellé est repris directement du
-// bouton d'onglet actif (pas de traduction dupliquée), avec des flèches qui
-// passent par switch_wizard_step (donc respectent la validation par étape).
-const WIZARD_STEP_COUNT = 6;
-function update_wizard_compact_nav(target_step) {
-  const label_el = document.getElementById('wizard_compact_label');
-  const active_tab_label = document.querySelector(`.wizard-step-btn[data-step="${target_step}"] span`)?.textContent || '';
-  if (label_el) label_el.textContent = active_tab_label;
-  const prev_btn = document.getElementById('wizard_compact_prev_btn');
-  const next_btn = document.getElementById('wizard_compact_next_btn');
-  if (prev_btn) prev_btn.disabled = target_step <= 1;
-  if (next_btn) next_btn.disabled = target_step >= WIZARD_STEP_COUNT;
-}
-document.getElementById('wizard_compact_prev_btn')?.addEventListener('click', () => {
-  if (current_wizard_step > 1) switch_wizard_step(current_wizard_step - 1);
-});
-document.getElementById('wizard_compact_next_btn')?.addEventListener('click', () => {
-  if (current_wizard_step < WIZARD_STEP_COUNT) switch_wizard_step(current_wizard_step + 1);
-});
-update_wizard_compact_nav(current_wizard_step);
 
 // Validation par étape
 function validate_current_step(step_number) {

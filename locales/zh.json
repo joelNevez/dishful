@@ -137,7 +137,8 @@
       "prompt_hint": "先选择筛选条件,然后点击搜索查看结果。",
       "text_placeholder": "搜索食谱标题...",
       "difficulty_country": "难度和国家",
-      "kcal_protein": "卡路里和蛋白质"
+      "kcal_protein": "卡路里和蛋白质",
+      "filters_toggle": "筛选"
     },
     "leaderboard": {
       "title": "排行榜",
@@ -248,7 +249,8 @@
       "publishing": "正在发布...",
       "updated_success": "菜谱已更新！",
       "published_success": "菜谱发布成功！获得 +20 经验值。",
-      "change_photo": "更换照片"
+      "change_photo": "更换照片",
+      "details_group_label": "份量、难度和国家 *"
     },
     "modal": {
       "ingredient_picker": {
@@ -262,7 +264,8 @@
         "selection_empty": "点击食材后会显示在这里。",
         "toast_added_multiple": "已添加 {{count}} 种食材",
         "toast_added_single": "已将\"{{name}}\"添加到菜谱",
-        "toast_custom_added": "\"{{name}}\"已添加到列表——点击\"添加\"以确认。"
+        "toast_custom_added": "\"{{name}}\"已添加到列表——点击\"添加\"以确认。",
+        "category_toggle": "按类别筛选"
       },
       "step_editor": {
         "title_add": "添加步骤",
@@ -623,7 +626,8 @@
       "Épices & Condiments": "香料与调味品",
       "Fruits secs & Oléagineux": "坚果与籽类",
       "Sucré & Pâtisserie": "甜品与烘焙",
-      "Boissons & Autres": "饮品与其他"
+      "Boissons & Autres": "饮品与其他",
+      "Fruits & Légumes": "水果和蔬菜"
     },
     "tools": {
       "Four": "烤箱",
