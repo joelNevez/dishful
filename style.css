@@ -2078,6 +2078,20 @@ label.field-label{
 
 @media (max-width:700px){
 
+  /* ---------- Réduction générale : pensé pour un écran de téléphone, pas
+     juste une version resserrée du site desktop (têtes de page, cartes et
+     formulaires étaient dimensionnés pour une souris). ---------- */
+  main{padding:16px 14px 20px;}
+  h1{font-size:1.3rem;}
+  h2{font-size:1.08rem;}
+  h3{font-size:1rem;}
+  .sub, .sub-hint{font-size:12px;}
+  .btn-primary, .btn-secondary, .secondary_btn{padding:10px 14px;font-size:13.5px;}
+  .text-btn{padding:7px 12px;font-size:12.5px;}
+  .modal{padding:14px;}
+  .modal-card{padding:20px;width:min(360px, 100%);}
+  .modal-card h2{font-size:1.1rem;}
+
   /* ---------- Header allégé + barre de navigation basse ---------- */
   nav.tabs{display:none;}
   .avatar-header{display:none;}
@@ -2157,8 +2171,65 @@ label.field-label{
   .chips-row .tag-chip{background:none;padding:0;font-weight:700;color:var(--saffron-deep);}
   .chips-row .tag-chip::before{content:"#";}
 
+  /* ---------- Entêtes + filtres partagés (feed / recherche / classement) ---------- */
+  .feed-header{margin-bottom:12px;}
+  .feed-header h1{font-size:19px;}
+  .feed-subtabs{gap:6px;margin-bottom:12px;}
+  .feed-subtab-btn{padding:7px 12px;font-size:12.5px;}
+  .feed-search-bar{padding:8px 14px;margin-bottom:10px;}
+  .filter-toggle-btn{padding:7px 11px;font-size:12px;}
+  .feed-filters-panel{padding:14px;gap:12px;margin-bottom:12px;}
+  .filter-row{gap:6px;margin-bottom:0;}
+  .filter-chip{padding:5px 11px;font-size:12px;}
+  .filter-block label{font-size:11.5px;}
+  .feed-results-count{margin-bottom:8px;font-size:12px;}
+
+  .search-filters-card{padding:14px;gap:14px;margin:12px 0;border-radius:14px;}
+  .search-filters-actions{gap:10px;}
+  .search-filters-actions .btn-primary{padding:10px 16px;font-size:13px;}
+  .search-range-row input{width:76px;}
+
+  .leaderboard-subtabs{gap:6px;margin-bottom:12px;}
+  .leaderboard-subtab-btn{padding:7px 12px;font-size:12px;}
+  .leaderboard-period-toggle{gap:6px;}
+  .leaderboard-period-btn{padding:6px 11px;font-size:11.5px;}
+  .leaderboard-scope-toggle{margin-bottom:10px;}
+  .leaderboard-row{padding:10px 12px;gap:10px;border-radius:12px;}
+  .leaderboard-avatar{width:38px;height:38px;font-size:14px;}
+  .leaderboard-rank{width:24px;font-size:16px;}
+  .leaderboard-identity{min-width:0;}
+  .leaderboard-level{min-width:0;}
+
+  /* ---------- Publier : formulaire édition, pas une carte flottante ---------- */
+  .publish-card, .profile-card{padding:16px;border-radius:14px;max-width:100%;}
+  .publish-card h1, .profile-card h1{font-size:18px;}
+  .wizard-steps-nav{gap:4px;margin-bottom:12px;padding-bottom:8px;}
+  .wizard-step-btn{padding:0.4rem 0.65rem;font-size:12.5px;}
+  .wizard-actions{margin-top:12px;padding-top:10px;flex-wrap:wrap;gap:10px;}
+  .cover-photo-dropzone{padding:18px 14px;}
+  .cover-photo-dropzone i{font-size:20px;}
+  label.field-label{font-size:11.5px;}
+  .chip{padding:5px 11px;font-size:12px;}
+  .dynamic-row .row-index{width:22px;height:22px;font-size:11px;}
+  .add-row-btn{padding:7px 12px;font-size:12.5px;}
+
+  /* ---------- Détail recette : on garde l'esprit "carte", en plus compact ---------- */
+  .recipe_detail_container{padding:0 12px 40px;margin:12px auto;}
+  .recipe_full_view{border-radius:16px;}
+  .recipe_header{padding:16px 16px 0;}
+  .recipe_full_view h2{font-size:1.4rem;line-height:1.2;}
+  .recipe_description{font-size:13.5px;}
+  .country_badge{font-size:11.5px;padding:5px 11px;}
+  .recipe_meta_bar{padding:10px 12px;gap:8px;margin-top:12px;border-radius:12px;}
+  .recipe_meta_bar > div{font-size:12px;padding:5px 11px;}
+  .recipe_full_view h3{font-size:1.02rem;margin:22px 16px 10px;}
+  .recipe_full_view ol.steps_list{margin:0 16px;}
+  .recipe_gallery{padding:12px 16px 4px;}
+  .recipe_gallery img{width:84px;height:84px;}
+  .product-list-item{padding:9px 12px;font-size:13px;}
+
   /* ---------- Profil : en-tête + grille carrée façon Instagram ---------- */
-  .profile_container{padding:16px;}
+  .profile_container{padding:8px 0 24px;}
   .profile_banner{height:100px;}
   .profile_header_content{padding:14px 16px;align-items:flex-start;}
 
@@ -2179,10 +2250,10 @@ label.field-label{
 
   #tab_recipes.tab_content,
   #public_tab_recipes.tab_content{
-    padding:0;background:none;border:none;box-shadow:none;margin:0 -16px;
+    padding:0;background:none;border:none;box-shadow:none;margin:0;
   }
-  #tab_recipes h3, #tab_recipes .saved_filters_row,
-  #public_tab_recipes h3{padding:0 16px;}
+  .saved_filters_row{gap:8px;}
+  .saved_filters_row select{font-size:12.5px;}
 
   .mini_grid{grid-template-columns:repeat(3, 1fr);gap:2px;margin:0 0 20px;}
   .mini_recipe_card{border:none;border-radius:0;background:none;}
