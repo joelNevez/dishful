@@ -152,9 +152,9 @@ main{max-width:900px;margin:0 auto;padding:28px 20px 80px;}
 /* ---------- Popup d'explication de page (première visite, "ne plus afficher") ---------- */
 .page-hint-card{text-align:center;padding-top:36px;}
 .page-hint-icon{
-  width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:24px;margin:0 auto 16px;background:#FFF6E0;color:var(--saffron-deep);
+  width:72px;height:72px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;
 }
+.page-hint-icon svg{width:100%;height:100%;}
 #page_hint_title{margin-bottom:8px;}
 .page-hint-body{color:var(--ink-soft);font-size:14px;line-height:1.55;margin:0 0 22px;}
 #page_hint_ok_btn{width:100%;}
@@ -162,9 +162,9 @@ main{max-width:900px;margin:0 auto;padding:28px 20px 80px;}
 /* ---------- Popup tutoriel de bienvenue (nouveau compte) ---------- */
 .tutorial-card{text-align:center;padding-top:36px;}
 .tutorial-icon{
-  width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:28px;margin:0 auto 16px;background:linear-gradient(135deg,var(--saffron),var(--saffron-deep));color:#fff;
+  width:80px;height:80px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;
 }
+.tutorial-icon svg{width:100%;height:100%;}
 #tutorial_step_title{margin-bottom:8px;}
 .tutorial-step-body{color:var(--ink-soft);font-size:14px;line-height:1.55;margin:0 0 20px;min-height:42px;}
 .tutorial-progress-dots{display:flex;justify-content:center;gap:7px;margin-bottom:22px;}

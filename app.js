@@ -4111,12 +4111,12 @@ document.getElementById('page_hint_ok_btn')?.addEventListener('click', close_pag
 // première session), puis affiché et purgé dès que le profil se charge.
 // =====================================================================
 const WELCOME_TUTORIAL_STEPS = [
-  { icon: 'fa-hand-sparkles', key: 'welcome' },
-  { icon: 'fa-house', key: 'feed' },
-  { icon: 'fa-magnifying-glass', key: 'search' },
-  { icon: 'fa-square-plus', key: 'publish' },
-  { icon: 'fa-trophy', key: 'leaderboard' },
-  { icon: 'fa-user', key: 'profile' },
+  { key: 'welcome' },
+  { key: 'feed' },
+  { key: 'search' },
+  { key: 'publish' },
+  { key: 'leaderboard' },
+  { key: 'profile' },
 ];
 let tutorial_step_index = 0;
 
@@ -4143,7 +4143,6 @@ function show_welcome_tutorial() {
 
 function render_tutorial_step() {
   const step = WELCOME_TUTORIAL_STEPS[tutorial_step_index];
-  document.getElementById('tutorial_step_icon').innerHTML = `<i class="fa-solid ${step.icon}"></i>`;
   document.getElementById('tutorial_step_title').textContent = I18N.t(`tutorial.${step.key}_title`);
   document.getElementById('tutorial_step_body').textContent = I18N.t(`tutorial.${step.key}_body`);
   const dots = document.getElementById('tutorial_progress_dots');
