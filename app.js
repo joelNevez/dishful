@@ -3324,12 +3324,12 @@ function recipe_card_html(r) {
         ${total_time ? `<span class="recipe-card-stat"><i class="fa-solid fa-stopwatch"></i> ${total_time} ${escape_html(I18N.t('common.minutes_short'))}</span>` : ''}
         <span class="recipe-card-stat"><i class="fa-solid fa-gauge"></i> ${escape_html(difficulty_label)}</span>
         ${r.servings ? `<span class="recipe-card-stat"><i class="fa-solid fa-users"></i> ${r.servings} ${escape_html(I18N.t('common.servings'))}</span>` : ''}
-        ${r.views_count ? `<span class="recipe-card-stat"><i class="fa-solid fa-eye"></i> ${r.views_count}</span>` : ''}
       </div>
       <div class="chips-row">${tag_chips}</div>
       <div class="recipe-actions">
         <button class="action-btn like-btn ${is_liked ? 'liked' : ''}" data-recipe-id="${escape_attr(r.id)}"><i class="fa-solid fa-heart"></i> <span class="like-count">${r.likes_count || 0}</span></button>
         <span class="action-btn"><i class="fa-regular fa-comment"></i> ${r.comments_count || 0}</span>
+        ${r.views_count ? `<span class="action-btn recipe-card-views"><i class="fa-solid fa-eye"></i> ${r.views_count}</span>` : ''}
         <button class="translate-btn"><i class="fa-solid fa-language"></i> ${escape_html(I18N.t('common.translate_btn'))}</button>
         ${donation_link ? `<a class="donate-btn" href="${escape_attr(donation_link)}" target="_blank" rel="noopener"><i class="fa-solid fa-hand-holding-heart"></i> ${escape_html(I18N.t('common.donate_btn'))}</a>` : ''}
       </div>
@@ -4814,7 +4814,8 @@ async function load_weekly_recipe_ranking(kind, container) {
 // clavier du mode cuisine si on quitte la page recette sans avoir cliqué "Terminé".
 let cooking_keydown_handler = null;
 
-async function show_recipe_detail_page(recipe_id) {
+async function show_recipe_detail_page(recipe_id, opts) {
+  const from_popstate = !!(opts && opts.from_popstate);
   const container = document.getElementById("single_recipe_content");
   if (!container) return;
 
@@ -4852,7 +4853,15 @@ async function show_recipe_detail_page(recipe_id) {
 
   switch_tab("recipe-detail");
   window.scrollTo(0, 0);
-  history.replaceState(null, '', '?recipe=' + recipe.id);
+  // pushState (pas replaceState) : ouvrir une recette crée une vraie entrée
+  // d'historique, pour que le geste "retour" natif du téléphone (ou le
+  // bouton retour du navigateur) fonctionne tout seul — indispensable en
+  // mode mobile où le bouton "Retour" est masqué au profit de ce geste.
+  // On ne pousse rien quand on restaure depuis un popstate (sinon on
+  // repousse une entrée à chaque retour en arrière et l'historique boucle).
+  if (!from_popstate) {
+    history.pushState({ dishful_tab: 'recipe-detail', return_tab: recipe_detail_return_tab }, '', '?recipe=' + recipe.id);
+  }
 
   // Vue comptée à chaque ouverture de la page recette (best-effort, ne bloque pas l'affichage).
   if (supabase) {
@@ -4890,14 +4899,14 @@ async function show_recipe_detail_page(recipe_id) {
     const display = document.getElementById('cooking_timer_display');
     const btn = document.getElementById('cooking_timer_btn');
     if (display) display.classList.remove('cooking_timer_done');
-    if (btn) btn.innerHTML = `<i class="fa-solid fa-pause"></i> ${escape_html(I18N.t('recipe_detail.timer_running'))}`;
+    if (btn) btn.innerHTML = `<i class="fa-solid fa-pause"></i> <span class="cooking_timer_btn_label">${escape_html(I18N.t('recipe_detail.timer_running'))}</span>`;
     cooking_timer_interval = setInterval(() => {
       cooking_timer_remaining--;
       if (display) display.textContent = format_timer(Math.max(cooking_timer_remaining, 0));
       if (cooking_timer_remaining <= 0) {
         stop_cooking_timer();
         if (display) display.classList.add('cooking_timer_done');
-        if (btn) btn.innerHTML = `<i class="fa-solid fa-check"></i> ${escape_html(I18N.t('recipe_detail.timer_finished'))}`;
+        if (btn) btn.innerHTML = `<i class="fa-solid fa-check"></i> <span class="cooking_timer_btn_label">${escape_html(I18N.t('recipe_detail.timer_finished'))}</span>`;
         show_alert_modal(I18N.t('recipe_detail.timer_done'), { type: 'success' });
       }
     }, 1000);
@@ -4947,7 +4956,7 @@ async function show_recipe_detail_page(recipe_id) {
       ${step.time_min ? `
         <div class="cooking_timer_block">
           <span class="cooking_timer_display" id="cooking_timer_display">${format_timer(step.time_min * 60)}</span>
-          <button type="button" id="cooking_timer_btn" class="btn-primary"><i class="fa-solid fa-play"></i> ${escape_html(I18N.t('recipe_detail.start_timer'))}</button>
+          <button type="button" id="cooking_timer_btn" class="btn-primary"><i class="fa-solid fa-play"></i> <span class="cooking_timer_btn_label">${escape_html(I18N.t('recipe_detail.start_timer'))}</span></button>
         </div>` : ''}
     `;
 
@@ -5657,8 +5666,27 @@ document.querySelectorAll('#tab-public-profile .profile_tabs_nav .tab_btn').forE
 document.getElementById('back_to_feed_from_profile_btn')?.addEventListener('click', () => switch_tab('feed'));
 
 document.getElementById('back_to_feed_btn')?.addEventListener('click', () => {
-  switch_tab(recipe_detail_return_tab || 'feed');
-  window.scrollTo(0, 0);
+  // Passe par l'historique réel plutôt que de rebasculer l'onglet directement :
+  // ça garde un seul chemin (popstate, ci-dessous) pour "revenir en arrière",
+  // que ce soit via ce bouton, le geste natif du téléphone ou le bouton
+  // retour du navigateur.
+  history.back();
+});
+
+// Geste "retour" natif (téléphone ou navigateur) depuis la page recette :
+// pushState plus haut a créé une vraie entrée d'historique à l'ouverture,
+// donc revenir en arrière déclenche cet évènement plutôt que de quitter le
+// site. On retombe soit sur une AUTRE recette déjà visitée (l'URL contient
+// encore ?recipe=), soit sur l'onglet d'origine.
+window.addEventListener('popstate', () => {
+  if (document.getElementById('tab-recipe-detail')?.classList.contains('hidden')) return;
+  const recipe_id = new URLSearchParams(location.search).get('recipe');
+  if (recipe_id) {
+    show_recipe_detail_page(recipe_id, { from_popstate: true });
+  } else {
+    switch_tab(recipe_detail_return_tab || 'feed');
+    window.scrollTo(0, 0);
+  }
 });
 
 let current_public_profile_user_id = null;

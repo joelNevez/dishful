@@ -2098,6 +2098,19 @@ label.field-label{
   header.top{padding:12px 16px;}
   .brand .tagline{display:none;}
   body{padding-bottom:64px;}
+  /* Le niveau/XP est déjà affiché en détail dans le profil (accessible
+     depuis la barre du bas) : pas besoin de le répéter dans le header. */
+  .xp-pill{display:none;}
+
+  /* Le bouton drapeau seul suffit à indiquer que c'est cliquable, le chevron
+     n'ajoutait rien. Le menu devient une feuille pleine largeur ancrée sous
+     le header plutôt qu'un petit popover collé au bouton : ça évite tout
+     risque de déborder de l'écran selon la taille exacte du téléphone. */
+  .lang-switcher-toggle i{display:none;}
+  .lang-switcher-menu{
+    position:fixed;top:62px;left:14px;right:14px;
+    width:auto;min-width:0;max-height:min(400px, 70vh);overflow-y:auto;
+  }
 
   .mobile-tabbar{
     display:flex;align-items:center;justify-content:space-around;
@@ -2146,13 +2159,16 @@ label.field-label{
   .mobile-swipe-track > #tab-leaderboard{order:4;}
   .mobile-swipe-track > #tab-profile{order:5;}
 
-  /* ---------- Feed : cartes plein cadre façon post Instagram ---------- */
+  /* ---------- Feed : posts façon Instagram, mais en cartes espacées et
+     arrondies (pas plein cadre) — en-tête auteur au-dessus de la photo,
+     puis juste like/commentaires/vues/étoiles : le reste (catégorie,
+     temps, portions, tags) n'a plus sa place que dans la fiche recette. ---------- */
   .recipe-grid{display:block;max-width:100%;margin:0;gap:0;}
   .recipe-card{
-    border:none;border-bottom:10px solid var(--paper-deep);
-    border-radius:0;box-shadow:none;margin:0;
+    border:1px solid var(--line);border-radius:16px;overflow:hidden;
+    box-shadow:0 2px 10px rgba(43,36,28,0.06);margin:0 0 18px;
   }
-  .recipe-card:hover{transform:none;box-shadow:none;}
+  .recipe-card:hover{transform:none;box-shadow:0 2px 10px rgba(43,36,28,0.06);}
   .recipe-card:hover .recipe-cover{transform:none;}
 
   /* Les enfants de .recipe-body rejoignent le flex de .recipe-card : on peut
@@ -2162,23 +2178,42 @@ label.field-label{
   .recipe-card-header{order:1;padding:10px 12px;margin:0;}
   .recipe-card-avatar{width:32px;height:32px;font-size:13px;}
   .recipe-card-media{order:2;height:auto;aspect-ratio:1/1;}
+  /* La catégorie affichée en pastille sur la photo faisait doublon avec les
+     tags de la légende — elle ne reste que dans la fiche recette. Les
+     étoiles restent (info importante au même titre que like/commentaires/vues). */
+  .recipe-card-media-top .stripe-badge{display:none;}
   .recipe-actions{order:3;border-top:none;margin-top:0;padding:10px 12px;flex-wrap:nowrap;}
   .recipe-actions .action-btn i{font-size:18px;}
   .search-match-line{order:4;padding:0 12px;}
   .recipe-card-title{order:5;padding:2px 12px 0;margin:0;font-size:15px;-webkit-line-clamp:3;}
-  .recipe-card-stats-row{order:6;padding:6px 12px 0;margin:0;font-size:11.5px;color:var(--ink-soft);}
+  /* Temps / difficulté / portions : utile seulement une fois DANS la
+     recette, pas pour parcourir le feed. */
+  .recipe-card-stats-row{display:none;}
   .chips-row{order:7;padding:0 12px 12px;margin:8px 0 0;}
   .chips-row .tag-chip{background:none;padding:0;font-weight:700;color:var(--saffron-deep);}
   .chips-row .tag-chip::before{content:"#";}
 
   /* ---------- Entêtes + filtres partagés (feed / recherche / classement) ---------- */
-  .feed-header{margin-bottom:12px;}
-  .feed-header h1{font-size:19px;}
-  .feed-subtabs{gap:6px;margin-bottom:12px;}
-  .feed-subtab-btn{padding:7px 12px;font-size:12.5px;}
-  .feed-search-bar{padding:8px 14px;margin-bottom:10px;}
+  .feed-header{margin-bottom:10px;}
+  .feed-header h1{font-size:21px;font-weight:700;}
+
+  /* Les 3 sous-onglets doivent tenir sur une seule ligne (pas de retour à
+     la ligne) plutôt que de scroller ou de s'empiler. */
+  .feed-subtabs{gap:5px;margin-bottom:12px;flex-wrap:nowrap;}
+  .feed-subtab-btn{padding:6px 4px;font-size:11.5px;flex:1;justify-content:center;gap:4px;white-space:nowrap;}
+  .feed-subtab-btn i{font-size:11px;}
+
+  /* La barre de recherche texte fait doublon avec l'onglet Recherche dédié :
+     elle prenait de la place pour rien. On garde juste l'accès aux filtres,
+     en petit bouton discret aligné à droite. */
+  .feed-search-bar{
+    background:none;border:none;padding:0;margin-bottom:10px;
+    justify-content:flex-end;
+  }
+  .feed-search-bar > i, #feed_search_input{display:none;}
   .filter-toggle-btn{padding:7px 11px;font-size:12px;}
   .feed-filters-panel{padding:14px;gap:12px;margin-bottom:12px;}
+  #feed_panel_week .sub-hint{display:none;}
   .filter-row{gap:6px;margin-bottom:0;}
   .filter-chip{padding:5px 11px;font-size:12px;}
   .filter-block label{font-size:11.5px;}
@@ -2215,6 +2250,10 @@ label.field-label{
 
   /* ---------- Détail recette : on garde l'esprit "carte", en plus compact ---------- */
   .recipe_detail_container{padding:0 12px 40px;margin:12px auto;}
+  /* Le geste "retour" natif du téléphone fait déjà le travail (une vraie
+     entrée d'historique est créée à l'ouverture, cf. show_recipe_detail_page) :
+     pas besoin d'un bouton dédié qui mange de la place en haut. */
+  #back_to_feed_btn{display:none;}
   .recipe_full_view{border-radius:16px;}
   .recipe_header{padding:16px 16px 0;}
   .recipe_full_view h2{font-size:1.4rem;line-height:1.2;}
@@ -2226,7 +2265,30 @@ label.field-label{
   .recipe_full_view ol.steps_list{margin:0 16px;}
   .recipe_gallery{padding:12px 16px 4px;}
   .recipe_gallery img{width:84px;height:84px;}
-  .product-list-item{padding:9px 12px;font-size:13px;}
+
+  /* Ingrédients / ustensiles : icône plus petite pour laisser plus de place
+     au texte, quantité toujours lisible sans forcer un retour à la ligne. */
+  .product-list-item{padding:9px 11px;gap:9px;font-size:13px;}
+  .product-list-icon{width:26px;height:26px;font-size:13px;border-radius:7px;}
+  .product-list-name{font-size:13px;}
+  .product-list-qty{font-size:11px;padding:3px 8px;}
+
+  /* Mode cuisine : le chrono affichait un chiffre géant sans raison, et le
+     bouton écrivait la phrase en toutes lettres — une icône suffit. */
+  .cooking_timer_block{padding:10px 12px;gap:10px;}
+  .cooking_timer_display{font-size:22px;min-width:64px;}
+  .cooking_timer_btn_label{display:none;}
+  #cooking_timer_btn{padding:10px 14px;}
+  #cooking_timer_btn i{font-size:15px;}
+  .cooking_step_section h5{font-size:10px;margin-bottom:6px;}
+  .step_ing_tags{gap:5px;}
+  .step_ing_tags .tag-chip{font-size:11px;padding:4px 9px;}
+
+  /* La note par étoiles n'avait pas la place de tenir sur une ligne avec
+     son texte. */
+  .comment_rating_picker{padding:8px 10px;gap:6px;flex-wrap:wrap;}
+  .comment_rating_label{font-size:11px;}
+  .comment_rating_stars i{font-size:15px;margin-right:1px;}
 
   /* ---------- Profil : en-tête + grille carrée façon Instagram ---------- */
   .profile_container{padding:8px 0 24px;}
