@@ -685,6 +685,9 @@ label.field-label{
 }
 .profile_menu_item:hover{background:var(--paper-deep);}
 .profile_menu_item.active{color:var(--saffron-deep);}
+.profile_menu_divider{height:1px;background:var(--line);margin:6px 4px;}
+.profile_menu_item_danger{color:var(--rust);}
+.profile_menu_item_danger:hover{background:#FBEAE3;}
 
 .avatar_wrapper {
   position: relative;
@@ -866,6 +869,20 @@ label.field-label{
   gap: 10px;
   margin-bottom: 12px;
 }
+
+/* Recettes sauvegardées : repliée par défaut, ce n'est pas ce qu'on vient
+   voir en premier sur son propre profil (les recettes qu'on a publiées, oui). */
+.saved_recipes_group{margin-top:8px;}
+.saved_recipes_group summary{
+  font-family:'Fraunces',serif;font-weight:600;font-size:1.15rem;color:var(--ink);
+  cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px;margin-bottom:12px;
+}
+.saved_recipes_group summary::-webkit-details-marker{display:none;}
+.saved_recipes_group summary::after{
+  content:"\f078";font-family:"Font Awesome 6 Free";font-weight:900;font-size:13px;
+  color:var(--ink-soft);margin-left:auto;transition:transform .15s ease;
+}
+.saved_recipes_group[open] summary::after{transform:rotate(180deg);}
 
 .saved_filters_row select {
   padding: 6px 12px;
@@ -1323,10 +1340,16 @@ label.field-label{
   padding:20px;max-height:88vh;overflow-y:auto;
   box-shadow:0 20px 50px rgba(43,36,28,0.25);
 }
-.ingredient-selection-cloud h3{
+.ingredient-selection-cloud summary{
   font-size:13px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.03em;
-  display:flex;align-items:center;gap:7px;margin-bottom:14px;
+  display:flex;align-items:center;gap:7px;margin-bottom:14px;cursor:pointer;list-style:none;
 }
+.ingredient-selection-cloud summary::-webkit-details-marker{display:none;}
+.ingredient-selection-cloud summary::after{
+  content:"\f078";font-family:"Font Awesome 6 Free";font-weight:900;font-size:10px;
+  margin-left:auto;transition:transform .15s ease;
+}
+.ingredient-selection-cloud[open] summary::after{transform:rotate(180deg);}
 .cloud-bubbles{display:flex;flex-wrap:wrap;gap:8px;}
 .cloud-empty-hint{font-size:12.5px;color:var(--ink-soft);font-style:italic;line-height:1.5;margin:0;}
 .cloud-bubble{
@@ -2185,13 +2208,25 @@ label.field-label{
      .mobile-swipe-viewport découpe la fenêtre visible (largeur de la page,
      hauteur pilotée en JS pour coller au contenu de l'onglet affiché — sinon
      la page ferait toujours la hauteur du plus grand des 5 onglets, même sur
-     un onglet court). .mobile-swipe-track est le rail flex 5x plus large que
-     que la fenêtre ; on le translate en JS au doigt ou au clic d'un
-     onglet de la barre du bas. L'ordre visuel (feed/recherche/publier/
-     classement/profil) est fixé par `order`, indépendamment de l'ordre réel
-     des <section> dans le DOM. */
+     un onglet court, mais voir plus bas). .mobile-swipe-track est le rail
+     flex 5x plus large que la fenêtre ; on le translate en JS au doigt ou
+     au clic d'un onglet de la barre du bas. L'ordre visuel (feed/recherche/
+     publier/classement/profil) est fixé par `order`, indépendamment de
+     l'ordre réel des <section> dans le DOM.
+
+     IMPORTANT — piège CSS : overflow-x:hidden avec overflow-y:visible ne
+     donne PAS overflow-y:visible. Selon la spec, dès que overflow-x n'est
+     pas "visible", overflow-y "visible" est recalculé en "auto" — on se
+     retrouve avec une fenêtre à hauteur fixe (pilotée en JS) qui devient un
+     conteneur À SCROLL PROPRE dès que sa hauteur mesurée est ne serait-ce
+     qu'un peu fausse (chargement asynchrone, police qui finit de charger...):
+     un "scroll dans le scroll", exactement ce qu'on ne veut pas. D'où
+     overflow:hidden explicite sur les deux axes ci-dessous, et pas de
+     hauteur pilotée en JS : la fenêtre garde sa hauteur naturelle (celle du
+     plus grand des 5 onglets), ce qui laisse un peu de vide sous un onglet
+     court mais élimine complètement le bug. */
   .mobile-swipe-viewport{
-    display:block;overflow-x:hidden;overflow-y:visible;width:100%;
+    display:block;overflow:hidden;width:100%;
   }
   .mobile-swipe-track{
     display:flex;align-items:flex-start;width:500%;
@@ -2235,14 +2270,15 @@ label.field-label{
   .recipe-card-media-top .stripe-badge{display:none;}
   .recipe-actions{order:3;border-top:none;margin-top:0;padding:10px 12px;flex-wrap:nowrap;}
   .recipe-actions .action-btn i{font-size:18px;}
+  /* "Traduire" n'a rien à faire sur la carte du feed — au pire dans la
+     fiche recette, pas ici où on ne fait que parcourir. */
+  .recipe-actions .translate-btn{display:none;}
   .search-match-line{order:4;padding:0 12px;}
-  .recipe-card-title{order:5;padding:2px 12px 0;margin:0;font-size:15px;-webkit-line-clamp:3;}
-  /* Temps / difficulté / portions : utile seulement une fois DANS la
-     recette, pas pour parcourir le feed. */
+  .recipe-card-title{order:5;padding:2px 12px 0 12px;margin:0 0 10px;font-size:15px;-webkit-line-clamp:3;}
+  /* Temps / difficulté / portions / tags : utiles seulement une fois DANS
+     la recette, pas pour parcourir le feed façon Instagram. */
   .recipe-card-stats-row{display:none;}
-  .chips-row{order:7;padding:0 12px 12px;margin:8px 0 0;}
-  .chips-row .tag-chip{background:none;padding:0;font-weight:700;color:var(--saffron-deep);}
-  .chips-row .tag-chip::before{content:"#";}
+  .chips-row{display:none;}
 
   /* ---------- Entêtes + filtres partagés (feed / recherche / classement) ---------- */
   .feed-header{margin-bottom:10px;}
@@ -2254,16 +2290,11 @@ label.field-label{
   .feed-subtab-btn{padding:6px 4px;font-size:11.5px;flex:1;justify-content:center;gap:4px;white-space:nowrap;}
   .feed-subtab-btn i{font-size:11px;}
 
-  /* La barre de recherche texte fait doublon avec l'onglet Recherche dédié :
-     elle prenait de la place pour rien. On garde juste l'accès aux filtres,
-     en petit bouton discret aligné à droite. */
-  .feed-search-bar{
-    background:none;border:none;padding:0;margin-bottom:10px;
-    justify-content:flex-end;
-  }
-  .feed-search-bar > i, #feed_search_input{display:none;}
-  .filter-toggle-btn{padding:7px 11px;font-size:12px;}
-  .feed-filters-panel{padding:14px;gap:12px;margin-bottom:12px;}
+  /* La barre de recherche + le bouton Filtres font tous les deux doublon avec
+     l'onglet Recherche dédié (qui a sa propre barre texte et ses propres
+     filtres) : plus la place pour rien sur le feed, qu'on veut juste
+     parcourir. */
+  .feed-search-bar{display:none;}
   #feed_panel_week .sub-hint{display:none;}
   .filter-row{gap:6px;margin-bottom:0;}
   .filter-chip{padding:5px 11px;font-size:12px;}
@@ -2316,6 +2347,44 @@ label.field-label{
   .dynamic-row .row-index{width:22px;height:22px;font-size:11px;}
   .add-row-btn{padding:7px 12px;font-size:12.5px;}
 
+  /* ---------- Modale ingrédients : la mise en page à 2 colonnes (fiche +
+     nuage de sélection à côté) déborde largement d'un écran de téléphone —
+     on empile, et le nuage devient une section repliable (fermée par
+     défaut : on veut voir la liste d'aliments, pas sa sélection en premier). ---------- */
+  .ingredient-picker-layout{flex-direction:column;max-width:100%;gap:12px;}
+  /* max-height + overflow-y:auto ici (contrairement au carrousel des onglets
+     plus haut) est volontaire et correct : la modale est centrée dans un
+     position:fixed, donc un contenu plus haut que l'écran sans limite de
+     hauteur deviendrait inatteignable en haut/bas (le scroll de la PAGE ne
+     peut rien faire bouger dans une position:fixed) — c'est ce scroll
+     interne borné qui doit exister, seul le "scroll dans le scroll" du
+     carrousel de la page posait problème. */
+  .modal-card-wide{width:100%;max-height:calc(100vh - 28px);overflow-y:auto;padding:16px;}
+  .modal-card-wide h2{font-size:16px;margin-bottom:10px;}
+  #ingredient_search_input{font-size:14px;}
+  .food-category-tabs{gap:5px;margin-bottom:10px;}
+  /* Ici la carte ET le nuage de sélection sont empilés SOUS un même parent
+     flex centré (.ingredient-picker-layout) : c'est ce parent qu'il faut
+     borner + faire défiler comme UN SEUL bloc, sinon on aurait un scroll
+     dans la carte ET un autre dans le nuage — annule donc la règle
+     générale ci-dessus pour ce cas précis. */
+  .ingredient-picker-layout{max-height:calc(100vh - 28px);overflow-y:auto;}
+  .ingredient-picker-layout .modal-card-wide{max-height:none;overflow-y:visible;}
+  .ingredient-selection-cloud{
+    width:100%;align-self:auto;max-height:none;padding:12px;box-shadow:none;
+  }
+  .ingredient-selection-cloud:not([open]){padding-bottom:0;}
+
+  /* ---------- Modale éditeur d'étape : idem, plus le temps en simple champ
+     numérique — le cadran à faire tourner au doigt n'a pas sa place ici,
+     le sélecteur +/- juste en dessous (déjà dans le HTML, piloté par la
+     même valeur) suffit très bien tout seul sur mobile. */
+  .modal-card-xwide{width:100%;max-height:calc(100vh - 28px);overflow-y:auto;padding:16px;}
+  .modal-card-xwide h2{font-size:17px;margin-bottom:12px;}
+  .step-editor-grid-2col{display:flex;flex-direction:column;gap:14px;}
+  .time-clock-dial{display:none;}
+  .time-picker-display input{font-size:16px;}
+
   /* ---------- Détail recette : on garde l'esprit "carte", en plus compact ---------- */
   .recipe_detail_container{padding:0 12px 40px;margin:12px auto;}
   /* Le geste "retour" natif du téléphone fait déjà le travail (une vraie
@@ -2365,13 +2434,20 @@ label.field-label{
 
   /* Même astuce display:contents : avatar et bloc "niveau" (notre seule vraie
      statistique, faute de compteur d'abonnés) se retrouvent côte à côte
-     comme avatar+stats sur Instagram, nom/pseudo passent en dessous. */
+     comme avatar+stats sur Instagram, nom/pseudo passent en dessous. Le
+     niveau exact (barre + "Niv. N") suffit largement : le détail "X
+     recettes · Y likes" et le texte "N / 100 XP" sont redondants avec ce
+     qu'on voit déjà d'un coup d'œil. */
   .profile_avatar_box{display:contents;}
   .avatar_wrapper{order:1;}
   .avatar_circle{width:84px;height:84px;font-size:30px;}
   .profile_level_box{order:2;flex:1;text-align:left;min-width:0;padding-left:14px;}
+  .profile_quick_stats,
+  #profile_xp_text{display:none;}
   .profile_identity{order:3;flex-basis:100%;margin-top:12px;}
-  #logout_btn_profile{order:4;flex-basis:100%;justify-content:center;border:1px solid var(--line);border-radius:10px;padding:9px;margin-top:4px;}
+  /* La déconnexion n'a pas besoin d'un gros bouton pleine largeur en
+     permanence — direction le menu burger, avec le reste des réglages. */
+  #logout_btn_profile{display:none;}
 
   /* La rangée d'icônes cède la place au menu burger (bouton posé sur la
      bannière) : Mes Recettes reste la vue par défaut, comme la grille de
@@ -2394,6 +2470,11 @@ label.field-label{
 
   /* ---------- Idées de la semaine : sélecteur de jour compact + aperçus
      compacts en grille (2 par ligne, juste photo + nom + calories) ---------- */
+  /* Le texte d'intro n'apportait rien qu'on ne voit pas déjà en utilisant la
+     page ; il ne fait que repousser recettes/jours plus bas sur un petit
+     écran. Le bouton "Recettes fitness" reste, seul sur sa ligne. */
+  #feed_panel_ideas .ideas-panel-header .sub-hint{display:none;}
+  .ideas-panel-header{justify-content:flex-end;}
   .ideas-week-total{font-size:12px;padding:8px 12px;}
   .ideas-day-tabs{display:none;margin-top:8px;}
   .ideas-day-tabs.expanded{display:flex;}

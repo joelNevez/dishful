@@ -746,8 +746,14 @@ function init_profile_subtabs() {
 document.addEventListener("DOMContentLoaded", () => {
   populate_nationality_select();
   init_profile_subtabs();
-  document.getElementById("logout_btn_profile")?.addEventListener("click", async () => {
-    if (supabase) await supabase.auth.signOut();
+  const handle_logout = async () => { if (supabase) await supabase.auth.signOut(); };
+  document.getElementById("logout_btn_profile")?.addEventListener("click", handle_logout);
+  // Même action que le bouton ci-dessus, mais depuis le menu burger (mode
+  // mobile) où la déconnexion est rangée avec le reste des réglages plutôt
+  // que d'occuper un gros bouton permanent dans l'en-tête.
+  document.getElementById("logout_btn_menu")?.addEventListener("click", () => {
+    document.getElementById('profile_menu_dropdown')?.classList.add('hidden');
+    handle_logout();
   });
 
   document.getElementById("brand_home_btn")?.addEventListener("click", () => switch_tab("feed"));
@@ -866,7 +872,6 @@ const mobile_swipe_mq = window.matchMedia('(max-width: 700px)');
 function is_mobile_mode() { return mobile_swipe_mq.matches; }
 
 let current_mobile_slide_index = 0;
-let mobile_slide_resize_observer = null;
 
 function mobile_swipe_els() {
   return {
@@ -875,28 +880,15 @@ function mobile_swipe_els() {
   };
 }
 
-// La hauteur de la fenêtre doit coller au contenu de L'ONGLET AFFICHÉ, pas
-// au plus grand des 5 (sinon un onglet court comme "Classement" laisserait
-// un grand vide en bas, et la page resterait scrollable bien après sa fin).
-// On la garde synchronisée en continu via ResizeObserver — pas juste au
-// moment du switch — car le contenu de l'onglet actif peut grandir après
-// coup (recettes qui finissent de charger, résultats de recherche...).
-function sync_mobile_swipe_height() {
-  const { viewport } = mobile_swipe_els();
-  const active_el = document.getElementById('tab-' + MOBILE_SWIPE_TABS[current_mobile_slide_index]);
-  if (!viewport || !active_el) return;
-  viewport.style.height = active_el.scrollHeight + 'px';
-}
-
-function observe_active_slide_height() {
-  const active_el = document.getElementById('tab-' + MOBILE_SWIPE_TABS[current_mobile_slide_index]);
-  if (!active_el) return;
-  if (!('ResizeObserver' in window)) { sync_mobile_swipe_height(); return; }
-  if (mobile_slide_resize_observer) mobile_slide_resize_observer.disconnect();
-  mobile_slide_resize_observer = new ResizeObserver(() => sync_mobile_swipe_height());
-  mobile_slide_resize_observer.observe(active_el);
-}
-
+// La fenêtre garde sa hauteur NATURELLE (celle du plus grand des 5 onglets) —
+// volontairement pas de hauteur pilotée/mesurée en JS ici. Ça a été tenté
+// (coller la hauteur au contenu de l'onglet actif via ResizeObserver) mais
+// .mobile-swipe-viewport a overflow:hidden sur les deux axes (voir le CSS,
+// piège overflow-x/overflow-y expliqué là-bas) : la moindre hauteur mesurée
+// un peu fausse (contenu chargé de façon async, police qui finit de
+// charger...) faisait apparaître un scroll interne et un effet de
+// scintillement. Le compromis — un peu de vide sous un onglet court — est
+// largement préférable à ce bug.
 function goto_mobile_slide(tab_name, animate) {
   const { viewport, track } = mobile_swipe_els();
   const index = MOBILE_SWIPE_TABS.indexOf(tab_name);
@@ -905,8 +897,6 @@ function goto_mobile_slide(tab_name, animate) {
   track.style.transition = animate === false ? 'none' : '';
   track.style.transform = `translateX(-${index * viewport.clientWidth}px)`;
   if (animate === false) { void track.offsetHeight; track.style.transition = ''; }
-  observe_active_slide_height();
-  sync_mobile_swipe_height();
 }
 
 // Le feed est déjà visible par défaut dans le HTML (pas de classe "hidden"),
@@ -915,8 +905,6 @@ function goto_mobile_slide(tab_name, animate) {
 function init_mobile_swipe_visibility() {
   if (!is_mobile_mode()) return;
   MOBILE_SWIPE_TABS.forEach(id => document.getElementById('tab-' + id)?.classList.remove('hidden'));
-  observe_active_slide_height();
-  sync_mobile_swipe_height();
 }
 init_mobile_swipe_visibility();
 

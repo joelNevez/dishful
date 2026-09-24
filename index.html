@@ -414,6 +414,8 @@
         <button type="button" class="profile_menu_item tab_btn" data-tab="tab_info"><i class="fa-solid fa-gear"></i> <span data-i18n="profile.tab_info">Informations</span></button>
         <button type="button" class="profile_menu_item tab_btn" data-tab="tab_badges"><i class="fa-solid fa-medal"></i> <span data-i18n="profile.tab_badges">Badges & Succès</span></button>
         <button type="button" class="profile_menu_item tab_btn" data-tab="tab_journal"><i class="fa-solid fa-bowl-food"></i> <span data-i18n="profile.tab_journal">Journal</span></button>
+        <div class="profile_menu_divider"></div>
+        <button type="button" class="profile_menu_item profile_menu_item_danger" id="logout_btn_menu"><i class="fa-solid fa-right-from-bracket"></i> <span data-i18n="profile.logout">Déconnexion</span></button>
       </div>
     </div>
 
@@ -548,17 +550,19 @@
       <h3 data-i18n="profile.published_recipes">Mes recettes publiées</h3>
       <div id="user_published_recipes" class="recipes_grid mini_grid"></div>
 
-      <h3 data-i18n="profile.saved_recipes">Mes recettes sauvegardées</h3>
-      <div class="saved_filters_row">
-        <select id="saved_filter_country">
-          <option value="" data-i18n="common.all_countries">Tous les pays</option>
-        </select>
-        <select id="saved_filter_tag">
-          <option value="" data-i18n="profile.all_tags">Tous les tags</option>
-        </select>
-      </div>
+      <details class="saved_recipes_group" id="saved_recipes_group">
+        <summary data-i18n="profile.saved_recipes">Mes recettes sauvegardées</summary>
+        <div class="saved_filters_row">
+          <select id="saved_filter_country">
+            <option value="" data-i18n="common.all_countries">Tous les pays</option>
+          </select>
+          <select id="saved_filter_tag">
+            <option value="" data-i18n="profile.all_tags">Tous les tags</option>
+          </select>
+        </div>
 
-      <div id="user_saved_recipes" class="recipes_grid mini_grid"></div>
+        <div id="user_saved_recipes" class="recipes_grid mini_grid"></div>
+      </details>
     </div>
 
     <div id="tab_journal" class="tab_content">
@@ -623,12 +627,12 @@
         </div>
       </div>
 
-      <aside class="ingredient-selection-cloud" id="ingredient_selection_cloud">
-        <h3><i class="fa-solid fa-basket-shopping"></i> <span data-i18n="modal.ingredient_picker.selection_title">Ta sélection</span></h3>
+      <details class="ingredient-selection-cloud" id="ingredient_selection_cloud" open>
+        <summary><i class="fa-solid fa-basket-shopping"></i> <span data-i18n="modal.ingredient_picker.selection_title">Ta sélection</span></summary>
         <div class="cloud-bubbles" id="cloud_bubbles">
           <p class="cloud-empty-hint" data-i18n="modal.ingredient_picker.selection_empty">Clique sur des aliments pour les voir apparaître ici.</p>
         </div>
-      </aside>
+      </details>
     </div>
   </div>
 
