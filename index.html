@@ -146,42 +146,54 @@
     <p class="sub-hint" data-i18n="search.hint">Trouve la recette parfaite selon tes objectifs — calories, protéines, catégorie, allergènes à éviter...</p>
 
     <div class="search-filters-card">
-      <div class="filter-block">
-        <label><i class="fa-solid fa-tags"></i> <span data-i18n="search.category">Catégorie</span></label>
+      <div class="search-text-row">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="search_text_input" data-i18n-placeholder="search.text_placeholder" placeholder="Rechercher un titre de recette...">
+      </div>
+
+      <details class="search-filter-group">
+        <summary><i class="fa-solid fa-tags"></i> <span data-i18n="search.category">Catégorie</span></summary>
         <div class="filter-row" id="search_category_filters"></div>
-      </div>
-      <div class="filter-row-split">
-        <div class="filter-block">
-          <label><i class="fa-solid fa-gauge"></i> <span data-i18n="search.difficulty">Difficulté</span></label>
-          <div class="filter-row" id="search_difficulty_filters"></div>
-        </div>
-        <div class="filter-block">
-          <label><i class="fa-solid fa-globe"></i> <span data-i18n="search.country">Pays</span></label>
-          <select id="search_country_select"><option value="" data-i18n="common.all_countries">Tous les pays</option></select>
-        </div>
-      </div>
-      <div class="filter-row-split">
-        <div class="filter-block">
-          <label><i class="fa-solid fa-fire"></i> <span data-i18n="search.kcal">Calories par portion</span></label>
-          <div class="search-range-row">
-            <input type="number" id="search_kcal_min" data-i18n-placeholder="search.kcal_min_placeholder" placeholder="Min" min="0">
-            <span>—</span>
-            <input type="number" id="search_kcal_max" data-i18n-placeholder="search.kcal_max_placeholder" placeholder="Max" min="0">
-            <span class="search-range-unit">kcal</span>
+      </details>
+      <details class="search-filter-group">
+        <summary><i class="fa-solid fa-gauge"></i> <span data-i18n="search.difficulty_country">Difficulté & pays</span></summary>
+        <div class="filter-row-split">
+          <div class="filter-block">
+            <label><i class="fa-solid fa-gauge"></i> <span data-i18n="search.difficulty">Difficulté</span></label>
+            <div class="filter-row" id="search_difficulty_filters"></div>
+          </div>
+          <div class="filter-block">
+            <label><i class="fa-solid fa-globe"></i> <span data-i18n="search.country">Pays</span></label>
+            <select id="search_country_select"><option value="" data-i18n="common.all_countries">Tous les pays</option></select>
           </div>
         </div>
-        <div class="filter-block">
-          <label><i class="fa-solid fa-dumbbell"></i> <span data-i18n="search.protein_min">Protéines minimum</span></label>
-          <div class="search-range-row">
-            <input type="number" id="search_protein_min" data-i18n-placeholder="search.protein_placeholder" placeholder="Ex : 20" min="0">
-            <span class="search-range-unit" data-i18n="search.protein_unit">g / portion</span>
+      </details>
+      <details class="search-filter-group">
+        <summary><i class="fa-solid fa-fire"></i> <span data-i18n="search.kcal_protein">Calories & protéines</span></summary>
+        <div class="filter-row-split">
+          <div class="filter-block">
+            <label><i class="fa-solid fa-fire"></i> <span data-i18n="search.kcal">Calories par portion</span></label>
+            <div class="search-range-row">
+              <input type="number" id="search_kcal_min" data-i18n-placeholder="search.kcal_min_placeholder" placeholder="Min" min="0">
+              <span>—</span>
+              <input type="number" id="search_kcal_max" data-i18n-placeholder="search.kcal_max_placeholder" placeholder="Max" min="0">
+              <span class="search-range-unit">kcal</span>
+            </div>
+          </div>
+          <div class="filter-block">
+            <label><i class="fa-solid fa-dumbbell"></i> <span data-i18n="search.protein_min">Protéines minimum</span></label>
+            <div class="search-range-row">
+              <input type="number" id="search_protein_min" data-i18n-placeholder="search.protein_placeholder" placeholder="Ex : 20" min="0">
+              <span class="search-range-unit" data-i18n="search.protein_unit">g / portion</span>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="filter-block">
-        <label><i class="fa-solid fa-triangle-exclamation"></i> <span data-i18n="search.allergens">Exclure les allergènes</span></label>
+      </details>
+      <details class="search-filter-group">
+        <summary><i class="fa-solid fa-triangle-exclamation"></i> <span data-i18n="search.allergens">Exclure les allergènes</span></summary>
         <div class="filter-row" id="search_allergen_filters"></div>
-      </div>
+      </details>
+
       <div class="search-filters-actions">
         <button type="button" id="run_search_btn" class="btn-primary"><i class="fa-solid fa-magnifying-glass"></i> <span data-i18n="search.run">Rechercher</span></button>
         <button type="button" id="reset_search_btn" class="text-btn"><i class="fa-solid fa-arrow-rotate-left"></i> <span data-i18n="search.reset">Réinitialiser</span></button>

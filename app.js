@@ -2958,6 +2958,10 @@ function pick_ideas_recipe(pools, day_key, slot_key, variant) {
 
 function ideas_slot_cell_html(slot, recipe) {
   const cover_image = recipe.cover_image || (recipe.images && recipe.images[0]) || '';
+  // Calories affichées plutôt que les likes : pour planifier sa semaine, c'est
+  // l'info qui compte réellement d'un coup d'œil (le reste attend le clic).
+  const totals = compute_recipe_nutrition(recipe.steps, 1);
+  const kcal_per_serving = totals.kcal ? Math.round(totals.kcal / (recipe.servings || 1)) : 0;
   return `
     <div class="ideas-slot-cell">
       <span class="ideas-slot-label"><i class="fa-solid ${slot.icon}"></i> ${escape_html(I18N.t(`feed.slot_${slot.key}`))}</span>
@@ -2965,7 +2969,7 @@ function ideas_slot_cell_html(slot, recipe) {
         <div class="mini_card_img" style="background-image: url('${escape_attr(cover_image)}')"></div>
         <div class="mini_card_info">
           <h4>${escape_html(recipe.title)}</h4>
-          <span class="mini_card_meta"><i class="fa-solid fa-heart"></i> ${recipe.likes_count || 0}</span>
+          <span class="mini_card_meta">${kcal_per_serving ? `<i class="fa-solid fa-fire"></i> ${kcal_per_serving} kcal` : ''}</span>
         </div>
       </div>
     </div>`;
@@ -2975,6 +2979,10 @@ function ideas_slot_cell_html(slot, recipe) {
 // et jour actuellement affiché — vivent hors de render_feed_ideas pour survivre aux re-rendus.
 let ideas_day_variant = {};
 let ideas_selected_day = IDEAS_DAYS[0].key;
+// Mode mobile uniquement : le sélecteur de jour part replié (juste le jour
+// courant + flèches précédent/suivant) et ne s'ouvre en petit calendrier
+// que sur demande — il se referme automatiquement dès qu'un jour est choisi.
+let ideas_calendar_expanded = false;
 
 function ideas_nutrition_summary_html(recipes) {
   if (!recipes.length) return '';
@@ -3016,17 +3024,43 @@ function render_feed_ideas() {
       ${escape_html(ideas_day_label(day))}
     </button>`).join('');
 
+  // Barre compacte (mode mobile uniquement, invisible sur desktop) : jour
+  // courant + flèches, et un bouton pour déplier le petit calendrier ci-dessous.
+  const current_day_idx = IDEAS_DAYS.findIndex(d => d.key === ideas_selected_day);
+  const compact_nav_html = `
+    <div class="ideas-day-nav-compact">
+      <button type="button" class="ideas-day-arrow" id="ideas_day_prev_btn" ${current_day_idx <= 0 ? 'disabled' : ''} data-i18n-aria="journal.prev_day" aria-label="Jour précédent"><i class="fa-solid fa-chevron-left"></i></button>
+      <button type="button" class="ideas-day-current" id="ideas_day_toggle_btn">
+        <i class="fa-solid fa-calendar-days"></i> ${escape_html(ideas_day_label(IDEAS_DAYS[current_day_idx] || IDEAS_DAYS[0]))}
+      </button>
+      <button type="button" class="ideas-day-arrow" id="ideas_day_next_btn" ${current_day_idx >= IDEAS_DAYS.length - 1 ? 'disabled' : ''} data-i18n-aria="journal.next_day" aria-label="Jour suivant"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>`;
+
   container.innerHTML = `
     ${week_total ? `<div class="ideas-week-total"><i class="fa-solid fa-calendar-week"></i> <strong>${escape_html(I18N.t('feed.week_total_label'))}</strong> : ${week_total}</div>` : ''}
-    <div class="ideas-day-tabs">${tabs_html}</div>
+    ${compact_nav_html}
+    <div class="ideas-day-tabs ${ideas_calendar_expanded ? 'expanded' : ''}" id="ideas_day_tabs">${tabs_html}</div>
     <div class="ideas-day-panel" id="ideas_day_panel"></div>
   `;
 
   container.querySelectorAll('.ideas-day-tab').forEach(btn => {
     btn.addEventListener('click', () => {
       ideas_selected_day = btn.dataset.day;
+      ideas_calendar_expanded = false; // se replie une fois le jour choisi
       render_feed_ideas();
     });
+  });
+  document.getElementById('ideas_day_toggle_btn')?.addEventListener('click', () => {
+    ideas_calendar_expanded = !ideas_calendar_expanded;
+    render_feed_ideas();
+  });
+  document.getElementById('ideas_day_prev_btn')?.addEventListener('click', () => {
+    const idx = IDEAS_DAYS.findIndex(d => d.key === ideas_selected_day);
+    if (idx > 0) { ideas_selected_day = IDEAS_DAYS[idx - 1].key; render_feed_ideas(); }
+  });
+  document.getElementById('ideas_day_next_btn')?.addEventListener('click', () => {
+    const idx = IDEAS_DAYS.findIndex(d => d.key === ideas_selected_day);
+    if (idx < IDEAS_DAYS.length - 1) { ideas_selected_day = IDEAS_DAYS[idx + 1].key; render_feed_ideas(); }
   });
 
   render_ideas_day_panel(pools);
@@ -3181,12 +3215,14 @@ function render_search_prompt_state() {
 function run_search() {
   const grid = document.getElementById('search_results_grid');
   if (!grid) return;
+  const search_text = (document.getElementById('search_text_input')?.value || '').trim().toLowerCase();
   const kcal_min = parseFloat(document.getElementById('search_kcal_min').value);
   const kcal_max = parseFloat(document.getElementById('search_kcal_max').value);
   const protein_min = parseFloat(document.getElementById('search_protein_min').value);
   const has_kcal_min = !isNaN(kcal_min), has_kcal_max = !isNaN(kcal_max), has_protein_min = !isNaN(protein_min);
 
   let results = all_recipes.filter(r => {
+    if (search_text && !(r.title || '').toLowerCase().includes(search_text)) return false;
     if (search_category && !(r.categories || []).includes(search_category)) return false;
     if (search_difficulty && (r.difficulty || 'moyen') !== search_difficulty) return false;
     if (search_country && r.country_code !== search_country) return false;
@@ -3267,9 +3303,25 @@ function search_result_card_html(r, match_ctx, nutrition) {
     </div>
   </article>`;
 }
-document.getElementById('run_search_btn')?.addEventListener('click', run_search);
+// Les groupes de filtres sont des <details> repliés par défaut (pour ne pas
+// imposer un long panneau ouvert avant même d'avoir cherché quoi que ce
+// soit) : on les referme systématiquement après une recherche, qu'ils aient
+// servi ou non, pour que les résultats prennent toute la place.
+function collapse_search_filter_groups() {
+  document.querySelectorAll('#tab-search .search-filter-group[open]').forEach(el => el.removeAttribute('open'));
+}
+function run_search_and_collapse() {
+  run_search();
+  collapse_search_filter_groups();
+}
+document.getElementById('run_search_btn')?.addEventListener('click', run_search_and_collapse);
+document.getElementById('search_text_input')?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); run_search_and_collapse(); }
+});
 document.getElementById('reset_search_btn')?.addEventListener('click', () => {
   search_category = null; search_difficulty = null; search_country = null; search_excluded_allergens.clear();
+  const text_input = document.getElementById('search_text_input');
+  if (text_input) text_input.value = '';
   document.getElementById('search_kcal_min').value = '';
   document.getElementById('search_kcal_max').value = '';
   document.getElementById('search_protein_min').value = '';

@@ -134,7 +134,10 @@
       "reset": "Restablecer",
       "results_count": "{{count}} receta(s) encontrada(s)",
       "empty": "Ninguna receta coincide con estos criterios. Prueba a ampliar tus filtros.",
-      "prompt_hint": "Elige tus criterios y luego inicia la búsqueda para ver aparecer las recetas."
+      "prompt_hint": "Elige tus criterios y luego inicia la búsqueda para ver aparecer las recetas.",
+      "text_placeholder": "Buscar un título de receta...",
+      "difficulty_country": "Dificultad y país",
+      "kcal_protein": "Calorías y proteínas"
     },
     "leaderboard": {
       "title": "Clasificación",

@@ -134,7 +134,10 @@
       "reset": "重置",
       "results_count": "找到 {{count}} 个菜谱",
       "empty": "没有符合这些条件的菜谱，试着放宽筛选条件。",
-      "prompt_hint": "先选择筛选条件,然后点击搜索查看结果。"
+      "prompt_hint": "先选择筛选条件,然后点击搜索查看结果。",
+      "text_placeholder": "搜索食谱标题...",
+      "difficulty_country": "难度和国家",
+      "kcal_protein": "卡路里和蛋白质"
     },
     "leaderboard": {
       "title": "排行榜",

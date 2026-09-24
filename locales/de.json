@@ -134,7 +134,10 @@
       "reset": "Zurücksetzen",
       "results_count": "{{count}} Rezept(e) gefunden",
       "empty": "Kein Rezept entspricht diesen Kriterien. Versuch's mit weniger Filtern.",
-      "prompt_hint": "Wähle deine Kriterien und starte die Suche, um Rezepte anzuzeigen."
+      "prompt_hint": "Wähle deine Kriterien und starte die Suche, um Rezepte anzuzeigen.",
+      "text_placeholder": "Rezepttitel suchen...",
+      "difficulty_country": "Schwierigkeit & Land",
+      "kcal_protein": "Kalorien & Eiweiß"
     },
     "leaderboard": {
       "title": "Rangliste",

@@ -1627,6 +1627,32 @@ label.field-label{
 .search-filters-actions .btn-primary{margin:0;flex:none;padding:11px 22px;}
 .allergen-filter-chip.active{background:var(--rust);border-color:#9c4527;}
 
+/* Barre de recherche texte + groupes de filtres repliables (natifs <details>,
+   pas de JS nécessaire pour ouvrir/fermer) : on ne montre le long panneau de
+   filtres que sur demande plutôt que de forcer à le parcourir en entier. */
+.search-text-row{
+  display:flex;align-items:center;gap:10px;background:var(--paper);border:1px solid var(--line);
+  border-radius:999px;padding:10px 16px;
+}
+.search-text-row i{color:var(--ink-soft);}
+.search-text-row input{flex:1;border:none;background:none;padding:0;font-size:14px;}
+.search-text-row input:focus{outline:none;}
+
+.search-filter-group{border:1px solid var(--line);border-radius:12px;padding:0;overflow:hidden;}
+.search-filter-group summary{
+  list-style:none;cursor:pointer;padding:12px 14px;font-size:13px;font-weight:700;
+  color:var(--ink);display:flex;align-items:center;gap:9px;
+}
+.search-filter-group summary::-webkit-details-marker{display:none;}
+.search-filter-group summary::after{
+  content:"\f078";font-family:"Font Awesome 6 Free";font-weight:900;font-size:11px;
+  color:var(--ink-soft);margin-left:auto;transition:transform .15s ease;
+}
+.search-filter-group[open] summary::after{transform:rotate(180deg);}
+.search-filter-group[open] summary{border-bottom:1px solid var(--line);}
+.search-filter-group > .filter-row,
+.search-filter-group > .filter-row-split{padding:14px;}
+
 .recipe-card-stats-row{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 10px;}
 .recipe-card-stat{
   font-size:11.5px;font-weight:700;color:var(--ink-soft);background:var(--paper-deep);
@@ -2219,10 +2245,14 @@ label.field-label{
   .filter-block label{font-size:11.5px;}
   .feed-results-count{margin-bottom:8px;font-size:12px;}
 
-  .search-filters-card{padding:14px;gap:14px;margin:12px 0;border-radius:14px;}
+  .search-filters-card{padding:12px;gap:10px;margin:12px 0;border-radius:14px;}
   .search-filters-actions{gap:10px;}
   .search-filters-actions .btn-primary{padding:10px 16px;font-size:13px;}
   .search-range-row input{width:76px;}
+  .search-text-row{padding:9px 14px;}
+  .search-filter-group summary{padding:10px 12px;font-size:12.5px;}
+  .search-filter-group > .filter-row,
+  .search-filter-group > .filter-row-split{padding:12px;}
 
   .leaderboard-subtabs{gap:6px;margin-bottom:12px;}
   .leaderboard-subtab-btn{padding:7px 12px;font-size:12px;}
@@ -2318,9 +2348,39 @@ label.field-label{
   .saved_filters_row select{font-size:12.5px;}
 
   .mini_grid{grid-template-columns:repeat(3, 1fr);gap:2px;margin:0 0 20px;}
-  .mini_recipe_card{border:none;border-radius:0;background:none;}
-  .mini_card_img{height:auto;aspect-ratio:1/1;}
-  .mini_card_info{display:none;}
+  .mini_grid .mini_recipe_card{border:none;border-radius:0;background:none;}
+  .mini_grid .mini_card_img{height:auto;aspect-ratio:1/1;}
+  .mini_grid .mini_card_info{display:none;}
+
+  /* ---------- Idées de la semaine : sélecteur de jour compact + aperçus
+     compacts en grille (2 par ligne, juste photo + nom + calories) ---------- */
+  .ideas-week-total{font-size:12px;padding:8px 12px;}
+  .ideas-day-tabs{display:none;margin-top:8px;}
+  .ideas-day-tabs.expanded{display:flex;}
+  .ideas-day-nav-compact{
+    display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;
+  }
+  .ideas-day-arrow{
+    width:32px;height:32px;border-radius:50%;background:var(--card);border:1px solid var(--line);
+    color:var(--ink-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .ideas-day-arrow:disabled{opacity:0.35;}
+  .ideas-day-current{
+    flex:1;max-width:200px;background:var(--card);border:1px solid var(--line);border-radius:999px;
+    padding:8px 14px;font-size:13px;font-weight:700;color:var(--ink);
+    display:flex;align-items:center;justify-content:center;gap:7px;
+  }
+  .ideas-day-variants{gap:5px;margin-bottom:10px;}
+  .ideas-variant-chip{padding:5px 10px;font-size:11px;}
+  .ideas-day-slots{grid-template-columns:repeat(2, 1fr);gap:8px;}
+  .ideas-slot-cell{gap:4px;}
+  .ideas-slot-label{font-size:10.5px;}
+  .ideas-slot-cell .mini_recipe_card{border-radius:10px;}
+  .ideas-slot-cell .mini_card_img{height:64px;}
+  .ideas-slot-cell .mini_card_info{padding:6px 8px;}
+  .ideas-slot-cell .mini_card_info h4{font-size:11.5px;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .ideas-slot-cell .mini_card_meta{font-size:10px;}
+  .ideas-day-total{font-size:11.5px;padding:8px 12px;}
 }
 .crop-zoom-row input[type=range]{flex:1;accent-color:var(--rust);}
 
