@@ -12,7 +12,9 @@
       "publish": "Publier",
       "leaderboard": "Classement",
       "login": "Se connecter",
-      "change_language": "Changer de langue"
+      "change_language": "Changer de langue",
+      "test_mobile": "Test mobile",
+      "test_mobile_close": "Fermer l’aperçu mobile"
     },
     "common": {
       "all_countries": "Tous les pays",

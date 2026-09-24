@@ -810,6 +810,35 @@ document.getElementById('mobile_profile_tab_btn')?.addEventListener('click', () 
   if (current_user) switch_tab('profile'); else auth_modal.classList.remove('hidden');
 });
 
+// Aperçu du mode mobile : une vraie iframe (largeur ~390px), pas un simple
+// habillage CSS de la page — les @media (max-width:700px) et le carrousel JS
+// s'y déclenchent donc tout seuls, exactement comme sur un vrai téléphone.
+// Le src n'est posé qu'à la première ouverture (même origine, donc la
+// session/le localStorage sont partagés) pour ne pas perdre la position de
+// navigation de l'aperçu à chaque réouverture.
+(function setup_mobile_preview() {
+  const overlay = document.getElementById('mobile_preview_overlay');
+  const iframe = document.getElementById('mobile_preview_iframe');
+  const open_btn = document.getElementById('open_mobile_preview_btn');
+  const close_btn = document.getElementById('close_mobile_preview_btn');
+  if (!overlay || !iframe || !open_btn) return;
+
+  function open_preview() {
+    if (!iframe.src) iframe.src = 'index.html';
+    overlay.classList.remove('hidden');
+  }
+  function close_preview() {
+    overlay.classList.add('hidden');
+  }
+
+  open_btn.addEventListener('click', open_preview);
+  close_btn?.addEventListener('click', close_preview);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close_preview(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !overlay.classList.contains('hidden')) close_preview();
+  });
+})();
+
 // =====================================================================
 // Carrousel glissable entre les 5 onglets principaux (mode mobile, sous
 // 700px) : feed / recherche / publier / classement / profil se glissent

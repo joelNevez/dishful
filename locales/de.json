@@ -12,7 +12,9 @@
       "publish": "Veröffentlichen",
       "leaderboard": "Rangliste",
       "login": "Anmelden",
-      "change_language": "Sprache ändern"
+      "change_language": "Sprache ändern",
+      "test_mobile": "Mobile Vorschau",
+      "test_mobile_close": "Mobile Vorschau schließen"
     },
     "common": {
       "all_countries": "Alle Länder",

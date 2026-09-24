@@ -29,6 +29,9 @@
     <button data-tab="leaderboard"><i class="fa-solid fa-trophy"></i> <span data-i18n="nav.leaderboard">Classement</span></button>
   </nav>
   <div class="header-right">
+    <button type="button" class="test-mobile-btn" id="open_mobile_preview_btn" data-i18n-aria="nav.test_mobile" aria-label="Test mobile">
+      <i class="fa-solid fa-mobile-screen-button"></i> <span data-i18n="nav.test_mobile">Test mobile</span>
+    </button>
     <div class="lang-switcher" id="lang_switcher">
       <button type="button" class="lang-switcher-toggle" id="lang_switcher_toggle" data-i18n-aria="nav.change_language" aria-label="Changer de langue">
         <span id="lang_switcher_current">🇫🇷</span> <i class="fa-solid fa-chevron-down"></i>
@@ -1046,6 +1049,19 @@
   <button type="button" class="mobile-tab-btn" data-mobiletab="leaderboard" data-i18n-aria="nav.leaderboard" aria-label="Classement"><i class="fa-solid fa-trophy"></i></button>
   <button type="button" class="mobile-tab-btn mobile-tab-profile" id="mobile_profile_tab_btn" data-i18n-aria="common.my_profile" aria-label="Mon profil"><i class="fa-solid fa-circle-user"></i></button>
 </nav>
+
+<!-- ---------------- APERÇU DU MODE MOBILE (cadre téléphone) ---------------- -->
+<!-- Une vraie fenêtre de navigateur réduite, pas un habillage CSS de la page
+     courante : l'iframe a sa propre largeur, donc les @media (max-width:700px)
+     et le JS du carrousel s'y déclenchent exactement comme sur un vrai
+     téléphone, sans qu'on ait à dupliquer la moindre règle. -->
+<div id="mobile_preview_overlay" class="mobile-preview-overlay hidden">
+  <div class="mobile-preview-frame">
+    <button type="button" class="mobile-preview-close" id="close_mobile_preview_btn" data-i18n-aria="nav.test_mobile_close" aria-label="Fermer l'aperçu mobile">&times;</button>
+    <div class="mobile-preview-notch"></div>
+    <iframe id="mobile_preview_iframe" title="Aperçu mobile" loading="lazy"></iframe>
+  </div>
+</div>
 
 <script src="i18n.js"></script>
 <script src="app.js"></script>

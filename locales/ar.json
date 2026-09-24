@@ -12,7 +12,9 @@
       "publish": "نشر",
       "leaderboard": "لوحة الصدارة",
       "login": "تسجيل الدخول",
-      "change_language": "تغيير اللغة"
+      "change_language": "تغيير اللغة",
+      "test_mobile": "معاينة الجوال",
+      "test_mobile_close": "إغلاق معاينة الجوال"
     },
     "common": {
       "all_countries": "كل الدول",

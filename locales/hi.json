@@ -12,7 +12,9 @@
       "publish": "पब्लिश करें",
       "leaderboard": "लीडरबोर्ड",
       "login": "लॉग इन करें",
-      "change_language": "भाषा बदलें"
+      "change_language": "भाषा बदलें",
+      "test_mobile": "मोबाइल पूर्वावलोकन",
+      "test_mobile_close": "मोबाइल पूर्वावलोकन बंद करें"
     },
     "common": {
       "all_countries": "सभी देश",

@@ -12,7 +12,9 @@
       "publish": "Publicar",
       "leaderboard": "Classificação",
       "login": "Entrar",
-      "change_language": "Mudar de idioma"
+      "change_language": "Mudar de idioma",
+      "test_mobile": "Pré-visualização móvel",
+      "test_mobile_close": "Fechar pré-visualização móvel"
     },
     "common": {
       "all_countries": "Todos os países",

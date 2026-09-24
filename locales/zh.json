@@ -12,7 +12,9 @@
       "publish": "发布",
       "leaderboard": "排行榜",
       "login": "登录",
-      "change_language": "切换语言"
+      "change_language": "切换语言",
+      "test_mobile": "移动预览",
+      "test_mobile_close": "关闭移动预览"
     },
     "common": {
       "all_countries": "所有国家",

@@ -12,7 +12,9 @@
       "publish": "Publish",
       "leaderboard": "Leaderboard",
       "login": "Log in",
-      "change_language": "Change language"
+      "change_language": "Change language",
+      "test_mobile": "Mobile preview",
+      "test_mobile_close": "Close mobile preview"
     },
     "common": {
       "all_countries": "All countries",
