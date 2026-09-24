@@ -2062,6 +2062,11 @@ label.field-label{
    ===================================================================== */
 .mobile-tabbar{display:none;}
 
+/* Sur desktop, le carrousel d'onglets n'a AUCUN effet : les deux div de
+   l'enveloppe disparaissent de l'arbre de rendu et .hidden continue de
+   s'appliquer directement à chaque <section>, exactement comme avant. */
+.mobile-swipe-viewport, .mobile-swipe-track{display:contents;}
+
 @media (max-width:700px){
 
   /* ---------- Header allégé + barre de navigation basse ---------- */
@@ -2088,6 +2093,35 @@ label.field-label{
     font-size:18px;width:42px;height:42px;border-radius:12px;
   }
   .mobile-tab-publish.active{color:#fff;}
+
+  /* ---------- Carrousel des 5 onglets principaux (glissable au doigt) ----------
+     .mobile-swipe-viewport découpe la fenêtre visible (largeur de la page,
+     hauteur pilotée en JS pour coller au contenu de l'onglet affiché — sinon
+     la page ferait toujours la hauteur du plus grand des 5 onglets, même sur
+     un onglet court). .mobile-swipe-track est le rail flex 5x plus large que
+     que la fenêtre ; on le translate en JS au doigt ou au clic d'un
+     onglet de la barre du bas. L'ordre visuel (feed/recherche/publier/
+     classement/profil) est fixé par `order`, indépendamment de l'ordre réel
+     des <section> dans le DOM. */
+  .mobile-swipe-viewport{
+    display:block;overflow-x:hidden;overflow-y:visible;width:100%;
+  }
+  .mobile-swipe-track{
+    display:flex;align-items:flex-start;width:500%;
+    transition:transform 0.32s cubic-bezier(.22,.61,.36,1);
+  }
+  .mobile-swipe-track > #tab-feed,
+  .mobile-swipe-track > #tab-search,
+  .mobile-swipe-track > #tab-publish,
+  .mobile-swipe-track > #tab-leaderboard,
+  .mobile-swipe-track > #tab-profile{
+    flex:0 0 20%;width:20%;min-width:0;
+  }
+  .mobile-swipe-track > #tab-feed{order:1;}
+  .mobile-swipe-track > #tab-search{order:2;}
+  .mobile-swipe-track > #tab-publish{order:3;}
+  .mobile-swipe-track > #tab-leaderboard{order:4;}
+  .mobile-swipe-track > #tab-profile{order:5;}
 
   /* ---------- Feed : cartes plein cadre façon post Instagram ---------- */
   .recipe-grid{display:block;max-width:100%;margin:0;gap:0;}

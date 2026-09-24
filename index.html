@@ -52,6 +52,16 @@
 
 <main>
 
+  <!-- Les 5 onglets principaux (accessibles depuis la barre du bas en mode mobile)
+       sont enveloppés pour pouvoir en faire un carrousel glissable au doigt sous
+       700px ; sur desktop ces deux div n'ont aucun effet (display:contents), la
+       bascule d'onglet historique par classe "hidden" continue de s'appliquer
+       directement aux <section>. Le détail recette et le profil public restent
+       EN DEHORS : ce sont des pages "plein écran" qui remplacent la vue plutôt
+       que des onglets du carrousel. -->
+  <div class="mobile-swipe-viewport" id="mobile_swipe_viewport">
+  <div class="mobile-swipe-track" id="mobile_swipe_track">
+
   <!-- ---------------- FEED ---------------- -->
   <section id="tab-feed">
     <div class="feed-header">
@@ -177,12 +187,6 @@
 
     <div class="feed-results-count" id="search_results_count"></div>
     <div class="recipe-grid" id="search_results_grid"></div>
-  </section>
-
-  <!-- Vue Page Recette Dédiée -->
-  <section id="tab-recipe-detail" class="recipe_detail_container hidden">
-    <button id="back_to_feed_btn" class="text-btn"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="common.back">Retour</span></button>
-    <div id="single_recipe_content"></div>
   </section>
 
   <!-- ---------------- CLASSEMENT ---------------- -->
@@ -373,6 +377,191 @@
     </div>
   </section>
 
+  <!-- ---------------- PROFILE ---------------- -->
+  <section id="tab-profile" class="profile_container hidden">
+    <div class="profile_header_wrapper">
+      <div class="profile_banner" id="profile_banner_preview">
+        <label for="banner_upload_input" class="banner_upload_btn">
+          <i class="fa-solid fa-camera"></i> <span data-i18n="profile.change_banner">Changer la bannière</span>
+        </label>
+        <input type="file" id="banner_upload_input" accept="image/*" class="hidden_file_input">
+      </div>
+
+      <div class="profile_header_content">
+        <div class="profile_avatar_box">
+          <div class="avatar_wrapper">
+            <div id="profile_avatar" class="avatar_circle">T</div>
+            <label for="avatar_upload_input" class="avatar_upload_btn">
+              <i class="fa-solid fa-camera"></i>
+            </label>
+            <input type="file" id="avatar_upload_input" accept="image/*" class="hidden_file_input">
+          </div>
+          <div class="profile_identity">
+            <h2 id="profile_display_name">Nom Prénom</h2>
+            <span id="profile_username_text">@username</span>
+            <span id="equipped_badge_display" class="badge_tag"></span>
+          </div>
+        </div>
+        <div class="profile_level_box">
+          <span class="profile_quick_stats" id="profile_quick_stats"></span>
+          <span id="profile_level">Niv. 1</span>
+          <div class="xp_bar"><div id="profile_xp_fill" class="xp_fill"></div></div>
+          <span id="profile_xp_text">0 / 100 XP</span>
+        </div>
+        <button id="logout_btn_profile" class="text-btn"><i class="fa-solid fa-right-from-bracket"></i> <span data-i18n="profile.logout">Déconnexion</span></button>
+      </div>
+    </div>
+
+    <div class="profile_tabs_nav">
+      <button class="tab_btn active" data-tab="tab_info"><i class="fa-solid fa-gear"></i> <span data-i18n="profile.tab_info">Informations</span></button>
+      <button class="tab_btn" data-tab="tab_badges"><i class="fa-solid fa-medal"></i> <span data-i18n="profile.tab_badges">Badges & Succès</span></button>
+      <button class="tab_btn" data-tab="tab_recipes"><i class="fa-solid fa-table-cells"></i> <span data-i18n="profile.tab_recipes">Mes Recettes</span></button>
+      <button class="tab_btn" data-tab="tab_journal"><i class="fa-solid fa-bowl-food"></i> <span data-i18n="profile.tab_journal">Journal</span></button>
+    </div>
+
+    <div id="tab_info" class="tab_content active">
+      <form id="profile_form">
+        <h3 data-i18n="profile.settings_title">Réglages du profil</h3>
+        <div class="form_group">
+          <label><i class="fa-solid fa-envelope"></i> <span data-i18n="profile.email_label">Email de connexion</span></label>
+          <div class="email-field-row">
+            <input type="email" id="profile_email_display" disabled />
+            <button type="button" id="change_email_btn" class="btn-secondary" data-i18n="profile.change">Changer</button>
+          </div>
+          <div id="change_email_form" class="change-email-form hidden">
+            <input type="email" id="new_email_input" data-i18n-placeholder="profile.new_email_placeholder" placeholder="Nouvelle adresse email">
+            <button type="button" id="confirm_email_change_btn" class="btn-primary" data-i18n="profile.confirm">Confirmer</button>
+          </div>
+          <p class="msg" id="email_change_msg"></p>
+        </div>
+        <div class="form_group">
+          <label data-i18n="profile.username_label">Nom d'utilisateur</label>
+          <input type="text" id="profile_username_input" data-i18n-placeholder="profile.username_placeholder" placeholder="@username" required />
+        </div>
+        <div class="form_row">
+          <div class="form_group">
+            <label data-i18n="profile.first_name_label">Prénom</label>
+            <input type="text" id="profile_first_name" />
+          </div>
+          <div class="form_group">
+            <label data-i18n="profile.last_name_label">Nom</label>
+            <input type="text" id="profile_last_name" />
+          </div>
+        </div>
+        <div class="form_group">
+          <label data-i18n="profile.nationality_label">Nationalité</label>
+          <select id="profile_nationality" required>
+            <option value="" data-i18n="profile.nationality_placeholder">Sélectionner un pays</option>
+          </select>
+        </div>
+        <div class="form_group">
+          <label data-i18n="profile.description_label">Description</label>
+          <textarea id="profile_bio" rows="3"></textarea>
+        </div>
+        <div class="form_group">
+          <label data-i18n="profile.donation_label">Lien pour recevoir des dons (Stripe, Ko-fi, PayPal...)</label>
+          <input type="url" id="profile_donation_input" placeholder="https://ko-fi.com/..." />
+        </div>
+        <div class="form_group">
+          <label><i class="fa-solid fa-fire"></i> <span data-i18n="profile.calorie_goal_label">Objectif calorique quotidien</span></label>
+          <div class="search-range-row">
+            <input type="number" id="profile_calorie_goal_input" min="0" data-i18n-placeholder="profile.calorie_goal_placeholder" placeholder="Ex : 2000">
+            <span class="search-range-unit" data-i18n="profile.calorie_goal_unit">kcal / jour</span>
+          </div>
+        </div>
+
+        <div class="form_security_section">
+          <h3 data-i18n="profile.security_title">Sécurité</h3>
+          <div class="form_group">
+            <label><i class="fa-solid fa-lock"></i> <span data-i18n="profile.password_label">Mot de passe</span></label>
+            <div class="email-field-row">
+              <input type="password" id="profile_password_display" value="••••••••" disabled />
+              <button type="button" id="change_password_btn" class="btn-secondary" data-i18n="profile.change">Changer</button>
+            </div>
+            <div id="change_password_form" class="change-email-form hidden">
+              <input type="password" id="new_password_input" data-i18n-placeholder="profile.new_password_placeholder" placeholder="Nouveau mot de passe (6 caractères min.)">
+              <button type="button" id="confirm_password_change_btn" class="btn-primary" data-i18n="profile.confirm">Confirmer</button>
+            </div>
+            <p class="msg" id="password_change_msg"></p>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" data-i18n="profile.save">Enregistrer</button>
+      </form>
+    </div>
+
+    <div id="tab_badges" class="tab_content">
+      <h3 data-i18n="profile.equipped_badge">Badge équipé</h3>
+      <div id="equipped_badge_box" class="badge_equipped_box">
+        <span data-i18n="profile.no_badge_equipped">Aucun badge équipé</span>
+      </div>
+
+      <h3 data-i18n="profile.level_badges">Badges de Niveau</h3>
+      <div id="level_badges_grid" class="badges_grid"></div>
+
+      <h3 data-i18n="profile.recipe_badges">Succès de publication (Recettes)</h3>
+      <div id="recipe_badges_grid" class="badges_grid"></div>
+
+      <h3 data-i18n="profile.like_badges">Succès d'appréciation (Likes reçus)</h3>
+      <div id="like_badges_grid" class="badges_grid"></div>
+    </div>
+
+    <div id="tab_recipes" class="tab_content">
+      <h3 data-i18n="profile.published_recipes">Mes recettes publiées</h3>
+      <div id="user_published_recipes" class="recipes_grid mini_grid"></div>
+
+      <h3 data-i18n="profile.saved_recipes">Mes recettes sauvegardées</h3>
+      <div class="saved_filters_row">
+        <select id="saved_filter_country">
+          <option value="" data-i18n="common.all_countries">Tous les pays</option>
+        </select>
+        <select id="saved_filter_tag">
+          <option value="" data-i18n="profile.all_tags">Tous les tags</option>
+        </select>
+      </div>
+
+      <div id="user_saved_recipes" class="recipes_grid mini_grid"></div>
+    </div>
+
+    <div id="tab_journal" class="tab_content">
+      <div class="journal_day_nav">
+        <button type="button" id="journal_prev_day_btn" class="journal_day_arrow" data-i18n-aria="journal.prev_day" aria-label="Jour précédent"><i class="fa-solid fa-chevron-left"></i></button>
+        <span id="journal_current_date_label" class="journal_current_date"></span>
+        <button type="button" id="journal_next_day_btn" class="journal_day_arrow" data-i18n-aria="journal.next_day" aria-label="Jour suivant"><i class="fa-solid fa-chevron-right"></i></button>
+      </div>
+
+      <div class="journal_summary_card">
+        <div class="journal_summary_stat">
+          <span class="journal_summary_value" id="journal_total_kcal">0</span>
+          <span class="journal_summary_label" data-i18n="journal.total_label">Total du jour</span>
+        </div>
+        <div class="journal_summary_stat">
+          <span class="journal_summary_value" id="journal_goal_kcal">—</span>
+          <span class="journal_summary_label" data-i18n="journal.goal_label">Objectif</span>
+        </div>
+        <div class="journal_summary_stat">
+          <span class="journal_summary_value" id="journal_remaining_kcal">—</span>
+          <span class="journal_summary_label" id="journal_remaining_label" data-i18n="journal.remaining_label">Restant</span>
+        </div>
+      </div>
+      <div class="journal_progress_bar"><div id="journal_progress_fill" class="journal_progress_fill"></div></div>
+      <div class="journal_macro_row" id="journal_macro_row"></div>
+
+      <button type="button" id="open_manual_journal_entry_btn" class="btn-secondary"><i class="fa-solid fa-plus"></i> <span data-i18n="journal.add_manual_btn">Ajouter une entrée manuelle</span></button>
+
+      <div id="journal_entries_list" class="journal_entries_list"></div>
+    </div>
+  </section>
+
+  </div>
+  </div>
+  <!-- Fin du carrousel des 5 onglets principaux. Le détail recette reste une
+       page plein écran à part, jamais un slide du carrousel. -->
+  <section id="tab-recipe-detail" class="recipe_detail_container hidden">
+    <button id="back_to_feed_btn" class="text-btn"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="common.back">Retour</span></button>
+    <div id="single_recipe_content"></div>
+  </section>
+
   <!-- ---------------- POPUP : SÉLECTEUR D'INGRÉDIENT ---------------- -->
   <div id="ingredient_picker_modal" class="modal hidden">
     <div class="ingredient-picker-layout">
@@ -556,181 +745,6 @@
     </div>
   </div>
 
-  <!-- ---------------- PROFILE ---------------- -->
-  <section id="tab-profile" class="profile_container hidden">
-    <div class="profile_header_wrapper">
-      <div class="profile_banner" id="profile_banner_preview">
-        <label for="banner_upload_input" class="banner_upload_btn">
-          <i class="fa-solid fa-camera"></i> <span data-i18n="profile.change_banner">Changer la bannière</span>
-        </label>
-        <input type="file" id="banner_upload_input" accept="image/*" class="hidden_file_input">
-      </div>
-
-      <div class="profile_header_content">
-        <div class="profile_avatar_box">
-          <div class="avatar_wrapper">
-            <div id="profile_avatar" class="avatar_circle">T</div>
-            <label for="avatar_upload_input" class="avatar_upload_btn">
-              <i class="fa-solid fa-camera"></i>
-            </label>
-            <input type="file" id="avatar_upload_input" accept="image/*" class="hidden_file_input">
-          </div>
-          <div class="profile_identity">
-            <h2 id="profile_display_name">Nom Prénom</h2>
-            <span id="profile_username_text">@username</span>
-            <span id="equipped_badge_display" class="badge_tag"></span>
-          </div>
-        </div>
-        <div class="profile_level_box">
-          <span class="profile_quick_stats" id="profile_quick_stats"></span>
-          <span id="profile_level">Niv. 1</span>
-          <div class="xp_bar"><div id="profile_xp_fill" class="xp_fill"></div></div>
-          <span id="profile_xp_text">0 / 100 XP</span>
-        </div>
-        <button id="logout_btn_profile" class="text-btn"><i class="fa-solid fa-right-from-bracket"></i> <span data-i18n="profile.logout">Déconnexion</span></button>
-      </div>
-    </div>
-
-    <div class="profile_tabs_nav">
-      <button class="tab_btn active" data-tab="tab_info"><i class="fa-solid fa-gear"></i> <span data-i18n="profile.tab_info">Informations</span></button>
-      <button class="tab_btn" data-tab="tab_badges"><i class="fa-solid fa-medal"></i> <span data-i18n="profile.tab_badges">Badges & Succès</span></button>
-      <button class="tab_btn" data-tab="tab_recipes"><i class="fa-solid fa-table-cells"></i> <span data-i18n="profile.tab_recipes">Mes Recettes</span></button>
-      <button class="tab_btn" data-tab="tab_journal"><i class="fa-solid fa-bowl-food"></i> <span data-i18n="profile.tab_journal">Journal</span></button>
-    </div>
-
-    <div id="tab_info" class="tab_content active">
-      <form id="profile_form">
-        <h3 data-i18n="profile.settings_title">Réglages du profil</h3>
-        <div class="form_group">
-          <label><i class="fa-solid fa-envelope"></i> <span data-i18n="profile.email_label">Email de connexion</span></label>
-          <div class="email-field-row">
-            <input type="email" id="profile_email_display" disabled />
-            <button type="button" id="change_email_btn" class="btn-secondary" data-i18n="profile.change">Changer</button>
-          </div>
-          <div id="change_email_form" class="change-email-form hidden">
-            <input type="email" id="new_email_input" data-i18n-placeholder="profile.new_email_placeholder" placeholder="Nouvelle adresse email">
-            <button type="button" id="confirm_email_change_btn" class="btn-primary" data-i18n="profile.confirm">Confirmer</button>
-          </div>
-          <p class="msg" id="email_change_msg"></p>
-        </div>
-        <div class="form_group">
-          <label data-i18n="profile.username_label">Nom d'utilisateur</label>
-          <input type="text" id="profile_username_input" data-i18n-placeholder="profile.username_placeholder" placeholder="@username" required />
-        </div>
-        <div class="form_row">
-          <div class="form_group">
-            <label data-i18n="profile.first_name_label">Prénom</label>
-            <input type="text" id="profile_first_name" />
-          </div>
-          <div class="form_group">
-            <label data-i18n="profile.last_name_label">Nom</label>
-            <input type="text" id="profile_last_name" />
-          </div>
-        </div>
-        <div class="form_group">
-          <label data-i18n="profile.nationality_label">Nationalité</label>
-          <select id="profile_nationality" required>
-            <option value="" data-i18n="profile.nationality_placeholder">Sélectionner un pays</option>
-          </select>
-        </div>
-        <div class="form_group">
-          <label data-i18n="profile.description_label">Description</label>
-          <textarea id="profile_bio" rows="3"></textarea>
-        </div>
-        <div class="form_group">
-          <label data-i18n="profile.donation_label">Lien pour recevoir des dons (Stripe, Ko-fi, PayPal...)</label>
-          <input type="url" id="profile_donation_input" placeholder="https://ko-fi.com/..." />
-        </div>
-        <div class="form_group">
-          <label><i class="fa-solid fa-fire"></i> <span data-i18n="profile.calorie_goal_label">Objectif calorique quotidien</span></label>
-          <div class="search-range-row">
-            <input type="number" id="profile_calorie_goal_input" min="0" data-i18n-placeholder="profile.calorie_goal_placeholder" placeholder="Ex : 2000">
-            <span class="search-range-unit" data-i18n="profile.calorie_goal_unit">kcal / jour</span>
-          </div>
-        </div>
-
-        <div class="form_security_section">
-          <h3 data-i18n="profile.security_title">Sécurité</h3>
-          <div class="form_group">
-            <label><i class="fa-solid fa-lock"></i> <span data-i18n="profile.password_label">Mot de passe</span></label>
-            <div class="email-field-row">
-              <input type="password" id="profile_password_display" value="••••••••" disabled />
-              <button type="button" id="change_password_btn" class="btn-secondary" data-i18n="profile.change">Changer</button>
-            </div>
-            <div id="change_password_form" class="change-email-form hidden">
-              <input type="password" id="new_password_input" data-i18n-placeholder="profile.new_password_placeholder" placeholder="Nouveau mot de passe (6 caractères min.)">
-              <button type="button" id="confirm_password_change_btn" class="btn-primary" data-i18n="profile.confirm">Confirmer</button>
-            </div>
-            <p class="msg" id="password_change_msg"></p>
-          </div>
-        </div>
-
-        <button type="submit" class="btn-primary" data-i18n="profile.save">Enregistrer</button>
-      </form>
-    </div>
-
-    <div id="tab_badges" class="tab_content">
-      <h3 data-i18n="profile.equipped_badge">Badge équipé</h3>
-      <div id="equipped_badge_box" class="badge_equipped_box">
-        <span data-i18n="profile.no_badge_equipped">Aucun badge équipé</span>
-      </div>
-
-      <h3 data-i18n="profile.level_badges">Badges de Niveau</h3>
-      <div id="level_badges_grid" class="badges_grid"></div>
-
-      <h3 data-i18n="profile.recipe_badges">Succès de publication (Recettes)</h3>
-      <div id="recipe_badges_grid" class="badges_grid"></div>
-
-      <h3 data-i18n="profile.like_badges">Succès d'appréciation (Likes reçus)</h3>
-      <div id="like_badges_grid" class="badges_grid"></div>
-    </div>
-
-    <div id="tab_recipes" class="tab_content">
-      <h3 data-i18n="profile.published_recipes">Mes recettes publiées</h3>
-      <div id="user_published_recipes" class="recipes_grid mini_grid"></div>
-
-      <h3 data-i18n="profile.saved_recipes">Mes recettes sauvegardées</h3>
-      <div class="saved_filters_row">
-        <select id="saved_filter_country">
-          <option value="" data-i18n="common.all_countries">Tous les pays</option>
-        </select>
-        <select id="saved_filter_tag">
-          <option value="" data-i18n="profile.all_tags">Tous les tags</option>
-        </select>
-      </div>
-
-      <div id="user_saved_recipes" class="recipes_grid mini_grid"></div>
-    </div>
-
-    <div id="tab_journal" class="tab_content">
-      <div class="journal_day_nav">
-        <button type="button" id="journal_prev_day_btn" class="journal_day_arrow" data-i18n-aria="journal.prev_day" aria-label="Jour précédent"><i class="fa-solid fa-chevron-left"></i></button>
-        <span id="journal_current_date_label" class="journal_current_date"></span>
-        <button type="button" id="journal_next_day_btn" class="journal_day_arrow" data-i18n-aria="journal.next_day" aria-label="Jour suivant"><i class="fa-solid fa-chevron-right"></i></button>
-      </div>
-
-      <div class="journal_summary_card">
-        <div class="journal_summary_stat">
-          <span class="journal_summary_value" id="journal_total_kcal">0</span>
-          <span class="journal_summary_label" data-i18n="journal.total_label">Total du jour</span>
-        </div>
-        <div class="journal_summary_stat">
-          <span class="journal_summary_value" id="journal_goal_kcal">—</span>
-          <span class="journal_summary_label" data-i18n="journal.goal_label">Objectif</span>
-        </div>
-        <div class="journal_summary_stat">
-          <span class="journal_summary_value" id="journal_remaining_kcal">—</span>
-          <span class="journal_summary_label" id="journal_remaining_label" data-i18n="journal.remaining_label">Restant</span>
-        </div>
-      </div>
-      <div class="journal_progress_bar"><div id="journal_progress_fill" class="journal_progress_fill"></div></div>
-      <div class="journal_macro_row" id="journal_macro_row"></div>
-
-      <button type="button" id="open_manual_journal_entry_btn" class="btn-secondary"><i class="fa-solid fa-plus"></i> <span data-i18n="journal.add_manual_btn">Ajouter une entrée manuelle</span></button>
-
-      <div id="journal_entries_list" class="journal_entries_list"></div>
-    </div>
-  </section>
 
   <!-- ---------------- PROFIL PUBLIC (celui d'un autre utilisateur) ---------------- -->
   <section id="tab-public-profile" class="profile_container hidden">

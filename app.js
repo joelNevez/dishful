@@ -811,6 +811,171 @@ document.getElementById('mobile_profile_tab_btn')?.addEventListener('click', () 
 });
 
 // =====================================================================
+// Carrousel glissable entre les 5 onglets principaux (mode mobile, sous
+// 700px) : feed / recherche / publier / classement / profil se glissent
+// comme les pages d'une appli native, dans le même ordre que la barre du
+// bas. Le détail recette et le profil public restent des pages plein écran
+// à part (jamais un slide du carrousel) — voir la structure de <main> dans
+// index.html (#mobile_swipe_viewport > #mobile_swipe_track).
+// =====================================================================
+const MOBILE_SWIPE_TABS = ['feed', 'search', 'publish', 'leaderboard', 'profile'];
+const mobile_swipe_mq = window.matchMedia('(max-width: 700px)');
+function is_mobile_mode() { return mobile_swipe_mq.matches; }
+
+let current_mobile_slide_index = 0;
+let mobile_slide_resize_observer = null;
+
+function mobile_swipe_els() {
+  return {
+    viewport: document.getElementById('mobile_swipe_viewport'),
+    track: document.getElementById('mobile_swipe_track'),
+  };
+}
+
+// La hauteur de la fenêtre doit coller au contenu de L'ONGLET AFFICHÉ, pas
+// au plus grand des 5 (sinon un onglet court comme "Classement" laisserait
+// un grand vide en bas, et la page resterait scrollable bien après sa fin).
+// On la garde synchronisée en continu via ResizeObserver — pas juste au
+// moment du switch — car le contenu de l'onglet actif peut grandir après
+// coup (recettes qui finissent de charger, résultats de recherche...).
+function sync_mobile_swipe_height() {
+  const { viewport } = mobile_swipe_els();
+  const active_el = document.getElementById('tab-' + MOBILE_SWIPE_TABS[current_mobile_slide_index]);
+  if (!viewport || !active_el) return;
+  viewport.style.height = active_el.scrollHeight + 'px';
+}
+
+function observe_active_slide_height() {
+  const active_el = document.getElementById('tab-' + MOBILE_SWIPE_TABS[current_mobile_slide_index]);
+  if (!active_el) return;
+  if (!('ResizeObserver' in window)) { sync_mobile_swipe_height(); return; }
+  if (mobile_slide_resize_observer) mobile_slide_resize_observer.disconnect();
+  mobile_slide_resize_observer = new ResizeObserver(() => sync_mobile_swipe_height());
+  mobile_slide_resize_observer.observe(active_el);
+}
+
+function goto_mobile_slide(tab_name, animate) {
+  const { viewport, track } = mobile_swipe_els();
+  const index = MOBILE_SWIPE_TABS.indexOf(tab_name);
+  if (!viewport || !track || index === -1) return;
+  current_mobile_slide_index = index;
+  track.style.transition = animate === false ? 'none' : '';
+  track.style.transform = `translateX(-${index * viewport.clientWidth}px)`;
+  if (animate === false) { void track.offsetHeight; track.style.transition = ''; }
+  observe_active_slide_height();
+  sync_mobile_swipe_height();
+}
+
+// Le feed est déjà visible par défaut dans le HTML (pas de classe "hidden"),
+// il ne manque donc que de démasquer les 4 autres onglets du carrousel pour
+// que le rail flex soit complet dès le tout premier rendu mobile.
+function init_mobile_swipe_visibility() {
+  if (!is_mobile_mode()) return;
+  MOBILE_SWIPE_TABS.forEach(id => document.getElementById('tab-' + id)?.classList.remove('hidden'));
+  observe_active_slide_height();
+  sync_mobile_swipe_height();
+}
+init_mobile_swipe_visibility();
+
+// Si la fenêtre change de mode en cours de session (rotation d'écran,
+// redimensionnement d'une fenêtre desktop) : on retrouve l'onglet réellement
+// affiché et on rappelle switch_tab pour que la logique d'affichage (masquage
+// classique vs carrousel) se remette dans le bon état pour le nouveau mode.
+mobile_swipe_mq.addEventListener('change', (e) => {
+  let target;
+  if (!e.matches) {
+    // On quitte le mode mobile : plusieurs onglets du carrousel peuvent être
+    // démasqués en même temps, get_visible_tab_name() (qui prend le premier
+    // trouvé) ne suffit pas ici — seul l'index suivi sait lequel était affiché.
+    const overlay_id = ['recipe-detail', 'public-profile'].find(
+      id => !document.getElementById('tab-' + id)?.classList.contains('hidden')
+    );
+    target = overlay_id || MOBILE_SWIPE_TABS[current_mobile_slide_index] || 'feed';
+  } else {
+    target = typeof get_visible_tab_name === 'function' ? get_visible_tab_name() : 'feed';
+  }
+  switch_tab(target);
+});
+
+// Geste de glissement au doigt : on ne capture le geste comme un swipe de
+// page qu'une fois le mouvement clairement horizontal (sinon un simple
+// scroll vertical du feed déclencherait un changement d'onglet), et jamais
+// quand il démarre dans un carrousel horizontal interne déjà existant
+// (chips de filtres, jours de la semaine des idées...) — celui-ci garde
+// alors son défilement natif intact.
+(function setup_mobile_swipe_gesture() {
+  const { viewport, track } = mobile_swipe_els();
+  if (!viewport || !track) return;
+
+  let touching = false;
+  let start_x = 0, start_y = 0, dx = 0, dy = 0;
+  let start_offset_px = 0;
+  let gesture = null; // null (indécis) | 'horizontal' | 'vertical'
+  let started_in_h_scroller = false;
+
+  function starts_inside_horizontal_scroller(target) {
+    let el = target;
+    while (el && el !== viewport) {
+      if (el.scrollWidth > el.clientWidth + 1) {
+        const overflow_x = getComputedStyle(el).overflowX;
+        if (overflow_x === 'auto' || overflow_x === 'scroll') return true;
+      }
+      el = el.parentElement;
+    }
+    return false;
+  }
+
+  viewport.addEventListener('touchstart', (e) => {
+    if (!is_mobile_mode() || e.touches.length !== 1) return;
+    touching = true;
+    gesture = null;
+    dx = 0; dy = 0;
+    const t = e.touches[0];
+    start_x = t.clientX; start_y = t.clientY;
+    start_offset_px = current_mobile_slide_index * viewport.clientWidth;
+    started_in_h_scroller = starts_inside_horizontal_scroller(e.target);
+  }, { passive: true });
+
+  viewport.addEventListener('touchmove', (e) => {
+    if (!touching || started_in_h_scroller) return;
+    const t = e.touches[0];
+    dx = t.clientX - start_x;
+    dy = t.clientY - start_y;
+
+    if (gesture === null) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      gesture = Math.abs(dx) > Math.abs(dy) * 1.3 ? 'horizontal' : 'vertical';
+    }
+    if (gesture !== 'horizontal') return;
+
+    e.preventDefault();
+    let next_px = start_offset_px - dx;
+    const max_px = (MOBILE_SWIPE_TABS.length - 1) * viewport.clientWidth;
+    if (next_px < 0) next_px *= 0.35;
+    if (next_px > max_px) next_px = max_px + (next_px - max_px) * 0.35;
+    track.style.transition = 'none';
+    track.style.transform = `translateX(-${next_px}px)`;
+  }, { passive: false });
+
+  function end_gesture() {
+    if (!touching) return;
+    touching = false;
+    track.style.transition = '';
+    if (gesture !== 'horizontal') { gesture = null; return; }
+    gesture = null;
+
+    const threshold = viewport.clientWidth * 0.18;
+    let target_index = current_mobile_slide_index;
+    if (dx <= -threshold && current_mobile_slide_index < MOBILE_SWIPE_TABS.length - 1) target_index += 1;
+    else if (dx >= threshold && current_mobile_slide_index > 0) target_index -= 1;
+
+    switch_tab(MOBILE_SWIPE_TABS[target_index]);
+  }
+  viewport.addEventListener('touchend', end_gesture);
+  viewport.addEventListener('touchcancel', end_gesture);
+})();
+
+// =====================================================================
 // 1. INIT SUPABASE
 // =====================================================================
 const supabase_url = 'https://eqrttdrfxcbficxkqjvl.supabase.co';
@@ -4037,6 +4202,17 @@ function get_visible_tab_name() {
 }
 
 function switch_tab(tab_name) {
+  // Le profil suppose d'être connecté (l'onglet contient les champs du compte,
+  // pas juste une consultation) : le clic sur l'avatar/l'icône du bas gère déjà
+  // ce garde-fou en amont, mais un swipe peut arriver directement ici sans être
+  // passé par ce clic — même garde-fou ici (repli sur le feed) pour ne jamais
+  // atterrir sur une page profil vide, tout en laissant le reste de la fonction
+  // (états actifs, chargement des données...) s'appliquer normalement au feed.
+  if (tab_name === "profile" && !current_user) {
+    auth_modal?.classList.remove("hidden");
+    tab_name = "feed";
+  }
+
   document.querySelectorAll("nav.tabs button").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.tab === tab_name);
   });
@@ -4045,12 +4221,21 @@ function switch_tab(tab_name) {
   });
   document.getElementById("mobile_profile_tab_btn")?.classList.toggle("active", tab_name === "profile");
 
-  ["feed", "publish", "profile", "recipe-detail", "leaderboard", "public-profile", "search"].forEach((tab_id) => {
-    const page_element = document.getElementById("tab-" + tab_id);
-    if (page_element) {
-      page_element.classList.toggle("hidden", tab_id !== tab_name);
-    }
-  });
+  if (is_mobile_mode() && MOBILE_SWIPE_TABS.includes(tab_name)) {
+    // Les 5 onglets du carrousel restent TOUS démasqués (on ne fait que les
+    // faire glisser hors champ), seules les pages plein écran (détail recette,
+    // profil public) utilisent encore le masquage classique.
+    MOBILE_SWIPE_TABS.forEach((id) => document.getElementById("tab-" + id)?.classList.remove("hidden"));
+    ["recipe-detail", "public-profile"].forEach((id) => document.getElementById("tab-" + id)?.classList.add("hidden"));
+    goto_mobile_slide(tab_name);
+  } else {
+    ["feed", "publish", "profile", "recipe-detail", "leaderboard", "public-profile", "search"].forEach((tab_id) => {
+      const page_element = document.getElementById("tab-" + tab_id);
+      if (page_element) {
+        page_element.classList.toggle("hidden", tab_id !== tab_name);
+      }
+    });
+  }
 
   if (tab_name === "profile" && typeof render_profile_tab === "function") {
     render_profile_tab();
