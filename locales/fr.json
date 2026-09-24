@@ -373,7 +373,8 @@
       "tab_journal": "Journal",
       "calorie_goal_label": "Objectif calorique quotidien",
       "calorie_goal_placeholder": "Ex : 2000",
-      "calorie_goal_unit": "kcal / jour"
+      "calorie_goal_unit": "kcal / jour",
+      "menu_open": "Menu du profil"
     },
     "public_profile": {
       "tab_badges": "Badges & Succès",

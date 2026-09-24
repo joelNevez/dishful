@@ -373,7 +373,8 @@
       "tab_journal": "日记",
       "calorie_goal_label": "每日热量目标",
       "calorie_goal_placeholder": "例如：2000",
-      "calorie_goal_unit": "千卡 / 天"
+      "calorie_goal_unit": "千卡 / 天",
+      "menu_open": "个人资料菜单"
     },
     "public_profile": {
       "tab_badges": "徽章与成就",

@@ -664,6 +664,28 @@ label.field-label{
   cursor: pointer;
 }
 
+/* Menu burger du profil : réservé au mode mobile (voir @media plus bas). Un
+   frère de .profile_header_wrapper (pas un enfant) pour échapper à son
+   overflow:hidden, positionné en absolu par rapport à .profile_container
+   pour retomber visuellement à la même place, sur la bannière. */
+.profile_menu{display:none;position:absolute;top:12px;right:12px;z-index:5;}
+.profile_menu_btn{
+  width:34px;height:34px;border-radius:50%;background:rgba(43,36,28,0.6);color:#fff;
+  border:none;display:flex;align-items:center;justify-content:center;font-size:15px;
+}
+.profile_menu_dropdown{
+  position:absolute;top:calc(100% + 8px);right:0;min-width:190px;
+  background:var(--card);border:1px solid var(--line);border-radius:12px;
+  box-shadow:0 10px 28px rgba(43,36,28,0.18);padding:6px;
+}
+.profile_menu_item{
+  width:100%;background:none;border:none;padding:10px 12px;border-radius:8px;
+  display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:var(--ink);
+  text-align:left;
+}
+.profile_menu_item:hover{background:var(--paper-deep);}
+.profile_menu_item.active{color:var(--saffron-deep);}
+
 .avatar_wrapper {
   position: relative;
 }
@@ -1111,7 +1133,7 @@ label.field-label{
   max-height: 550px;
 }
 
- /**--------------------------------*/  
+ /**--------------------------------*/
   /* Navigation par étapes (Wizard) */
 .wizard-steps-nav {
   display: flex;
@@ -1121,6 +1143,9 @@ label.field-label{
   padding-bottom: 0.5rem;
   overflow-x: auto;
 }
+/* Indicateur compact (flèches précédent/suivant) réservé au mode mobile,
+   où la rangée d'onglets ci-dessus cède sa place — voir plus bas. */
+.wizard-steps-nav-compact{display:none;}
 
 .wizard-step-btn {
   background: none;
@@ -2268,8 +2293,21 @@ label.field-label{
   /* ---------- Publier : formulaire édition, pas une carte flottante ---------- */
   .publish-card, .profile-card{padding:16px;border-radius:14px;max-width:100%;}
   .publish-card h1, .profile-card h1{font-size:18px;}
-  .wizard-steps-nav{gap:4px;margin-bottom:12px;padding-bottom:8px;}
-  .wizard-step-btn{padding:0.4rem 0.65rem;font-size:12.5px;}
+  /* La rangée d'onglets scrollable cède la place à l'indicateur compact
+     ci-dessous (flèches précédent/suivant) : plus besoin de scroller
+     horizontalement pour trouver l'étape suivante. */
+  .wizard-steps-nav{display:none;}
+  .wizard-steps-nav-compact{
+    display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px;
+  }
+  .wizard-compact-arrow{
+    width:34px;height:34px;border-radius:50%;background:var(--card);border:1px solid var(--line);
+    color:var(--ink-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .wizard-compact-arrow:disabled{opacity:0.35;}
+  .wizard-compact-label{
+    flex:1;max-width:220px;text-align:center;font-size:13px;font-weight:700;color:var(--ink);
+  }
   .wizard-actions{margin-top:12px;padding-top:10px;flex-wrap:wrap;gap:10px;}
   .cover-photo-dropzone{padding:18px 14px;}
   .cover-photo-dropzone i{font-size:20px;}
@@ -2321,7 +2359,7 @@ label.field-label{
   .comment_rating_stars i{font-size:15px;margin-right:1px;}
 
   /* ---------- Profil : en-tête + grille carrée façon Instagram ---------- */
-  .profile_container{padding:8px 0 24px;}
+  .profile_container{padding:8px 0 24px;position:relative;}
   .profile_banner{height:100px;}
   .profile_header_content{padding:14px 16px;align-items:flex-start;}
 
@@ -2335,10 +2373,12 @@ label.field-label{
   .profile_identity{order:3;flex-basis:100%;margin-top:12px;}
   #logout_btn_profile{order:4;flex-basis:100%;justify-content:center;border:1px solid var(--line);border-radius:10px;padding:9px;margin-top:4px;}
 
-  .profile_tabs_nav{gap:0;justify-content:space-around;}
-  .tab_btn{flex:1;padding:12px 4px;}
-  .tab_btn span{display:none;}
-  .tab_btn i{font-size:18px;}
+  /* La rangée d'icônes cède la place au menu burger (bouton posé sur la
+     bannière) : Mes Recettes reste la vue par défaut, comme la grille de
+     posts d'un profil Instagram, le reste (Informations/Badges/Journal)
+     est à un tap dans le menu plutôt que d'occuper une rangée en permanence. */
+  .profile_tabs_nav{display:none;}
+  .profile_menu{display:block;}
 
   #tab_recipes.tab_content,
   #public_tab_recipes.tab_content{

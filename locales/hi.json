@@ -373,7 +373,8 @@
       "tab_journal": "जर्नल",
       "calorie_goal_label": "दैनिक कैलोरी लक्ष्य",
       "calorie_goal_placeholder": "उदा: 2000",
-      "calorie_goal_unit": "कैलोरी / दिन"
+      "calorie_goal_unit": "कैलोरी / दिन",
+      "menu_open": "प्रोफ़ाइल मेनू"
     },
     "public_profile": {
       "tab_badges": "बैज और अचीवमेंट्स",

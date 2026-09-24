@@ -373,7 +373,8 @@
       "tab_journal": "Diário",
       "calorie_goal_label": "Meta calórica diária",
       "calorie_goal_placeholder": "Ex.: 2000",
-      "calorie_goal_unit": "kcal / dia"
+      "calorie_goal_unit": "kcal / dia",
+      "menu_open": "Menu do perfil"
     },
     "public_profile": {
       "tab_badges": "Emblemas & Conquistas",

@@ -373,7 +373,8 @@
       "tab_journal": "السجل",
       "calorie_goal_label": "الهدف اليومي للسعرات الحرارية",
       "calorie_goal_placeholder": "مثال: 2000",
-      "calorie_goal_unit": "سعرة حرارية / يوم"
+      "calorie_goal_unit": "سعرة حرارية / يوم",
+      "menu_open": "قائمة الملف الشخصي"
     },
     "public_profile": {
       "tab_badges": "الأوسمة والإنجازات",

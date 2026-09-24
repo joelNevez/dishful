@@ -258,6 +258,14 @@
         <button type="button" class="wizard-step-btn" data-step="6"><i class="fa-solid fa-eye"></i> <span data-i18n="publish.step6">6. Aperçu</span></button>
       </div>
 
+      <!-- Version mobile : au lieu de scroller la rangée d'onglets ci-dessus pour
+           voir toutes les étapes, un indicateur compact + des flèches précédent/suivant. -->
+      <div class="wizard-steps-nav-compact" id="wizard_steps_nav_compact">
+        <button type="button" class="wizard-compact-arrow" id="wizard_compact_prev_btn" data-i18n-aria="journal.prev_day" aria-label="Étape précédente"><i class="fa-solid fa-chevron-left"></i></button>
+        <span class="wizard-compact-label" id="wizard_compact_label"></span>
+        <button type="button" class="wizard-compact-arrow" id="wizard_compact_next_btn" data-i18n-aria="journal.next_day" aria-label="Étape suivante"><i class="fa-solid fa-chevron-right"></i></button>
+      </div>
+
       <form id="recipe_form">
 
         <!-- ÉTAPE 1 : L'ESSENTIEL -->
@@ -394,6 +402,21 @@
 
   <!-- ---------------- PROFILE ---------------- -->
   <section id="tab-profile" class="profile_container hidden">
+    <!-- Mode mobile uniquement : remplace la rangée d'onglets Info/Badges/Journal
+         (celui des Recettes reste la vue par défaut, façon grille Instagram) par
+         un menu burger. En dehors de .profile_header_wrapper exprès : ce dernier
+         a overflow:hidden (pour les coins arrondis de la bannière), qui aurait
+         rogné le menu déroulant. -->
+    <div class="profile_menu" id="profile_menu">
+      <button type="button" class="profile_menu_btn" id="profile_menu_btn" data-i18n-aria="profile.menu_open" aria-label="Menu du profil"><i class="fa-solid fa-bars"></i></button>
+      <div class="profile_menu_dropdown hidden" id="profile_menu_dropdown">
+        <button type="button" class="profile_menu_item tab_btn active" data-tab="tab_recipes"><i class="fa-solid fa-table-cells"></i> <span data-i18n="profile.tab_recipes">Mes Recettes</span></button>
+        <button type="button" class="profile_menu_item tab_btn" data-tab="tab_info"><i class="fa-solid fa-gear"></i> <span data-i18n="profile.tab_info">Informations</span></button>
+        <button type="button" class="profile_menu_item tab_btn" data-tab="tab_badges"><i class="fa-solid fa-medal"></i> <span data-i18n="profile.tab_badges">Badges & Succès</span></button>
+        <button type="button" class="profile_menu_item tab_btn" data-tab="tab_journal"><i class="fa-solid fa-bowl-food"></i> <span data-i18n="profile.tab_journal">Journal</span></button>
+      </div>
+    </div>
+
     <div class="profile_header_wrapper">
       <div class="profile_banner" id="profile_banner_preview">
         <label for="banner_upload_input" class="banner_upload_btn">
@@ -428,13 +451,13 @@
     </div>
 
     <div class="profile_tabs_nav">
-      <button class="tab_btn active" data-tab="tab_info"><i class="fa-solid fa-gear"></i> <span data-i18n="profile.tab_info">Informations</span></button>
+      <button class="tab_btn" data-tab="tab_info"><i class="fa-solid fa-gear"></i> <span data-i18n="profile.tab_info">Informations</span></button>
       <button class="tab_btn" data-tab="tab_badges"><i class="fa-solid fa-medal"></i> <span data-i18n="profile.tab_badges">Badges & Succès</span></button>
-      <button class="tab_btn" data-tab="tab_recipes"><i class="fa-solid fa-table-cells"></i> <span data-i18n="profile.tab_recipes">Mes Recettes</span></button>
+      <button class="tab_btn active" data-tab="tab_recipes"><i class="fa-solid fa-table-cells"></i> <span data-i18n="profile.tab_recipes">Mes Recettes</span></button>
       <button class="tab_btn" data-tab="tab_journal"><i class="fa-solid fa-bowl-food"></i> <span data-i18n="profile.tab_journal">Journal</span></button>
     </div>
 
-    <div id="tab_info" class="tab_content active">
+    <div id="tab_info" class="tab_content">
       <form id="profile_form">
         <h3 data-i18n="profile.settings_title">Réglages du profil</h3>
         <div class="form_group">
@@ -521,7 +544,7 @@
       <div id="like_badges_grid" class="badges_grid"></div>
     </div>
 
-    <div id="tab_recipes" class="tab_content">
+    <div id="tab_recipes" class="tab_content active">
       <h3 data-i18n="profile.published_recipes">Mes recettes publiées</h3>
       <div id="user_published_recipes" class="recipes_grid mini_grid"></div>
 

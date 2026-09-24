@@ -704,27 +704,41 @@ function populate_nationality_select() {
   });
 }
 
-// 2. Gestion des 3 sous-onglets du profil
+// 2. Gestion des sous-onglets du profil : la rangée d'icônes (desktop) ET le
+// menu burger (mode mobile, remplace cette rangée sauf pour "Mes Recettes"
+// qui reste la vue par défaut façon grille Instagram) pilotent le même état,
+// donc un seul handler sur tout ce qui porte [data-tab] dans #tab-profile.
 function init_profile_subtabs() {
   // Scopé à #tab-profile : sinon ce sélecteur global attrape aussi les onglets du
   // profil PUBLIC (#tab-public-profile), qui partagent les mêmes classes .profile_tabs_nav/.tab_btn
   // mais utilisent data-ptab au lieu de data-tab -> les deux handlers se marchaient dessus.
-  const tab_buttons = document.querySelectorAll("#tab-profile .profile_tabs_nav .tab_btn");
+  const tab_buttons = document.querySelectorAll("#tab-profile [data-tab].tab_btn");
   const tab_contents = document.querySelectorAll("#tab-profile .tab_content");
 
   tab_buttons.forEach((button) => {
     button.addEventListener("click", () => {
       const target_tab_id = button.dataset.tab;
 
-      tab_buttons.forEach((btn) => btn.classList.remove("active"));
+      tab_buttons.forEach((btn) => btn.classList.toggle("active", btn.dataset.tab === target_tab_id));
       tab_contents.forEach((content) => content.classList.remove("active"));
 
-      button.classList.add("active");
       const target_content = document.getElementById(target_tab_id);
       if (target_content) {
         target_content.classList.add("active");
       }
+      document.getElementById('profile_menu_dropdown')?.classList.add('hidden');
     });
+  });
+
+  const menu_btn = document.getElementById('profile_menu_btn');
+  const menu_dropdown = document.getElementById('profile_menu_dropdown');
+  menu_btn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    menu_dropdown?.classList.toggle('hidden');
+  });
+  document.addEventListener('click', (e) => {
+    if (!menu_dropdown || menu_dropdown.classList.contains('hidden')) return;
+    if (!menu_dropdown.contains(e.target) && e.target !== menu_btn) menu_dropdown.classList.add('hidden');
   });
 }
 
@@ -5832,9 +5846,31 @@ function switch_wizard_step(target_step) {
   document.querySelector(`.wizard-step-btn[data-step="${target_step}"]`)?.classList.add("active");
 
   current_wizard_step = target_step;
+  update_wizard_compact_nav(target_step);
 
   if (target_step === 6 && typeof render_recipe_preview === 'function') render_recipe_preview();
 }
+
+// Version mobile de la nav du wizard : le libellé est repris directement du
+// bouton d'onglet actif (pas de traduction dupliquée), avec des flèches qui
+// passent par switch_wizard_step (donc respectent la validation par étape).
+const WIZARD_STEP_COUNT = 6;
+function update_wizard_compact_nav(target_step) {
+  const label_el = document.getElementById('wizard_compact_label');
+  const active_tab_label = document.querySelector(`.wizard-step-btn[data-step="${target_step}"] span`)?.textContent || '';
+  if (label_el) label_el.textContent = active_tab_label;
+  const prev_btn = document.getElementById('wizard_compact_prev_btn');
+  const next_btn = document.getElementById('wizard_compact_next_btn');
+  if (prev_btn) prev_btn.disabled = target_step <= 1;
+  if (next_btn) next_btn.disabled = target_step >= WIZARD_STEP_COUNT;
+}
+document.getElementById('wizard_compact_prev_btn')?.addEventListener('click', () => {
+  if (current_wizard_step > 1) switch_wizard_step(current_wizard_step - 1);
+});
+document.getElementById('wizard_compact_next_btn')?.addEventListener('click', () => {
+  if (current_wizard_step < WIZARD_STEP_COUNT) switch_wizard_step(current_wizard_step + 1);
+});
+update_wizard_compact_nav(current_wizard_step);
 
 // Validation par étape
 function validate_current_step(step_number) {

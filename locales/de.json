@@ -373,7 +373,8 @@
       "tab_journal": "Tagebuch",
       "calorie_goal_label": "Tägliches Kalorienziel",
       "calorie_goal_placeholder": "z. B. 2000",
-      "calorie_goal_unit": "kcal / Tag"
+      "calorie_goal_unit": "kcal / Tag",
+      "menu_open": "Profilmenü"
     },
     "public_profile": {
       "tab_badges": "Abzeichen & Erfolge",

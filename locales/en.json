@@ -373,7 +373,8 @@
       "tab_journal": "Journal",
       "calorie_goal_label": "Daily calorie goal",
       "calorie_goal_placeholder": "E.g. 2000",
-      "calorie_goal_unit": "kcal / day"
+      "calorie_goal_unit": "kcal / day",
+      "menu_open": "Profile menu"
     },
     "public_profile": {
       "tab_badges": "Badges & Achievements",
