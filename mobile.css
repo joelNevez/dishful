@@ -196,6 +196,26 @@
   .recipe-card-stats-row{display:none;}
   .chips-row{display:none;}
 
+  /* .search-result-card (résultats de recherche + recommandations fitness)
+     partage .recipe-card avec les cartes du feed, mais c'est un tout autre
+     contexte : une liste à comparer entre elles, pas un fil social plein
+     cadre. La vignette carrée géante et les stats masquées ci-dessus n'ont
+     pas leur place ici — vignette modeste, et les stats (temps/difficulté/
+     portions) réapparaissent : c'est justement ce qu'on vient comparer. */
+  .search-result-card .recipe-card-media{height:140px;aspect-ratio:auto;}
+  .search-result-card .recipe-card-stats-row{display:flex;order:6;}
+
+  /* ---------- Tirer pour actualiser (feed uniquement, voir mobile.js) ----------
+     Hauteur 0 par défaut, poussée en JS pendant le geste (dy en px) : le
+     contenu du feed est donc simplement repoussé vers le bas au fil du tirer,
+     comme le fait une vraie appli native. */
+  .pull-refresh-indicator{
+    display:flex;align-items:center;justify-content:center;height:0;overflow:hidden;
+    color:var(--rust);font-size:19px;
+  }
+  .pull-refresh-indicator.refreshing i{animation:pull-refresh-spin .7s linear infinite;}
+  @keyframes pull-refresh-spin{to{transform:rotate(360deg);}}
+
   /* ---------- Entêtes + filtres partagés (feed / recherche / classement) ---------- */
   .feed-header{margin-bottom:10px;}
   .feed-header h1{font-size:21px;font-weight:700;}

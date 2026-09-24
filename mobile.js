@@ -160,10 +160,45 @@
       return false;
     }
 
+    // "Tirer pour actualiser" le feed : un cas particulier du geste vertical
+    // ci-dessus (même touchstart/touchmove/touchend), actif seulement en haut
+    // de page, sur l'onglet feed, en tirant vers le bas — sinon le scroll
+    // vertical normal garde tout son comportement natif, inchangé.
+    const pull_indicator = document.getElementById('pull_refresh_indicator');
+    const pull_icon = pull_indicator?.querySelector('i');
+    const PULL_MAX = 70, PULL_THRESHOLD = 56;
+    let pulling = false;
+    let refreshing = false;
+
+    function feed_is_active_slide() {
+      return MOBILE_SWIPE_TABS[current_mobile_slide_index] === 'feed';
+    }
+    function page_scroll_top() {
+      return (document.scrollingElement || document.documentElement).scrollTop;
+    }
+    function reset_pull_indicator() {
+      if (!pull_indicator) return;
+      pull_indicator.style.height = '0px';
+      if (pull_icon) pull_icon.style.transform = '';
+    }
+    function trigger_refresh() {
+      if (!pull_indicator || !Dishful.refresh_feed) { reset_pull_indicator(); return; }
+      refreshing = true;
+      if (pull_icon) pull_icon.style.transform = '';
+      pull_indicator.classList.add('refreshing');
+      pull_indicator.style.height = PULL_THRESHOLD + 'px';
+      Dishful.refresh_feed().finally(() => {
+        refreshing = false;
+        pull_indicator.classList.remove('refreshing');
+        reset_pull_indicator();
+      });
+    }
+
     viewport.addEventListener('touchstart', (e) => {
       if (!is_mobile_mode() || e.touches.length !== 1) return;
       touching = true;
       gesture = null;
+      pulling = false;
       dx = 0; dy = 0;
       const t = e.touches[0];
       start_x = t.clientX; start_y = t.clientY;
@@ -180,22 +215,43 @@
       if (gesture === null) {
         if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
         gesture = Math.abs(dx) > Math.abs(dy) * 1.3 ? 'horizontal' : 'vertical';
+        if (gesture === 'vertical' && dy > 0 && !refreshing && feed_is_active_slide() && page_scroll_top() === 0) {
+          pulling = true;
+        }
       }
-      if (gesture !== 'horizontal') return;
 
-      e.preventDefault();
-      let next_px = start_offset_px - dx;
-      const max_px = (MOBILE_SWIPE_TABS.length - 1) * viewport.clientWidth;
-      if (next_px < 0) next_px *= 0.35;
-      if (next_px > max_px) next_px = max_px + (next_px - max_px) * 0.35;
-      track.style.transition = 'none';
-      track.style.transform = `translateX(-${next_px}px)`;
+      if (gesture === 'horizontal') {
+        e.preventDefault();
+        let next_px = start_offset_px - dx;
+        const max_px = (MOBILE_SWIPE_TABS.length - 1) * viewport.clientWidth;
+        if (next_px < 0) next_px *= 0.35;
+        if (next_px > max_px) next_px = max_px + (next_px - max_px) * 0.35;
+        track.style.transition = 'none';
+        track.style.transform = `translateX(-${next_px}px)`;
+        return;
+      }
+
+      if (pulling) {
+        if (dy <= 0) { pulling = false; reset_pull_indicator(); return; }
+        e.preventDefault();
+        const pull = Math.min(dy * 0.5, PULL_MAX);
+        if (pull_indicator) pull_indicator.style.height = pull + 'px';
+        if (pull_icon) pull_icon.style.transform = `rotate(${Math.min(pull / PULL_THRESHOLD, 1) * 180}deg)`;
+      }
     }, { passive: false });
 
     function end_gesture() {
       if (!touching) return;
       touching = false;
       track.style.transition = '';
+
+      if (pulling) {
+        pulling = false;
+        const pulled_px = Math.min(Math.max(dy, 0) * 0.5, PULL_MAX);
+        if (pulled_px >= PULL_THRESHOLD) trigger_refresh();
+        else reset_pull_indicator();
+      }
+
       if (gesture !== 'horizontal') { gesture = null; return; }
       gesture = null;
 

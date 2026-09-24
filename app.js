@@ -6200,5 +6200,12 @@ function restore_pending_state_after_lang_switch() {
 Dishful.switch_tab = switch_tab;
 Dishful.get_visible_tab_name = get_visible_tab_name;
 Dishful.get_current_user = () => current_user;
+// Utilisé par le geste "tirer pour actualiser" du feed (mobile.js) : mêmes
+// deux appels que quand switch_tab("feed") s'exécute, réutilisés tels quels.
+Dishful.refresh_feed = async () => {
+  if (!supabase) return;
+  await refresh_session();
+  await load_recipes();
+};
 
 })(); // fin de l'IIFE qui protège tout le fichier
