@@ -12,7 +12,8 @@
       "publish": "Publish",
       "leaderboard": "Leaderboard",
       "login": "Log in",
-      "change_language": "Change language"
+      "change_language": "Change language",
+      "admin": "Admin"
     },
     "common": {
       "all_countries": "All countries",
@@ -243,7 +244,11 @@
       "publishing": "Publishing...",
       "updated_success": "Recipe updated!",
       "published_success": "Recipe published! +20 XP earned.",
-      "change_photo": "Change photo"
+      "change_photo": "Change photo",
+      "checking_content": "Automatically checking your content...",
+      "checking_content_timer": "Automatically checking your content... ({seconds}s)",
+      "flagged_title": "Recipe pending review",
+      "flagged_message": "Your recipe was saved, but the automatic check flagged a possible issue. An administrator will review it before it goes public."
     },
     "modal": {
       "ingredient_picker": {
@@ -402,7 +407,10 @@
       "logged_in": "Logged in!",
       "creating_account": "Creating account...",
       "account_created_session": "Account created! You can now publish a recipe.",
-      "account_created_confirm": "Account created! Check your inbox to confirm your address, then log in."
+      "account_created_confirm": "Account created! Check your inbox to confirm your address, then log in.",
+      "banned_title": "Account banned",
+      "banned_message": "Your account has been banned by an administrator. You've been signed out.",
+      "banned_message_reason": "Your account has been banned by an administrator (reason: {reason}). You've been signed out."
     },
     "publish_success": {
       "title": "Recipe published!",
@@ -421,7 +429,9 @@
       "reason_placeholder": "Reason (optional)",
       "cancel": "Cancel",
       "confirm": "Send request",
-      "sent_msg": "Request sent. The Dishful team will review it."
+      "sent_msg": "Request sent. The Dishful team will review it.",
+      "requested_by": "Requested by",
+      "recipe_gone": "Recipe already deleted"
     },
     "recipe_detail": {
       "tab_before_start": "Before you start",
@@ -552,6 +562,34 @@
       "leaderboard_body": "Climb the ranking by publishing and collecting likes, and unlock badges to show off on your profile.",
       "profile_title": "Your Profile",
       "profile_body": "Find your recipes, your badges, and the Journal to track your calories day to day."
+    },
+    "admin": {
+      "title": "Administration",
+      "tab_flagged": "Flagged recipes",
+      "tab_deletions": "Deletion requests",
+      "flagged_hint": "Recipes blocked by the automatic check or still awaiting verification. Approve to make them public, or delete them.",
+      "deletions_hint": "Deletion requests sent by recipe authors.",
+      "flagged_empty": "No flagged recipes right now.",
+      "deletions_empty": "No pending deletion requests.",
+      "view_btn": "View",
+      "approve_btn": "Approve",
+      "approved_msg": "Recipe approved and made public.",
+      "delete_recipe_btn": "Delete recipe",
+      "delete_recipe_confirm": "Permanently delete this recipe? This cannot be undone.",
+      "deleted_msg": "Recipe deleted.",
+      "dismiss_btn": "Dismiss",
+      "dismissed_msg": "Request dismissed, the recipe stays up.",
+      "actions_label": "Admin actions",
+      "ban_btn": "Ban",
+      "unban_btn": "Unban",
+      "ban_confirm": "Ban this account? They'll be signed out immediately and won't be able to log back in.",
+      "unban_confirm": "Unban this account and restore access?",
+      "ban_reason_prompt": "Reason for the ban (optional, shown to the user):",
+      "banned_msg": "Account banned.",
+      "unbanned_msg": "Account unbanned.",
+      "delete_account_btn": "Delete account",
+      "delete_account_confirm": "Permanently delete {name}'s account? All their recipes, comments and likes will be deleted. This cannot be undone.",
+      "account_deleted_msg": "Account deleted."
     }
   },
   "data": {

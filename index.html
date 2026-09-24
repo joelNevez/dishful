@@ -27,6 +27,7 @@
     <button data-tab="search"><i class="fa-solid fa-magnifying-glass"></i> <span data-i18n="nav.search">Recherche</span></button>
     <button data-tab="publish"><i class="fa-solid fa-plus"></i> <span data-i18n="nav.publish">Publier</span></button>
     <button data-tab="leaderboard"><i class="fa-solid fa-trophy"></i> <span data-i18n="nav.leaderboard">Classement</span></button>
+    <button data-tab="admin" id="admin_nav_btn" class="hidden"><i class="fa-solid fa-shield-halved"></i> <span data-i18n="nav.admin">Admin</span></button>
   </nav>
   <div class="header-right">
     <div class="lang-switcher" id="lang_switcher">
@@ -220,6 +221,27 @@
       </div>
       <p class="sub-hint" id="leaderboard_rated_hint" data-i18n="leaderboard.rated_hint">Les recettes les mieux notées par la communauté.</p>
       <div id="leaderboard_rated_list" class="leaderboard-list"></div>
+    </div>
+  </section>
+
+  <!-- ---------------- ADMIN (modération, réservé au rôle admin) ---------------- -->
+  <section id="tab-admin" class="hidden">
+    <div class="feed-header">
+      <h1><i class="fa-solid fa-shield-halved"></i> <span data-i18n="admin.title">Administration</span></h1>
+    </div>
+
+    <div class="leaderboard-subtabs">
+      <button type="button" class="admin-subtab-btn active" data-admintab="flagged"><i class="fa-solid fa-flag"></i> <span data-i18n="admin.tab_flagged">Recettes signalées</span></button>
+      <button type="button" class="admin-subtab-btn" data-admintab="deletions"><i class="fa-solid fa-trash-can"></i> <span data-i18n="admin.tab_deletions">Demandes de suppression</span></button>
+    </div>
+
+    <div id="admin_flagged_panel" class="leaderboard-panel">
+      <p class="sub-hint" data-i18n="admin.flagged_hint">Recettes bloquées par la vérification automatique ou en attente de vérification. Approuve-les pour les rendre publiques, ou supprime-les.</p>
+      <div id="admin_flagged_list" class="admin-list"></div>
+    </div>
+    <div id="admin_deletions_panel" class="leaderboard-panel hidden">
+      <p class="sub-hint" data-i18n="admin.deletions_hint">Demandes de suppression envoyées par les auteurs de recettes.</p>
+      <div id="admin_deletions_list" class="admin-list"></div>
     </div>
   </section>
 
@@ -734,6 +756,12 @@
   <!-- ---------------- PROFIL PUBLIC (celui d'un autre utilisateur) ---------------- -->
   <section id="tab-public-profile" class="profile_container hidden">
     <button id="back_to_feed_from_profile_btn" class="text-btn"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="common.back">Retour</span></button>
+
+    <div id="public_profile_admin_actions" class="admin-actions-row hidden">
+      <span class="admin-actions-label"><i class="fa-solid fa-shield-halved"></i> <span data-i18n="admin.actions_label">Actions admin</span></span>
+      <button type="button" id="admin_ban_user_btn" class="secondary_btn danger"></button>
+      <button type="button" id="admin_delete_account_btn" class="secondary_btn danger"><i class="fa-solid fa-user-slash"></i> <span data-i18n="admin.delete_account_btn">Supprimer le compte</span></button>
+    </div>
 
     <div class="profile_header_wrapper" style="margin-top:14px;">
       <div class="profile_banner" id="public_profile_banner_preview"></div>

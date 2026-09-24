@@ -12,7 +12,8 @@
       "publish": "Publicar",
       "leaderboard": "Classificação",
       "login": "Entrar",
-      "change_language": "Mudar de idioma"
+      "change_language": "Mudar de idioma",
+      "admin": "Admin"
     },
     "common": {
       "all_countries": "Todos os países",
@@ -243,7 +244,11 @@
       "publishing": "A publicar...",
       "updated_success": "Receita atualizada!",
       "published_success": "Receita publicada! +20 XP ganhos.",
-      "change_photo": "Mudar a foto"
+      "change_photo": "Mudar a foto",
+      "checking_content": "A verificar automaticamente o conteúdo...",
+      "checking_content_timer": "A verificar automaticamente o conteúdo... ({seconds}s)",
+      "flagged_title": "Receita a aguardar verificação",
+      "flagged_message": "A tua receita foi guardada, mas a verificação automática detetou um possível problema. Será revista por um administrador antes de ficar pública."
     },
     "modal": {
       "ingredient_picker": {
@@ -402,7 +407,10 @@
       "logged_in": "Sessão iniciada!",
       "creating_account": "A criar a conta...",
       "account_created_session": "Conta criada! Já podes publicar uma receita.",
-      "account_created_confirm": "Conta criada! Verifica a tua caixa de correio para confirmar o teu endereço e depois inicia sessão."
+      "account_created_confirm": "Conta criada! Verifica a tua caixa de correio para confirmar o teu endereço e depois inicia sessão.",
+      "banned_title": "Conta banida",
+      "banned_message": "A tua conta foi banida por um administrador. Foste desligado.",
+      "banned_message_reason": "A tua conta foi banida por um administrador (motivo: {reason}). Foste desligado."
     },
     "publish_success": {
       "title": "Receita publicada!",
@@ -421,7 +429,9 @@
       "reason_placeholder": "Motivo (opcional)",
       "cancel": "Cancelar",
       "confirm": "Enviar pedido",
-      "sent_msg": "Pedido enviado. A equipa Dishful vai analisá-lo."
+      "sent_msg": "Pedido enviado. A equipa Dishful vai analisá-lo.",
+      "requested_by": "Pedido por",
+      "recipe_gone": "Receita já eliminada"
     },
     "recipe_detail": {
       "tab_before_start": "Antes de começares",
@@ -552,6 +562,34 @@
       "leaderboard_body": "Sobe na classificação a publicar e a receber gostos, e desbloqueia badges para mostrar no teu perfil.",
       "profile_title": "O teu Perfil",
       "profile_body": "Encontra as tuas receitas, os teus badges, e o Diário para acompanhares as tuas calorias todos os dias."
+    },
+    "admin": {
+      "title": "Administração",
+      "tab_flagged": "Receitas sinalizadas",
+      "tab_deletions": "Pedidos de eliminação",
+      "flagged_hint": "Receitas bloqueadas pela verificação automática ou ainda a aguardar verificação. Aprova para as tornar públicas, ou elimina-as.",
+      "deletions_hint": "Pedidos de eliminação enviados pelos autores das receitas.",
+      "flagged_empty": "Nenhuma receita sinalizada de momento.",
+      "deletions_empty": "Nenhum pedido de eliminação pendente.",
+      "view_btn": "Ver",
+      "approve_btn": "Aprovar",
+      "approved_msg": "Receita aprovada e tornada pública.",
+      "delete_recipe_btn": "Eliminar receita",
+      "delete_recipe_confirm": "Eliminar definitivamente esta receita? Esta ação é irreversível.",
+      "deleted_msg": "Receita eliminada.",
+      "dismiss_btn": "Ignorar",
+      "dismissed_msg": "Pedido ignorado, a receita permanece online.",
+      "actions_label": "Ações de admin",
+      "ban_btn": "Banir",
+      "unban_btn": "Desbanir",
+      "ban_confirm": "Banir esta conta? Será desligada imediatamente e não poderá voltar a entrar.",
+      "unban_confirm": "Desbanir esta conta e restaurar o acesso?",
+      "ban_reason_prompt": "Motivo do banimento (opcional, visível para o utilizador):",
+      "banned_msg": "Conta banida.",
+      "unbanned_msg": "Conta desbanida.",
+      "delete_account_btn": "Eliminar conta",
+      "delete_account_confirm": "Eliminar definitivamente a conta de {name}? Todas as receitas, comentários e gostos serão eliminados. Esta ação é irreversível.",
+      "account_deleted_msg": "Conta eliminada."
     }
   },
   "data": {

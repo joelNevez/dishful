@@ -12,7 +12,8 @@
       "publish": "Publicar",
       "leaderboard": "Clasificación",
       "login": "Iniciar sesión",
-      "change_language": "Cambiar idioma"
+      "change_language": "Cambiar idioma",
+      "admin": "Admin"
     },
     "common": {
       "all_countries": "Todos los países",
@@ -243,7 +244,11 @@
       "publishing": "Publicando...",
       "updated_success": "¡Receta actualizada!",
       "published_success": "¡Receta publicada! +20 XP ganados.",
-      "change_photo": "Cambiar la foto"
+      "change_photo": "Cambiar la foto",
+      "checking_content": "Verificando automáticamente el contenido...",
+      "checking_content_timer": "Verificando automáticamente el contenido... ({seconds}s)",
+      "flagged_title": "Receta pendiente de revisión",
+      "flagged_message": "Tu receta se guardó, pero la verificación automática detectó un posible problema. Un administrador la revisará antes de publicarla."
     },
     "modal": {
       "ingredient_picker": {
@@ -402,7 +407,10 @@
       "logged_in": "¡Sesión iniciada!",
       "creating_account": "Creando la cuenta...",
       "account_created_session": "¡Cuenta creada! Ya puedes publicar una receta.",
-      "account_created_confirm": "¡Cuenta creada! Revisa tu correo para confirmar tu dirección y luego inicia sesión."
+      "account_created_confirm": "¡Cuenta creada! Revisa tu correo para confirmar tu dirección y luego inicia sesión.",
+      "banned_title": "Cuenta prohibida",
+      "banned_message": "Tu cuenta ha sido prohibida por un administrador. Se ha cerrado tu sesión.",
+      "banned_message_reason": "Tu cuenta ha sido prohibida por un administrador (motivo: {reason}). Se ha cerrado tu sesión."
     },
     "publish_success": {
       "title": "¡Receta publicada!",
@@ -421,7 +429,9 @@
       "reason_placeholder": "Motivo (opcional)",
       "cancel": "Cancelar",
       "confirm": "Enviar solicitud",
-      "sent_msg": "Solicitud enviada. El equipo de Dishful la revisará."
+      "sent_msg": "Solicitud enviada. El equipo de Dishful la revisará.",
+      "requested_by": "Solicitado por",
+      "recipe_gone": "Receta ya eliminada"
     },
     "recipe_detail": {
       "tab_before_start": "Antes de empezar",
@@ -552,6 +562,34 @@
       "leaderboard_body": "Sube en la clasificación publicando y recibiendo likes, y desbloquea insignias para lucir en tu perfil.",
       "profile_title": "Tu Perfil",
       "profile_body": "Encuentra tus recetas, tus insignias, y el Diario para seguir tus calorías día a día."
+    },
+    "admin": {
+      "title": "Administración",
+      "tab_flagged": "Recetas marcadas",
+      "tab_deletions": "Solicitudes de eliminación",
+      "flagged_hint": "Recetas bloqueadas por la verificación automática o aún pendientes de verificación. Apruébalas para hacerlas públicas, o elimínalas.",
+      "deletions_hint": "Solicitudes de eliminación enviadas por los autores de las recetas.",
+      "flagged_empty": "No hay recetas marcadas por ahora.",
+      "deletions_empty": "No hay solicitudes de eliminación pendientes.",
+      "view_btn": "Ver",
+      "approve_btn": "Aprobar",
+      "approved_msg": "Receta aprobada y publicada.",
+      "delete_recipe_btn": "Eliminar receta",
+      "delete_recipe_confirm": "¿Eliminar definitivamente esta receta? Esta acción no se puede deshacer.",
+      "deleted_msg": "Receta eliminada.",
+      "dismiss_btn": "Descartar",
+      "dismissed_msg": "Solicitud descartada, la receta sigue publicada.",
+      "actions_label": "Acciones de admin",
+      "ban_btn": "Prohibir",
+      "unban_btn": "Levantar prohibición",
+      "ban_confirm": "¿Prohibir esta cuenta? Se cerrará su sesión de inmediato y no podrá volver a iniciar sesión.",
+      "unban_confirm": "¿Levantar la prohibición y restaurar el acceso?",
+      "ban_reason_prompt": "Motivo de la prohibición (opcional, visible para el usuario):",
+      "banned_msg": "Cuenta prohibida.",
+      "unbanned_msg": "Prohibición levantada.",
+      "delete_account_btn": "Eliminar cuenta",
+      "delete_account_confirm": "¿Eliminar definitivamente la cuenta de {name}? Se eliminarán todas sus recetas, comentarios y likes. Esta acción no se puede deshacer.",
+      "account_deleted_msg": "Cuenta eliminada."
     }
   },
   "data": {

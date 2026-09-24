@@ -12,7 +12,8 @@
       "publish": "Publier",
       "leaderboard": "Classement",
       "login": "Se connecter",
-      "change_language": "Changer de langue"
+      "change_language": "Changer de langue",
+      "admin": "Admin"
     },
     "common": {
       "all_countries": "Tous les pays",
@@ -243,7 +244,11 @@
       "publishing": "Publication...",
       "updated_success": "Recette mise à jour !",
       "published_success": "Recette publiée ! +20 XP gagnés.",
-      "change_photo": "Changer la photo"
+      "change_photo": "Changer la photo",
+      "checking_content": "Vérification automatique du contenu...",
+      "checking_content_timer": "Vérification automatique du contenu... ({seconds}s)",
+      "flagged_title": "Recette en attente de vérification",
+      "flagged_message": "Ta recette a été enregistrée mais la vérification automatique a détecté un possible souci. Elle sera examinée par un administrateur avant d'être rendue publique."
     },
     "modal": {
       "ingredient_picker": {
@@ -402,7 +407,10 @@
       "logged_in": "Connecté !",
       "creating_account": "Création du compte...",
       "account_created_session": "Compte créé ! Tu peux publier une recette.",
-      "account_created_confirm": "Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse, puis connecte-toi."
+      "account_created_confirm": "Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse, puis connecte-toi.",
+      "banned_title": "Compte banni",
+      "banned_message": "Ton compte a été banni par un administrateur. Tu as été déconnecté.",
+      "banned_message_reason": "Ton compte a été banni par un administrateur (raison : {reason}). Tu as été déconnecté."
     },
     "publish_success": {
       "title": "Recette publiée !",
@@ -421,7 +429,9 @@
       "reason_placeholder": "Raison (optionnel)",
       "cancel": "Annuler",
       "confirm": "Envoyer la demande",
-      "sent_msg": "Demande envoyée. L'équipe Dishful va l'examiner."
+      "sent_msg": "Demande envoyée. L'équipe Dishful va l'examiner.",
+      "requested_by": "Demandée par",
+      "recipe_gone": "Recette déjà supprimée"
     },
     "recipe_detail": {
       "tab_before_start": "Avant de commencer",
@@ -552,6 +562,34 @@
       "leaderboard_body": "Grimpe dans le classement en publiant et en récoltant des likes, et débloque des badges à afficher sur ton profil.",
       "profile_title": "Ton Profil",
       "profile_body": "Retrouve tes recettes, tes badges, et le Journal pour suivre tes calories au quotidien."
+    },
+    "admin": {
+      "title": "Administration",
+      "tab_flagged": "Recettes signalées",
+      "tab_deletions": "Demandes de suppression",
+      "flagged_hint": "Recettes bloquées par la vérification automatique ou en attente de vérification. Approuve-les pour les rendre publiques, ou supprime-les.",
+      "deletions_hint": "Demandes de suppression envoyées par les auteurs de recettes.",
+      "flagged_empty": "Aucune recette signalée pour le moment.",
+      "deletions_empty": "Aucune demande de suppression en attente.",
+      "view_btn": "Voir",
+      "approve_btn": "Approuver",
+      "approved_msg": "Recette approuvée et rendue publique.",
+      "delete_recipe_btn": "Supprimer la recette",
+      "delete_recipe_confirm": "Supprimer définitivement cette recette ? Cette action est irréversible.",
+      "deleted_msg": "Recette supprimée.",
+      "dismiss_btn": "Ignorer",
+      "dismissed_msg": "Demande ignorée, la recette reste en ligne.",
+      "actions_label": "Actions admin",
+      "ban_btn": "Bannir",
+      "unban_btn": "Débannir",
+      "ban_confirm": "Bannir ce compte ? Il sera immédiatement déconnecté et ne pourra plus se reconnecter.",
+      "unban_confirm": "Débannir ce compte et lui redonner l'accès ?",
+      "ban_reason_prompt": "Raison du bannissement (facultatif, visible par l'utilisateur) :",
+      "banned_msg": "Compte banni.",
+      "unbanned_msg": "Compte débanni.",
+      "delete_account_btn": "Supprimer le compte",
+      "delete_account_confirm": "Supprimer définitivement le compte de {name} ? Toutes ses recettes, commentaires et likes seront supprimés. Cette action est irréversible.",
+      "account_deleted_msg": "Compte supprimé."
     }
   },
   "data": {

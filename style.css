@@ -1741,6 +1741,42 @@ label.field-label{
 }
 .leaderboard-subtab-btn.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
 
+.admin-subtab-btn{
+  background:var(--card);border:1px solid var(--line);padding:9px 16px;border-radius:999px;
+  font-size:13px;font-weight:700;color:var(--ink-soft);display:inline-flex;align-items:center;gap:7px;
+}
+.admin-subtab-btn.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+
+/* ---------- Onglet Admin (modération) ---------- */
+.admin-list{display:flex;flex-direction:column;gap:12px;}
+.admin-list-empty{color:var(--ink-soft);font-size:14px;padding:24px 0;text-align:center;}
+.admin-card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;
+  display:flex;gap:14px;align-items:flex-start;
+}
+.admin-card-thumb{width:64px;height:64px;border-radius:10px;object-fit:cover;flex:0 0 auto;background:var(--paper-deep);}
+.admin-card-body{flex:1;min-width:0;}
+.admin-card-title{font-weight:700;font-size:15px;color:var(--ink);margin:0 0 2px;}
+.admin-card-meta{font-size:12.5px;color:var(--ink-soft);margin:0 0 6px;}
+.admin-card-reason{
+  font-size:12.5px;color:var(--rust);background:#FBEAE3;border-radius:8px;padding:5px 9px;
+  display:inline-block;margin-bottom:6px;word-break:break-word;
+}
+.admin-card-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+.admin-card-actions button{
+  padding:6px 12px;border-radius:8px;font-size:12.5px;font-weight:700;border:1px solid var(--line);
+  background:var(--paper);color:var(--ink-soft);
+}
+.admin-card-actions button.approve-btn{background:var(--basil-deep);color:#fff;border-color:var(--basil-deep);}
+.admin-card-actions button.danger-btn{background:var(--rust);color:#fff;border-color:var(--rust);}
+
+.admin-actions-row{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0 0;
+  background:#FBEAE3;border:1px solid #F0C7B3;border-radius:10px;padding:10px 14px;
+}
+.admin-actions-label{font-size:12.5px;font-weight:700;color:var(--rust);display:inline-flex;align-items:center;gap:6px;}
+#public_profile_admin_actions .secondary_btn{padding:6px 12px;font-size:12.5px;}
+
 /* ---------- Bascule Recettes / Chefs (classements cœurs & étoiles) ---------- */
 .leaderboard-scope-toggle{display:flex;gap:6px;margin-bottom:12px;}
 .leaderboard-scope-btn{

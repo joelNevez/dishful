@@ -12,7 +12,8 @@
       "publish": "Veröffentlichen",
       "leaderboard": "Rangliste",
       "login": "Anmelden",
-      "change_language": "Sprache ändern"
+      "change_language": "Sprache ändern",
+      "admin": "Admin"
     },
     "common": {
       "all_countries": "Alle Länder",
@@ -243,7 +244,11 @@
       "publishing": "Wird veröffentlicht...",
       "updated_success": "Rezept aktualisiert!",
       "published_success": "Rezept veröffentlicht! +20 XP erhalten.",
-      "change_photo": "Foto ändern"
+      "change_photo": "Foto ändern",
+      "checking_content": "Inhalt wird automatisch überprüft...",
+      "checking_content_timer": "Inhalt wird automatisch überprüft... ({seconds}s)",
+      "flagged_title": "Rezept wartet auf Überprüfung",
+      "flagged_message": "Dein Rezept wurde gespeichert, aber die automatische Prüfung hat ein mögliches Problem erkannt. Ein Administrator prüft es, bevor es veröffentlicht wird."
     },
     "modal": {
       "ingredient_picker": {
@@ -402,7 +407,10 @@
       "logged_in": "Angemeldet!",
       "creating_account": "Konto wird erstellt...",
       "account_created_session": "Konto erstellt! Du kannst jetzt ein Rezept veröffentlichen.",
-      "account_created_confirm": "Konto erstellt! Schau in deinem Postfach nach, um deine Adresse zu bestätigen, und melde dich dann an."
+      "account_created_confirm": "Konto erstellt! Schau in deinem Postfach nach, um deine Adresse zu bestätigen, und melde dich dann an.",
+      "banned_title": "Konto gesperrt",
+      "banned_message": "Dein Konto wurde von einem Administrator gesperrt. Du wurdest abgemeldet.",
+      "banned_message_reason": "Dein Konto wurde von einem Administrator gesperrt (Grund: {reason}). Du wurdest abgemeldet."
     },
     "publish_success": {
       "title": "Rezept veröffentlicht!",
@@ -421,7 +429,9 @@
       "reason_placeholder": "Grund (optional)",
       "cancel": "Abbrechen",
       "confirm": "Anfrage senden",
-      "sent_msg": "Anfrage gesendet. Das Dishful-Team wird sie prüfen."
+      "sent_msg": "Anfrage gesendet. Das Dishful-Team wird sie prüfen.",
+      "requested_by": "Angefragt von",
+      "recipe_gone": "Rezept bereits gelöscht"
     },
     "recipe_detail": {
       "tab_before_start": "Bevor du loslegst",
@@ -552,6 +562,34 @@
       "leaderboard_body": "Klettere in der Rangliste, indem du veröffentlichst und Likes sammelst, und schalte Abzeichen für dein Profil frei.",
       "profile_title": "Dein Profil",
       "profile_body": "Finde deine Rezepte, deine Abzeichen und das Tagebuch, um deine Kalorien täglich zu verfolgen."
+    },
+    "admin": {
+      "title": "Verwaltung",
+      "tab_flagged": "Gemeldete Rezepte",
+      "tab_deletions": "Löschanfragen",
+      "flagged_hint": "Rezepte, die von der automatischen Prüfung blockiert wurden oder noch auf Prüfung warten. Genehmige sie, um sie öffentlich zu machen, oder lösche sie.",
+      "deletions_hint": "Löschanfragen, die von Rezeptautoren gesendet wurden.",
+      "flagged_empty": "Aktuell keine gemeldeten Rezepte.",
+      "deletions_empty": "Keine ausstehenden Löschanfragen.",
+      "view_btn": "Ansehen",
+      "approve_btn": "Genehmigen",
+      "approved_msg": "Rezept genehmigt und veröffentlicht.",
+      "delete_recipe_btn": "Rezept löschen",
+      "delete_recipe_confirm": "Dieses Rezept endgültig löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+      "deleted_msg": "Rezept gelöscht.",
+      "dismiss_btn": "Verwerfen",
+      "dismissed_msg": "Anfrage verworfen, das Rezept bleibt online.",
+      "actions_label": "Admin-Aktionen",
+      "ban_btn": "Sperren",
+      "unban_btn": "Entsperren",
+      "ban_confirm": "Dieses Konto sperren? Es wird sofort abgemeldet und kann sich nicht mehr anmelden.",
+      "unban_confirm": "Dieses Konto entsperren und den Zugriff wiederherstellen?",
+      "ban_reason_prompt": "Grund für die Sperre (optional, für den Nutzer sichtbar):",
+      "banned_msg": "Konto gesperrt.",
+      "unbanned_msg": "Konto entsperrt.",
+      "delete_account_btn": "Konto löschen",
+      "delete_account_confirm": "Das Konto von {name} endgültig löschen? Alle Rezepte, Kommentare und Likes werden gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
+      "account_deleted_msg": "Konto gelöscht."
     }
   },
   "data": {

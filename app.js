@@ -1006,10 +1006,13 @@ async function refresh_session() {
 
   if (user) {
     // 1. Récupération des recettes de l'utilisateur pour calculer son XP réel
+    // (uniquement les recettes approuvées : une recette signalée par la vérification
+    // automatique ne doit pas pouvoir farmer de l'XP tant qu'elle n'est pas validée).
     const { data: user_recipes } = await supabase
       .from("recipes")
       .select("id, likes_count, views_count")
-      .eq("author_id", user.id);
+      .eq("author_id", user.id)
+      .eq("moderation_status", "approved");
 
     const total_published = user_recipes ? user_recipes.length : 0;
     const total_likes_received = user_recipes
@@ -1031,6 +1034,23 @@ async function refresh_session() {
 
     // 3. Chargement du profil à jour
     const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+
+    // Un compte banni est déconnecté immédiatement, où qu'il en soit dans l'app.
+    if (profile && profile.is_banned) {
+      await supabase.auth.signOut();
+      current_user = null;
+      current_profile = null;
+      liked_recipe_ids = new Set();
+      render_user_zone();
+      render_profile_tab();
+      render_recipes();
+      show_alert_modal(
+        profile.banned_reason ? I18N.t('auth.banned_message_reason', { reason: profile.banned_reason }) : I18N.t('auth.banned_message'),
+        { type: 'error', title: I18N.t('auth.banned_title') }
+      );
+      return;
+    }
+
     current_profile = profile;
 
     const { data: my_likes } = await supabase.from("likes").select("recipe_id").eq("user_id", user.id);
@@ -1053,6 +1073,7 @@ if (supabase) {
 
 function render_user_zone() {
   const zone = document.getElementById('user_zone');
+  document.getElementById('admin_nav_btn')?.classList.toggle('hidden', current_profile?.role !== 'admin');
 
   if (current_user && current_profile) {
     const initials = (current_profile.first_name ? current_profile.first_name[0] : current_profile.username[0]).toUpperCase();
@@ -2242,6 +2263,77 @@ async function upload_pending_images(user_id) {
 }
 
 // =====================================================================
+// 7bis. VÉRIFICATION AUTOMATIQUE DE CONTENU (avant publication)
+// Deux volets : un filtre de mots-clés (texte, ré-appliqué et fait respecter
+// côté serveur via la RPC moderate_recipe — infalsifiable), et une détection
+// de nudité côté client via nsfwjs (chargé à la demande, gratuit, pas de clé
+// API). Le volet image reste "best effort" tant qu'aucune vérification IA
+// serveur (Claude ou autre) n'est branchée.
+// =====================================================================
+let nsfw_model_promise = null;
+
+function load_external_script(src) {
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector(`script[src="${src}"]`);
+    if (existing) { existing.addEventListener('load', resolve); if (existing.dataset.loaded) resolve(); return; }
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = () => { s.dataset.loaded = '1'; resolve(); };
+    s.onerror = () => reject(new Error('Échec de chargement : ' + src));
+    document.head.appendChild(s);
+  });
+}
+
+function get_nsfw_model() {
+  if (!nsfw_model_promise) {
+    nsfw_model_promise = (async () => {
+      if (!window.tf) await load_external_script('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js');
+      if (!window.nsfwjs) await load_external_script('https://cdn.jsdelivr.net/npm/nsfwjs@4.4.0/dist/browser/nsfwjs.min.js');
+      return await window.nsfwjs.load();
+    })();
+  }
+  return nsfw_model_promise;
+}
+
+function file_to_html_image(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => resolve({ img, url });
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('image illisible')); };
+    img.src = url;
+  });
+}
+
+// Seuils volontairement prudents pour limiter les faux positifs sur des photos de plats/tables.
+const NSFW_FLAG_THRESHOLDS = { Porn: 0.6, Hentai: 0.6, Sexy: 0.85 };
+
+async function check_images_for_nudity(files, on_progress) {
+  const real_files = files.filter(Boolean);
+  if (!real_files.length) return { flagged: false, detail: null };
+  const model = await get_nsfw_model();
+  for (let i = 0; i < real_files.length; i++) {
+    if (on_progress) on_progress(i + 1, real_files.length);
+    let img, url;
+    try {
+      ({ img, url } = await file_to_html_image(real_files[i]));
+    } catch (err) { continue; }
+    try {
+      const predictions = await model.classify(img);
+      for (const p of predictions) {
+        const threshold = NSFW_FLAG_THRESHOLDS[p.className];
+        if (threshold && p.probability >= threshold) {
+          return { flagged: true, detail: p.className.toLowerCase() };
+        }
+      }
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+  return { flagged: false, detail: null };
+}
+
+// =====================================================================
 // 8. PUBLISH RECIPE
 // =====================================================================
 const recipe_form = document.getElementById('recipe_form');
@@ -2355,10 +2447,43 @@ recipe_form.addEventListener('submit', async (e) => {
     return;
   }
 
+  // Vérification automatique du contenu : le texte est re-vérifié côté serveur
+  // par la RPC (infalsifiable, voir moderate_recipe), les images sont analysées
+  // ici côté client (nsfwjs) — best-effort tant qu'aucune vérification IA serveur
+  // n'est branchée. On ne vérifie que les NOUVEAUX fichiers, pas les médias déjà
+  // en place lors d'une édition (déjà vérifiés à leur publication d'origine).
+  const files_to_check = [cover_image_file, ...pending_images.map(i => i.file), ...recipe_steps.map(s => s._image_file)].filter(Boolean);
+  let nsfw_result = { flagged: false, detail: null };
+  if (files_to_check.length) {
+    const check_start = performance.now();
+    const timer = setInterval(() => {
+      const secs = ((performance.now() - check_start) / 1000).toFixed(1);
+      recipe_message_text.textContent = I18N.t('publish.checking_content_timer', { seconds: secs });
+    }, 100);
+    recipe_message_text.className = 'msg';
+    recipe_message_text.textContent = I18N.t('publish.checking_content');
+    try {
+      nsfw_result = await check_images_for_nudity(files_to_check);
+    } catch (err) {
+      console.error('[Dishful] Vérification de contenu indisponible :', err.message);
+      nsfw_result = { flagged: true, detail: 'check_unavailable' };
+    } finally {
+      clearInterval(timer);
+    }
+  }
+
+  const { data: moderation_status, error: mod_error } = await supabase.rpc('moderate_recipe', {
+    p_recipe_id: saved_recipe.id,
+    p_nudity_flagged: nsfw_result.flagged,
+    p_nudity_detail: nsfw_result.detail
+  });
+  if (mod_error) console.error('[Dishful] Erreur de modération :', mod_error.message);
+  const was_flagged = moderation_status === 'flagged';
+
   recipe_message_text.className = 'msg';
-  recipe_message_text.textContent = was_editing
-    ? I18N.t('publish.updated_success')
-    : I18N.t('publish.published_success');
+  recipe_message_text.textContent = was_flagged
+    ? I18N.t('publish.flagged_message')
+    : (was_editing ? I18N.t('publish.updated_success') : I18N.t('publish.published_success'));
   reset_publish_form();
 
   const target_recipe_id = editing_recipe_id;
@@ -2366,7 +2491,12 @@ recipe_form.addEventListener('submit', async (e) => {
 
   await refresh_session();
   await load_recipes();
-  if (was_editing) {
+
+  if (was_flagged) {
+    show_alert_modal(I18N.t('publish.flagged_message'), { type: 'info', title: I18N.t('publish.flagged_title') });
+    if (was_editing) show_recipe_detail_page(target_recipe_id);
+    else switch_tab('feed');
+  } else if (was_editing) {
     show_recipe_detail_page(target_recipe_id);
   } else if (saved_recipe) {
     switch_tab('feed');
@@ -2493,6 +2623,127 @@ document.getElementById('confirm_deletion_request_btn')?.addEventListener('click
   deletion_request_modal.classList.add('hidden');
   show_toast(I18N.t('deletion.sent_msg'), 'fa-paper-plane');
 });
+
+// =====================================================================
+// 7ter. ONGLET ADMIN (modération : recettes signalées + demandes de suppression)
+// Visible et accessible uniquement pour un compte role='admin' — la RLS
+// protège aussi les données côté serveur, ceci n'est que l'UI.
+// =====================================================================
+document.querySelectorAll('.admin-subtab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.admin-subtab-btn').forEach(b => b.classList.toggle('active', b === btn));
+    const which = btn.dataset.admintab;
+    document.getElementById('admin_flagged_panel')?.classList.toggle('hidden', which !== 'flagged');
+    document.getElementById('admin_deletions_panel')?.classList.toggle('hidden', which !== 'deletions');
+    if (which === 'flagged') load_admin_flagged_recipes();
+    if (which === 'deletions') load_admin_deletion_requests();
+  });
+});
+
+function render_admin_tab() {
+  if (current_profile?.role !== 'admin') return;
+  const active = document.querySelector('.admin-subtab-btn.active')?.dataset.admintab || 'flagged';
+  if (active === 'deletions') load_admin_deletion_requests();
+  else load_admin_flagged_recipes();
+}
+
+async function load_admin_flagged_recipes() {
+  const container = document.getElementById('admin_flagged_list');
+  if (!container || !supabase) return;
+  container.innerHTML = `<p class="admin-list-empty">${escape_html(I18N.t('common.loading'))}</p>`;
+  const { data, error } = await supabase
+    .from('recipes')
+    .select('id, title, cover_image, moderation_status, moderation_flag_reason, created_at, profiles(username)')
+    .in('moderation_status', ['flagged', 'pending'])
+    .order('created_at', { ascending: false });
+  if (error) { container.innerHTML = `<p class="admin-list-empty">${escape_html(I18N.t('common.error_prefix') + error.message)}</p>`; return; }
+  if (!data || !data.length) { container.innerHTML = `<p class="admin-list-empty">${escape_html(I18N.t('admin.flagged_empty'))}</p>`; return; }
+
+  container.innerHTML = data.map(r => `
+    <div class="admin-card" data-recipe-id="${escape_attr(r.id)}">
+      <img class="admin-card-thumb" src="${escape_attr(r.cover_image || '')}" alt="">
+      <div class="admin-card-body">
+        <p class="admin-card-title">${escape_html(r.title)}</p>
+        <p class="admin-card-meta">${escape_html(I18N.t('recipe_detail.author_by'))} ${escape_html(r.profiles?.username || I18N.t('common.anonymous'))} · ${escape_html(format_relative_date(r.created_at))}</p>
+        ${r.moderation_flag_reason ? `<span class="admin-card-reason">${escape_html(r.moderation_flag_reason)}</span>` : ''}
+        <div class="admin-card-actions">
+          <button type="button" data-action="view">${escape_html(I18N.t('admin.view_btn'))}</button>
+          <button type="button" class="approve-btn" data-action="approve">${escape_html(I18N.t('admin.approve_btn'))}</button>
+          <button type="button" class="danger-btn" data-action="delete">${escape_html(I18N.t('common.delete'))}</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.admin-card').forEach(card => {
+    const recipe_id = card.dataset.recipeId;
+    card.querySelector('[data-action="view"]')?.addEventListener('click', () => show_recipe_detail_page(recipe_id));
+    card.querySelector('[data-action="approve"]')?.addEventListener('click', async () => {
+      const { error } = await supabase.from('recipes').update({ moderation_status: 'approved', moderation_flag_reason: null }).eq('id', recipe_id);
+      if (error) { show_toast(I18N.t('common.error_prefix') + error.message, 'fa-triangle-exclamation'); return; }
+      show_toast(I18N.t('admin.approved_msg'), 'fa-circle-check');
+      load_admin_flagged_recipes();
+    });
+    card.querySelector('[data-action="delete"]')?.addEventListener('click', async () => {
+      if (!window.confirm(I18N.t('admin.delete_recipe_confirm'))) return;
+      const { error } = await supabase.from('recipes').delete().eq('id', recipe_id);
+      if (error) { show_toast(I18N.t('common.error_prefix') + error.message, 'fa-triangle-exclamation'); return; }
+      show_toast(I18N.t('admin.deleted_msg'), 'fa-trash-can');
+      load_admin_flagged_recipes();
+    });
+  });
+}
+
+async function load_admin_deletion_requests() {
+  const container = document.getElementById('admin_deletions_list');
+  if (!container || !supabase) return;
+  container.innerHTML = `<p class="admin-list-empty">${escape_html(I18N.t('common.loading'))}</p>`;
+  const { data, error } = await supabase
+    .from('deletion_requests')
+    .select('id, reason, created_at, status, recipe_id, requester_id, recipes(id, title, cover_image)')
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false });
+  if (error) { container.innerHTML = `<p class="admin-list-empty">${escape_html(I18N.t('common.error_prefix') + error.message)}</p>`; return; }
+  if (!data || !data.length) { container.innerHTML = `<p class="admin-list-empty">${escape_html(I18N.t('admin.deletions_empty'))}</p>`; return; }
+
+  const requester_ids = [...new Set(data.map(d => d.requester_id))];
+  const { data: requesters } = await supabase.from('profiles').select('id, username').in('id', requester_ids);
+  const username_by_id = Object.fromEntries((requesters || []).map(p => [p.id, p.username]));
+
+  container.innerHTML = data.map(d => `
+    <div class="admin-card" data-request-id="${escape_attr(d.id)}" data-recipe-id="${escape_attr(d.recipe_id || '')}">
+      <img class="admin-card-thumb" src="${escape_attr(d.recipes?.cover_image || '')}" alt="">
+      <div class="admin-card-body">
+        <p class="admin-card-title">${escape_html(d.recipes?.title || I18N.t('deletion.recipe_gone'))}</p>
+        <p class="admin-card-meta">${escape_html(I18N.t('deletion.requested_by'))} ${escape_html(username_by_id[d.requester_id] || I18N.t('common.anonymous'))} · ${escape_html(format_relative_date(d.created_at))}</p>
+        ${d.reason ? `<span class="admin-card-reason">${escape_html(d.reason)}</span>` : ''}
+        <div class="admin-card-actions">
+          <button type="button" class="danger-btn" data-action="delete">${escape_html(I18N.t('admin.delete_recipe_btn'))}</button>
+          <button type="button" data-action="dismiss">${escape_html(I18N.t('admin.dismiss_btn'))}</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.admin-card').forEach(card => {
+    const request_id = card.dataset.requestId;
+    const recipe_id = card.dataset.recipeId;
+    card.querySelector('[data-action="delete"]')?.addEventListener('click', async () => {
+      if (!window.confirm(I18N.t('admin.delete_recipe_confirm'))) return;
+      if (recipe_id) await supabase.from('recipes').delete().eq('id', recipe_id);
+      const { error } = await supabase.from('deletion_requests').update({ status: 'resolved' }).eq('id', request_id);
+      if (error) { show_toast(I18N.t('common.error_prefix') + error.message, 'fa-triangle-exclamation'); return; }
+      show_toast(I18N.t('admin.deleted_msg'), 'fa-trash-can');
+      load_admin_deletion_requests();
+    });
+    card.querySelector('[data-action="dismiss"]')?.addEventListener('click', async () => {
+      const { error } = await supabase.from('deletion_requests').update({ status: 'resolved' }).eq('id', request_id);
+      if (error) { show_toast(I18N.t('common.error_prefix') + error.message, 'fa-triangle-exclamation'); return; }
+      show_toast(I18N.t('admin.dismissed_msg'), 'fa-check');
+      load_admin_deletion_requests();
+    });
+  });
+}
 
 function reset_publish_form() {
   recipe_form.reset();
@@ -4021,11 +4272,16 @@ function get_visible_tab_name() {
 }
 
 function switch_tab(tab_name) {
+  // Onglet réservé aux admins : un non-admin qui arrive ici (lien direct, etc.) est renvoyé au feed.
+  if (tab_name === "admin" && current_profile?.role !== "admin") {
+    tab_name = "feed";
+  }
+
   document.querySelectorAll("nav.tabs button").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.tab === tab_name);
   });
 
-  ["feed", "publish", "profile", "recipe-detail", "leaderboard", "public-profile", "search"].forEach((tab_id) => {
+  ["feed", "publish", "profile", "recipe-detail", "leaderboard", "public-profile", "search", "admin"].forEach((tab_id) => {
     const page_element = document.getElementById("tab-" + tab_id);
     if (page_element) {
       page_element.classList.toggle("hidden", tab_id !== tab_name);
@@ -4048,6 +4304,9 @@ function switch_tab(tab_name) {
   if (tab_name === "search" && supabase) {
     refresh_session();
     load_recipes_for_search();
+  }
+  if (tab_name === "admin" && typeof render_admin_tab === "function") {
+    render_admin_tab();
   }
 
   // Le lien direct vers une recette (?recipe=...) n'a de sens que sur cet onglet précis.
@@ -5450,6 +5709,8 @@ async function show_public_profile_page(user_id) {
     return;
   }
 
+  render_public_profile_admin_actions(profile);
+
   const recipes = user_recipes || [];
   const total_published = recipes.length;
   const total_likes = recipes.reduce((acc, r) => acc + (r.likes_count || 0), 0);
@@ -5495,6 +5756,60 @@ async function show_public_profile_page(user_id) {
   render_badge_grid('public_level_badges_grid', level_badge_list, user_level, equipped_badge_id, I18N.t('profile.unit_levels'), false);
 
   render_mini_recipes_grid('public_published_recipes', recipes);
+}
+
+// Actions réservées au rôle admin sur le profil public de QUELQU'UN D'AUTRE
+// (jamais sur son propre profil). La RLS/edge function protègent aussi ces
+// actions côté serveur — ceci n'est que l'UI.
+function render_public_profile_admin_actions(profile) {
+  const row = document.getElementById('public_profile_admin_actions');
+  if (!row) return;
+  const is_self = current_user && current_user.id === profile.id;
+  if (current_profile?.role !== 'admin' || is_self) {
+    row.classList.add('hidden');
+    return;
+  }
+  row.classList.remove('hidden');
+
+  const ban_btn = document.getElementById('admin_ban_user_btn');
+  ban_btn.innerHTML = profile.is_banned
+    ? `<i class="fa-solid fa-user-check"></i> ${escape_html(I18N.t('admin.unban_btn'))}`
+    : `<i class="fa-solid fa-user-slash"></i> ${escape_html(I18N.t('admin.ban_btn'))}`;
+
+  ban_btn.onclick = async () => {
+    if (profile.is_banned) {
+      if (!window.confirm(I18N.t('admin.unban_confirm'))) return;
+      const { error: unban_error } = await supabase.from('profiles')
+        .update({ is_banned: false, banned_at: null, banned_reason: null })
+        .eq('id', profile.id);
+      if (unban_error) { show_toast(I18N.t('common.error_prefix') + unban_error.message, 'fa-triangle-exclamation'); return; }
+      show_toast(I18N.t('admin.unbanned_msg'), 'fa-user-check');
+    } else {
+      if (!window.confirm(I18N.t('admin.ban_confirm'))) return;
+      const reason = window.prompt(I18N.t('admin.ban_reason_prompt')) || null;
+      const { error: ban_error } = await supabase.from('profiles')
+        .update({ is_banned: true, banned_at: new Date().toISOString(), banned_reason: reason })
+        .eq('id', profile.id);
+      if (ban_error) { show_toast(I18N.t('common.error_prefix') + ban_error.message, 'fa-triangle-exclamation'); return; }
+      show_toast(I18N.t('admin.banned_msg'), 'fa-user-slash');
+    }
+    show_public_profile_page(profile.id);
+  };
+
+  document.getElementById('admin_delete_account_btn').onclick = async () => {
+    if (!window.confirm(I18N.t('admin.delete_account_confirm', { name: profile.username || profile.id }))) return;
+    const { data: { session } } = await supabase.auth.getSession();
+    const { data, error: fn_error } = await supabase.functions.invoke('admin-delete-user', {
+      body: { target_user_id: profile.id },
+      headers: { Authorization: `Bearer ${session?.access_token || ''}` }
+    });
+    if (fn_error || data?.error) {
+      show_toast(I18N.t('common.error_prefix') + (data?.error || fn_error.message), 'fa-triangle-exclamation');
+      return;
+    }
+    show_toast(I18N.t('admin.account_deleted_msg'), 'fa-user-slash');
+    switch_tab('feed');
+  };
 }
 
 // Variable de l'étape courante

@@ -12,7 +12,8 @@
       "publish": "发布",
       "leaderboard": "排行榜",
       "login": "登录",
-      "change_language": "切换语言"
+      "change_language": "切换语言",
+      "admin": "管理"
     },
     "common": {
       "all_countries": "所有国家",
@@ -243,7 +244,11 @@
       "publishing": "正在发布...",
       "updated_success": "菜谱已更新！",
       "published_success": "菜谱发布成功！获得 +20 经验值。",
-      "change_photo": "更换照片"
+      "change_photo": "更换照片",
+      "checking_content": "正在自动审核内容……",
+      "checking_content_timer": "正在自动审核内容……（{seconds}秒）",
+      "flagged_title": "菜谱正在等待审核",
+      "flagged_message": "你的菜谱已保存，但自动审核发现了潜在问题。管理员会在其公开前进行审核。"
     },
     "modal": {
       "ingredient_picker": {
@@ -402,7 +407,10 @@
       "logged_in": "登录成功！",
       "creating_account": "正在创建账号...",
       "account_created_session": "账号创建成功！你现在可以发布菜谱了。",
-      "account_created_confirm": "账号创建成功！请查收邮件以确认你的邮箱地址，然后登录。"
+      "account_created_confirm": "账号创建成功！请查收邮件以确认你的邮箱地址，然后登录。",
+      "banned_title": "账户已被封禁",
+      "banned_message": "你的账户已被管理员封禁，系统已将你登出。",
+      "banned_message_reason": "你的账户已被管理员封禁（原因：{reason}），系统已将你登出。"
     },
     "publish_success": {
       "title": "菜谱发布成功！",
@@ -421,7 +429,9 @@
       "reason_placeholder": "原因（可选）",
       "cancel": "取消",
       "confirm": "发送申请",
-      "sent_msg": "申请已发送，Dishful 团队会尽快处理。"
+      "sent_msg": "申请已发送，Dishful 团队会尽快处理。",
+      "requested_by": "请求人：",
+      "recipe_gone": "菜谱已被删除"
     },
     "recipe_detail": {
       "tab_before_start": "开始之前",
@@ -552,6 +562,34 @@
       "leaderboard_body": "通过发布和获得点赞在排行榜上晋升，解锁徽章展示在你的主页上。",
       "profile_title": "你的主页",
       "profile_body": "在这里查看你的菜谱、徽章，以及用于每日追踪热量的日记。"
+    },
+    "admin": {
+      "title": "管理后台",
+      "tab_flagged": "被标记的菜谱",
+      "tab_deletions": "删除请求",
+      "flagged_hint": "被自动审核拦截或仍在等待审核的菜谱。批准以公开显示，或直接删除。",
+      "deletions_hint": "由菜谱作者提交的删除请求。",
+      "flagged_empty": "目前没有被标记的菜谱。",
+      "deletions_empty": "没有待处理的删除请求。",
+      "view_btn": "查看",
+      "approve_btn": "批准",
+      "approved_msg": "菜谱已批准并公开发布。",
+      "delete_recipe_btn": "删除菜谱",
+      "delete_recipe_confirm": "确定永久删除此菜谱？此操作无法撤销。",
+      "deleted_msg": "菜谱已删除。",
+      "dismiss_btn": "忽略",
+      "dismissed_msg": "已忽略该请求，菜谱保持在线。",
+      "actions_label": "管理操作",
+      "ban_btn": "封禁",
+      "unban_btn": "解除封禁",
+      "ban_confirm": "确定封禁此账户？该账户将立即被登出，且无法再次登录。",
+      "unban_confirm": "解除封禁并恢复该账户的访问权限？",
+      "ban_reason_prompt": "封禁原因（可选，用户可见）：",
+      "banned_msg": "账户已封禁。",
+      "unbanned_msg": "账户已解除封禁。",
+      "delete_account_btn": "删除账户",
+      "delete_account_confirm": "确定永久删除 {name} 的账户？其所有菜谱、评论和点赞都将被删除。此操作无法撤销。",
+      "account_deleted_msg": "账户已删除。"
     }
   },
   "data": {
