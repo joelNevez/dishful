@@ -13,7 +13,9 @@
       "leaderboard": "Leaderboard",
       "login": "Log in",
       "change_language": "Change language",
-      "admin": "Admin"
+      "admin": "Admin",
+      "test_mobile": "Mobile preview",
+      "test_mobile_close": "Close mobile preview"
     },
     "common": {
       "all_countries": "All countries",
@@ -69,7 +71,7 @@
       "title": "Latest recipes",
       "tab_all": "All",
       "tab_week": "This week",
-      "tab_ideas": "Ideas of the week",
+      "tab_ideas": "Ideas",
       "search_placeholder": "Search a title, an ingredient, an author...",
       "filters_btn": "Filters",
       "filter_category": "Category",
@@ -133,7 +135,11 @@
       "reset": "Reset",
       "results_count": "{{count}} recipe(s) found",
       "empty": "No recipes match these criteria. Try widening your filters.",
-      "prompt_hint": "Pick your criteria, then run the search to see recipes appear."
+      "prompt_hint": "Pick your criteria, then run the search to see recipes appear.",
+      "text_placeholder": "Search a recipe title...",
+      "difficulty_country": "Difficulty & country",
+      "kcal_protein": "Calories & protein",
+      "filters_toggle": "Filters"
     },
     "leaderboard": {
       "title": "Leaderboard",
@@ -248,7 +254,8 @@
       "checking_content": "Automatically checking your content...",
       "checking_content_timer": "Automatically checking your content... ({seconds}s)",
       "flagged_title": "Recipe pending review",
-      "flagged_message": "Your recipe was saved, but the automatic check flagged a possible issue. An administrator will review it before it goes public."
+      "flagged_message": "Your recipe was saved, but the automatic check flagged a possible issue. An administrator will review it before it goes public.",
+      "details_group_label": "Servings, difficulty & country *"
     },
     "modal": {
       "ingredient_picker": {
@@ -262,7 +269,8 @@
         "selection_empty": "Click on foods to see them appear here.",
         "toast_added_multiple": "{{count}} ingredients added",
         "toast_added_single": "\"{{name}}\" added to the recipe",
-        "toast_custom_added": "\"{{name}}\" added to the list — click \"Add\" to confirm."
+        "toast_custom_added": "\"{{name}}\" added to the list — click \"Add\" to confirm.",
+        "category_toggle": "Filter by category"
       },
       "step_editor": {
         "title_add": "Add a step",
@@ -373,7 +381,8 @@
       "tab_journal": "Journal",
       "calorie_goal_label": "Daily calorie goal",
       "calorie_goal_placeholder": "E.g. 2000",
-      "calorie_goal_unit": "kcal / day"
+      "calorie_goal_unit": "kcal / day",
+      "menu_open": "Profile menu"
     },
     "public_profile": {
       "tab_badges": "Badges & Achievements",
@@ -655,7 +664,8 @@
       "Épices & Condiments": "Spices & Condiments",
       "Fruits secs & Oléagineux": "Nuts & Seeds",
       "Sucré & Pâtisserie": "Sweets & Baking",
-      "Boissons & Autres": "Drinks & Other"
+      "Boissons & Autres": "Drinks & Other",
+      "Fruits & Légumes": "Fruits & Vegetables"
     },
     "tools": {
       "Four": "Oven",

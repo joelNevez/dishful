@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;1,500&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="mobile.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -30,6 +31,9 @@
     <button data-tab="admin" id="admin_nav_btn" class="hidden"><i class="fa-solid fa-shield-halved"></i> <span data-i18n="nav.admin">Admin</span></button>
   </nav>
   <div class="header-right">
+    <button type="button" class="test-mobile-btn" id="open_mobile_preview_btn" data-i18n-aria="nav.test_mobile" aria-label="Test mobile">
+      <i class="fa-solid fa-mobile-screen-button"></i> <span data-i18n="nav.test_mobile">Test mobile</span>
+    </button>
     <div class="lang-switcher" id="lang_switcher">
       <button type="button" class="lang-switcher-toggle" id="lang_switcher_toggle" data-i18n-aria="nav.change_language" aria-label="Changer de langue">
         <span id="lang_switcher_current">🇫🇷</span> <i class="fa-solid fa-chevron-down"></i>
@@ -52,6 +56,16 @@
 </header>
 
 <main>
+
+  <!-- Les 5 onglets principaux (accessibles depuis la barre du bas en mode mobile)
+       sont enveloppés pour pouvoir en faire un carrousel glissable au doigt sous
+       700px ; sur desktop ces deux div n'ont aucun effet (display:contents), la
+       bascule d'onglet historique par classe "hidden" continue de s'appliquer
+       directement aux <section>. Le détail recette et le profil public restent
+       EN DEHORS : ce sont des pages "plein écran" qui remplacent la vue plutôt
+       que des onglets du carrousel. -->
+  <div class="mobile-swipe-viewport" id="mobile_swipe_viewport">
+  <div class="mobile-swipe-track" id="mobile_swipe_track">
 
   <!-- ---------------- FEED ---------------- -->
   <section id="tab-feed">
@@ -134,42 +148,58 @@
     <p class="sub-hint" data-i18n="search.hint">Trouve la recette parfaite selon tes objectifs — calories, protéines, catégorie, allergènes à éviter...</p>
 
     <div class="search-filters-card">
-      <div class="filter-block">
-        <label><i class="fa-solid fa-tags"></i> <span data-i18n="search.category">Catégorie</span></label>
-        <div class="filter-row" id="search_category_filters"></div>
+      <div class="search-text-row">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="search_text_input" data-i18n-placeholder="search.text_placeholder" placeholder="Rechercher un titre de recette...">
       </div>
-      <div class="filter-row-split">
-        <div class="filter-block">
-          <label><i class="fa-solid fa-gauge"></i> <span data-i18n="search.difficulty">Difficulté</span></label>
-          <div class="filter-row" id="search_difficulty_filters"></div>
-        </div>
-        <div class="filter-block">
-          <label><i class="fa-solid fa-globe"></i> <span data-i18n="search.country">Pays</span></label>
-          <select id="search_country_select"><option value="" data-i18n="common.all_countries">Tous les pays</option></select>
-        </div>
-      </div>
-      <div class="filter-row-split">
-        <div class="filter-block">
-          <label><i class="fa-solid fa-fire"></i> <span data-i18n="search.kcal">Calories par portion</span></label>
-          <div class="search-range-row">
-            <input type="number" id="search_kcal_min" data-i18n-placeholder="search.kcal_min_placeholder" placeholder="Min" min="0">
-            <span>—</span>
-            <input type="number" id="search_kcal_max" data-i18n-placeholder="search.kcal_max_placeholder" placeholder="Max" min="0">
-            <span class="search-range-unit">kcal</span>
+
+      <details class="search-filters-toggle" id="search_filters_toggle">
+        <summary><i class="fa-solid fa-sliders"></i> <span data-i18n="search.filters_toggle">Filtres</span></summary>
+
+        <details class="search-filter-group">
+          <summary><i class="fa-solid fa-tags"></i> <span data-i18n="search.category">Catégorie</span></summary>
+          <div class="filter-row" id="search_category_filters"></div>
+        </details>
+        <details class="search-filter-group">
+          <summary><i class="fa-solid fa-gauge"></i> <span data-i18n="search.difficulty_country">Difficulté & pays</span></summary>
+          <div class="filter-row-split">
+            <div class="filter-block">
+              <label><i class="fa-solid fa-gauge"></i> <span data-i18n="search.difficulty">Difficulté</span></label>
+              <div class="filter-row" id="search_difficulty_filters"></div>
+            </div>
+            <div class="filter-block">
+              <label><i class="fa-solid fa-globe"></i> <span data-i18n="search.country">Pays</span></label>
+              <select id="search_country_select"><option value="" data-i18n="common.all_countries">Tous les pays</option></select>
+            </div>
           </div>
-        </div>
-        <div class="filter-block">
-          <label><i class="fa-solid fa-dumbbell"></i> <span data-i18n="search.protein_min">Protéines minimum</span></label>
-          <div class="search-range-row">
-            <input type="number" id="search_protein_min" data-i18n-placeholder="search.protein_placeholder" placeholder="Ex : 20" min="0">
-            <span class="search-range-unit" data-i18n="search.protein_unit">g / portion</span>
+        </details>
+        <details class="search-filter-group">
+          <summary><i class="fa-solid fa-fire"></i> <span data-i18n="search.kcal_protein">Calories & protéines</span></summary>
+          <div class="filter-row-split">
+            <div class="filter-block">
+              <label><i class="fa-solid fa-fire"></i> <span data-i18n="search.kcal">Calories par portion</span></label>
+              <div class="search-range-row">
+                <input type="number" id="search_kcal_min" data-i18n-placeholder="search.kcal_min_placeholder" placeholder="Min" min="0">
+                <span>—</span>
+                <input type="number" id="search_kcal_max" data-i18n-placeholder="search.kcal_max_placeholder" placeholder="Max" min="0">
+                <span class="search-range-unit">kcal</span>
+              </div>
+            </div>
+            <div class="filter-block">
+              <label><i class="fa-solid fa-dumbbell"></i> <span data-i18n="search.protein_min">Protéines minimum</span></label>
+              <div class="search-range-row">
+                <input type="number" id="search_protein_min" data-i18n-placeholder="search.protein_placeholder" placeholder="Ex : 20" min="0">
+                <span class="search-range-unit" data-i18n="search.protein_unit">g / portion</span>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      <div class="filter-block">
-        <label><i class="fa-solid fa-triangle-exclamation"></i> <span data-i18n="search.allergens">Exclure les allergènes</span></label>
-        <div class="filter-row" id="search_allergen_filters"></div>
-      </div>
+        </details>
+        <details class="search-filter-group">
+          <summary><i class="fa-solid fa-triangle-exclamation"></i> <span data-i18n="search.allergens">Exclure les allergènes</span></summary>
+          <div class="filter-row" id="search_allergen_filters"></div>
+        </details>
+      </details>
+
       <div class="search-filters-actions">
         <button type="button" id="run_search_btn" class="btn-primary"><i class="fa-solid fa-magnifying-glass"></i> <span data-i18n="search.run">Rechercher</span></button>
         <button type="button" id="reset_search_btn" class="text-btn"><i class="fa-solid fa-arrow-rotate-left"></i> <span data-i18n="search.reset">Réinitialiser</span></button>
@@ -178,12 +208,6 @@
 
     <div class="feed-results-count" id="search_results_count"></div>
     <div class="recipe-grid" id="search_results_grid"></div>
-  </section>
-
-  <!-- Vue Page Recette Dédiée -->
-  <section id="tab-recipe-detail" class="recipe_detail_container hidden">
-    <button id="back_to_feed_btn" class="text-btn"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="common.back">Retour</span></button>
-    <div id="single_recipe_content"></div>
   </section>
 
   <!-- ---------------- CLASSEMENT ---------------- -->
@@ -287,34 +311,40 @@
 
         <!-- ÉTAPE 2 : DÉTAILS -->
         <div class="wizard-step-panel hidden" id="publish_step_2">
-          <label class="field-label"><i class="fa-solid fa-tags"></i> <span data-i18n="publish.categories_label">Catégories *</span></label>
-          <div class="chip-group" id="category_chips"></div>
+          <details class="publish-step-group" open>
+            <summary><i class="fa-solid fa-tags"></i> <span data-i18n="publish.categories_label">Catégories *</span></summary>
+            <div class="chip-group" id="category_chips"></div>
+          </details>
 
-          <div class="form_row">
-            <div class="form_group">
-              <label><i class="fa-solid fa-users"></i> <span data-i18n="publish.servings_label">Portions (pers.) *</span></label>
-              <input type="number" id="recipe_servings_input" value="4" min="1" required />
+          <details class="publish-step-group" open>
+            <summary><i class="fa-solid fa-globe"></i> <span data-i18n="publish.details_group_label">Portions, difficulté & pays *</span></summary>
+            <div class="form_row">
+              <div class="form_group">
+                <label><i class="fa-solid fa-users"></i> <span data-i18n="publish.servings_label">Portions (pers.) *</span></label>
+                <input type="number" id="recipe_servings_input" value="4" min="1" required />
+              </div>
+              <div class="form_group">
+                <label><i class="fa-solid fa-gauge"></i> <span data-i18n="publish.difficulty_label">Difficulté</span></label>
+                <select id="recipe_difficulty_select">
+                  <option value="facile" data-i18n="publish.difficulty_easy">Facile</option>
+                  <option value="moyen" selected data-i18n="publish.difficulty_medium">Moyen</option>
+                  <option value="difficile" data-i18n="publish.difficulty_hard">Difficile</option>
+                </select>
+              </div>
             </div>
             <div class="form_group">
-              <label><i class="fa-solid fa-gauge"></i> <span data-i18n="publish.difficulty_label">Difficulté</span></label>
-              <select id="recipe_difficulty_select">
-                <option value="facile" data-i18n="publish.difficulty_easy">Facile</option>
-                <option value="moyen" selected data-i18n="publish.difficulty_medium">Moyen</option>
-                <option value="difficile" data-i18n="publish.difficulty_hard">Difficile</option>
+              <label><i class="fa-solid fa-globe"></i> <span data-i18n="publish.country_label">Pays d'origine *</span></label>
+              <select id="recipe_country_select" required>
+                <option value="" data-i18n="publish.country_placeholder">Sélectionner un pays...</option>
               </select>
             </div>
-          </div>
+          </details>
 
-          <div class="form_group">
-            <label><i class="fa-solid fa-globe"></i> <span data-i18n="publish.country_label">Pays d'origine *</span></label>
-            <select id="recipe_country_select" required>
-              <option value="" data-i18n="publish.country_placeholder">Sélectionner un pays...</option>
-            </select>
-          </div>
-
-          <label class="field-label"><i class="fa-solid fa-hashtag"></i> <span data-i18n="publish.tags_label">Tags (mode / occasion)</span></label>
-          <div class="chip-group" id="tag_chips"></div>
-          <input type="text" id="custom_tags_input" data-i18n-placeholder="publish.tags_placeholder" placeholder="Tags additionnels séparés par des virgules">
+          <details class="publish-step-group">
+            <summary><i class="fa-solid fa-hashtag"></i> <span data-i18n="publish.tags_label">Tags (mode / occasion)</span></summary>
+            <div class="chip-group" id="tag_chips"></div>
+            <input type="text" id="custom_tags_input" data-i18n-placeholder="publish.tags_placeholder" placeholder="Tags additionnels séparés par des virgules">
+          </details>
 
           <div class="wizard-actions">
             <button type="button" class="btn-secondary prev-step-btn" data-prev="1"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="publish.prev">Précédent</span></button>
@@ -395,191 +425,25 @@
     </div>
   </section>
 
-  <!-- ---------------- POPUP : SÉLECTEUR D'INGRÉDIENT ---------------- -->
-  <div id="ingredient_picker_modal" class="modal hidden">
-    <div class="ingredient-picker-layout">
-      <div class="modal-card modal-card-wide">
-        <button id="close_ingredient_picker_btn" class="close-btn">&times;</button>
-        <h2><i class="fa-solid fa-carrot"></i> <span data-i18n="modal.ingredient_picker.title">Ajouter un ingrédient</span></h2>
-        <input type="text" id="ingredient_search_input" data-i18n-placeholder="modal.ingredient_picker.search_placeholder" placeholder="Rechercher un aliment...">
-        <div class="food-category-tabs" id="food_category_tabs"></div>
-        <div class="food-picker-grid" id="food_picker_grid"></div>
-
-        <button type="button" id="confirm_add_ingredients_btn" class="btn-primary confirm-add-btn" disabled>
-          <i class="fa-solid fa-check"></i> <span data-i18n="modal.ingredient_picker.add">Ajouter</span> <span id="confirm_add_ingredients_count" class="count-pastille">0</span>
-        </button>
-
-        <div class="custom-ingredient-zone">
-          <button type="button" id="toggle_custom_ingredient_btn" class="add-row-btn"><i class="fa-solid fa-plus"></i> <span data-i18n="modal.ingredient_picker.custom_btn">Aliment pas dans la liste</span></button>
-          <div class="custom-ingredient-popover hidden" id="custom_ingredient_popover">
-            <input type="text" id="custom_ingredient_input" data-i18n-placeholder="modal.ingredient_picker.custom_placeholder" placeholder="Nom de l'aliment...">
-            <button type="button" id="create_custom_ingredient_btn" class="btn-primary"><i class="fa-solid fa-check"></i> <span data-i18n="modal.ingredient_picker.create">Créer</span></button>
-          </div>
-        </div>
-      </div>
-
-      <aside class="ingredient-selection-cloud" id="ingredient_selection_cloud">
-        <h3><i class="fa-solid fa-basket-shopping"></i> <span data-i18n="modal.ingredient_picker.selection_title">Ta sélection</span></h3>
-        <div class="cloud-bubbles" id="cloud_bubbles">
-          <p class="cloud-empty-hint" data-i18n="modal.ingredient_picker.selection_empty">Clique sur des aliments pour les voir apparaître ici.</p>
-        </div>
-      </aside>
-    </div>
-  </div>
-
-  <!-- ---------------- POPUP : ÉDITEUR D'ÉTAPE ---------------- -->
-  <div id="step_editor_modal" class="modal hidden">
-    <div class="modal-card modal-card-xwide">
-      <button id="close_step_editor_btn" class="close-btn">&times;</button>
-      <h2 id="step_editor_title"><i class="fa-solid fa-list-ol"></i> <span data-i18n="modal.step_editor.title_add">Ajouter une étape</span></h2>
-
-      <label class="field-label" data-i18n="modal.step_editor.type_label">Type d'étape</label>
-      <div class="step-type-selector" id="step_type_selector">
-        <button type="button" class="step-type-btn active" data-type="prep"><i class="fa-solid fa-utensils"></i> <span data-i18n="modal.step_editor.type_prep">Préparation</span></button>
-        <button type="button" class="step-type-btn" data-type="oven"><i class="fa-solid fa-fire-burner"></i> <span data-i18n="modal.step_editor.type_oven">Four</span></button>
-        <button type="button" class="step-type-btn" data-type="stovetop"><i class="fa-solid fa-fire"></i> <span data-i18n="modal.step_editor.type_stovetop">Cuisson (plaque)</span></button>
-        <button type="button" class="step-type-btn" data-type="fryer"><i class="fa-solid fa-oil-can"></i> <span data-i18n="modal.step_editor.type_fryer">Friture</span></button>
-        <button type="button" class="step-type-btn" data-type="rest"><i class="fa-solid fa-snowflake"></i> <span data-i18n="modal.step_editor.type_rest">Repos / Frigo</span></button>
-      </div>
-
-      <div class="step-editor-grid-2col">
-        <div class="step-editor-section">
-          <label class="field-label"><i class="fa-solid fa-align-left"></i> <span data-i18n="modal.step_editor.description_label">Description de l'étape *</span></label>
-          <textarea id="step_editor_text" rows="5" data-i18n-placeholder="modal.step_editor.description_placeholder" placeholder="Décris cette étape..."></textarea>
-
-          <div class="form_row">
-            <div class="form_group">
-              <label id="step_editor_time_label" data-i18n="modal.step_editor.time_label">Temps (min)</label>
-              <div class="time-clock-dial" data-target="step_editor_time">
-                <svg class="time-clock-dial-svg" viewBox="0 0 220 220" data-target="step_editor_time">
-                  <circle class="time-clock-face" cx="110" cy="110" r="98"></circle>
-                  <g class="time-clock-ticks"></g>
-                  <line class="time-clock-hand" x1="110" y1="110" x2="110" y2="24"></line>
-                  <circle class="time-clock-handle" cx="110" cy="24" r="13"></circle>
-                  <circle class="time-clock-center-dot" cx="110" cy="110" r="4"></circle>
-                </svg>
-              </div>
-              <div class="time-picker" data-target="step_editor_time">
-                <button type="button" class="time-picker-btn time-picker-minus" data-i18n-aria="modal.step_editor.minus_aria" aria-label="Moins 1 min"><i class="fa-solid fa-minus"></i></button>
-                <div class="time-picker-display">
-                  <input type="number" id="step_editor_time" min="0" placeholder="0">
-                  <span class="time-picker-unit">min</span>
-                </div>
-                <button type="button" class="time-picker-btn time-picker-plus" data-i18n-aria="modal.step_editor.plus_aria" aria-label="Plus 1 min"><i class="fa-solid fa-plus"></i></button>
-              </div>
-            </div>
-            <div class="form_group hidden" id="step_editor_temp_group">
-              <label><i class="fa-solid fa-temperature-half"></i> <span data-i18n="modal.step_editor.temp_label">Température (°C)</span></label>
-              <input type="number" id="step_editor_temp" min="0" data-i18n-placeholder="modal.step_editor.temp_placeholder" placeholder="Ex : 180">
-            </div>
-          </div>
-
-          <div class="field-label-row">
-            <label class="field-label" style="margin:0;">
-              <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="modal.step_editor.creates_ingredient">Cette étape crée un nouvel ingrédient</span>
-              <span class="info-tooltip">
-                <button type="button" class="info-icon-btn" id="step_editor_output_info_btn" data-i18n-aria="common.learn_more" aria-label="En savoir plus"><i class="fa-solid fa-circle-info"></i></button>
-                <span class="info-tooltip-bubble" data-i18n="modal.step_editor.creates_ingredient_tooltip">Suggestion automatique selon l'étape, les ingrédients et les outils choisis — modifie le nom si besoin, ou décoche pour ignorer.</span>
-              </span>
-            </label>
-            <label class="toggle-switch">
-              <input type="checkbox" id="step_editor_creates_product" checked>
-              <span class="toggle-switch-slider"></span>
-            </label>
-          </div>
-          <div id="step_editor_output_product_wrap">
-            <input type="text" id="step_editor_output_product" data-i18n-placeholder="modal.step_editor.output_placeholder" placeholder="Ex : Frites coupées">
-          </div>
-        </div>
-
-        <div class="step-editor-section">
-          <label class="field-label"><i class="fa-solid fa-photo-film"></i> <span data-i18n="modal.step_editor.media_label">Média (optionnel)</span></label>
-          <div id="step_editor_existing_media"></div>
-          <div class="step_media_grid">
-            <div class="custom-file-upload">
-              <input type="file" id="step_editor_image_input" accept="image/*" class="hidden_file_input">
-              <label for="step_editor_image_input" class="upload-btn mini"><i class="fa-solid fa-image"></i> <span data-i18n="modal.step_editor.photo">Photo</span></label>
-            </div>
-            <div class="custom-file-upload">
-              <input type="file" id="step_editor_video_input" accept="video/*" class="hidden_file_input">
-              <label for="step_editor_video_input" class="upload-btn mini"><i class="fa-solid fa-video"></i> <span data-i18n="modal.step_editor.video">Vidéo</span></label>
-            </div>
-            <input type="url" id="step_editor_external_url" data-i18n-placeholder="modal.step_editor.external_url_placeholder" placeholder="Ou lien externe">
-          </div>
-        </div>
-      </div>
-
-      <div class="step-editor-grid-2col align-stretch">
-        <div class="step-editor-section">
-          <label class="field-label"><i class="fa-solid fa-carrot"></i> <span data-i18n="modal.step_editor.ingredients_used">Ingrédients utilisés</span></label>
-          <p class="sub-hint hidden" id="step_editor_no_ingredients_hint" data-i18n="modal.step_editor.no_ingredients_hint">Ajoute d'abord des ingrédients à l'étape 3 du formulaire.</p>
-          <div class="step-linked-ingredients-list" id="step_editor_linked_list"></div>
-          <button type="button" id="toggle_step_ing_picker_btn" class="add-row-btn"><i class="fa-solid fa-plus"></i> <span data-i18n="modal.step_editor.add_ingredient">Ajouter un ingrédient</span></button>
-        </div>
-
-        <div class="step-editor-section">
-          <label class="field-label"><i class="fa-solid fa-kitchen-set"></i> <span data-i18n="modal.step_editor.tools_needed">Outils nécessaires</span></label>
-          <p class="sub-hint" data-i18n="modal.step_editor.tools_hint">Suggéré automatiquement selon le type d'étape.</p>
-          <div class="step-linked-ingredients-list" id="step_editor_tools_list"></div>
-          <button type="button" id="toggle_step_tool_picker_btn" class="add-row-btn"><i class="fa-solid fa-plus"></i> <span data-i18n="modal.step_editor.add_tool">Ajouter un outil</span></button>
-        </div>
-      </div>
-
-      <div class="wizard-actions">
-        <button type="button" id="delete_step_editor_btn" class="btn-secondary danger hidden"><i class="fa-solid fa-trash"></i> <span data-i18n="modal.step_editor.delete">Supprimer</span></button>
-        <button type="button" id="save_step_editor_btn" class="btn-primary"><i class="fa-solid fa-check"></i> <span data-i18n="modal.step_editor.save">Enregistrer l'étape</span></button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ---------------- POPUP (niveau 2) : INGRÉDIENTS D'UNE ÉTAPE ---------------- -->
-  <div id="step_ingredient_picker_modal" class="modal hidden">
-    <div class="modal-card modal-card-wide">
-      <button id="close_step_ingredient_picker_btn" class="close-btn">&times;</button>
-      <h2><i class="fa-solid fa-carrot"></i> <span data-i18n="modal.step_ing_picker.title">Ingrédients de l'étape</span></h2>
-
-      <div class="step-picker-tabs" id="step_ing_picker_tabs">
-        <span class="step-picker-tab-indicator active" data-tab="choose"><i class="fa-solid fa-magnifying-glass"></i> <span data-i18n="modal.step_ing_picker.tab_choose">1. Choisir</span></span>
-        <span class="step-picker-tab-indicator" data-tab="qty"><i class="fa-solid fa-scale-balanced"></i> <span data-i18n="modal.step_ing_picker.tab_qty">2. Quantités</span></span>
-      </div>
-
-      <div class="step-picker-tab-panel" id="step_ing_picker_panel_choose">
-        <input type="text" id="step_ing_picker_search" data-i18n-placeholder="modal.step_ing_picker.search_placeholder" placeholder="Rechercher parmi les ingrédients de la recette...">
-        <div class="food-picker-grid" id="step_ing_picker_grid"></div>
-      </div>
-
-      <div class="step-picker-tab-panel hidden" id="step_ing_picker_panel_qty">
-        <p class="sub-hint" data-i18n="modal.step_ing_picker.qty_hint">Précise la quantité de chaque ingrédient sélectionné pour cette étape.</p>
-        <div class="step-linked-ingredients-list" id="step_ing_picker_qty_list"></div>
-      </div>
-
-      <div class="step-picker-footer" id="step_ing_picker_footer_choose">
-        <button type="button" id="step_ing_picker_next_btn" class="btn-primary confirm-add-btn" disabled>
-          <span data-i18n="modal.step_ing_picker.next">Suivant : préciser les quantités</span> <span id="step_ing_picker_count" class="count-pastille">0</span> <i class="fa-solid fa-arrow-right"></i>
-        </button>
-      </div>
-      <div class="step-picker-footer hidden" id="step_ing_picker_footer_qty">
-        <button type="button" id="step_ing_picker_back_btn" class="btn-secondary"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="modal.step_ing_picker.back">Modifier la sélection</span></button>
-        <button type="button" id="step_ing_picker_confirm_btn" class="btn-primary confirm-add-btn"><i class="fa-solid fa-check"></i> <span data-i18n="modal.step_ing_picker.confirm">Ajouter à l'étape</span></button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ---------------- POPUP (niveau 2) : OUTILS D'UNE ÉTAPE ---------------- -->
-  <div id="step_tool_picker_modal" class="modal hidden">
-    <div class="modal-card modal-card-wide">
-      <button id="close_step_tool_picker_btn" class="close-btn">&times;</button>
-      <h2><i class="fa-solid fa-kitchen-set"></i> <span data-i18n="modal.step_tool_picker.title">Outils de l'étape</span></h2>
-      <input type="text" id="step_tool_picker_search" data-i18n-placeholder="modal.step_tool_picker.search_placeholder" placeholder="Rechercher un outil...">
-      <div class="food-picker-grid" id="step_tool_picker_grid"></div>
-      <button type="button" id="step_tool_picker_confirm_btn" class="btn-primary confirm-add-btn" disabled>
-        <i class="fa-solid fa-check"></i> <span data-i18n="modal.step_tool_picker.confirm">Ajouter à l'étape</span> <span id="step_tool_picker_count" class="count-pastille">0</span>
-      </button>
-    </div>
-  </div>
-
   <!-- ---------------- PROFILE ---------------- -->
   <section id="tab-profile" class="profile_container hidden">
+    <!-- Mode mobile uniquement : remplace la rangée d'onglets Info/Badges/Journal
+         (celui des Recettes reste la vue par défaut, façon grille Instagram) par
+         un menu burger. En dehors de .profile_header_wrapper exprès : ce dernier
+         a overflow:hidden (pour les coins arrondis de la bannière), qui aurait
+         rogné le menu déroulant. -->
+    <div class="profile_menu" id="profile_menu">
+      <button type="button" class="profile_menu_btn" id="profile_menu_btn" data-i18n-aria="profile.menu_open" aria-label="Menu du profil"><i class="fa-solid fa-bars"></i></button>
+      <div class="profile_menu_dropdown hidden" id="profile_menu_dropdown">
+        <button type="button" class="profile_menu_item tab_btn active" data-tab="tab_recipes"><i class="fa-solid fa-table-cells"></i> <span data-i18n="profile.tab_recipes">Mes Recettes</span></button>
+        <button type="button" class="profile_menu_item tab_btn" data-tab="tab_info"><i class="fa-solid fa-gear"></i> <span data-i18n="profile.tab_info">Informations</span></button>
+        <button type="button" class="profile_menu_item tab_btn" data-tab="tab_badges"><i class="fa-solid fa-medal"></i> <span data-i18n="profile.tab_badges">Badges & Succès</span></button>
+        <button type="button" class="profile_menu_item tab_btn" data-tab="tab_journal"><i class="fa-solid fa-bowl-food"></i> <span data-i18n="profile.tab_journal">Journal</span></button>
+        <div class="profile_menu_divider"></div>
+        <button type="button" class="profile_menu_item profile_menu_item_danger" id="logout_btn_menu"><i class="fa-solid fa-right-from-bracket"></i> <span data-i18n="profile.logout">Déconnexion</span></button>
+      </div>
+    </div>
+
     <div class="profile_header_wrapper">
       <div class="profile_banner" id="profile_banner_preview">
         <label for="banner_upload_input" class="banner_upload_btn">
@@ -604,6 +468,7 @@
           </div>
         </div>
         <div class="profile_level_box">
+          <span class="profile_quick_stats" id="profile_quick_stats"></span>
           <span id="profile_level">Niv. 1</span>
           <div class="xp_bar"><div id="profile_xp_fill" class="xp_fill"></div></div>
           <span id="profile_xp_text">0 / 100 XP</span>
@@ -613,13 +478,13 @@
     </div>
 
     <div class="profile_tabs_nav">
-      <button class="tab_btn active" data-tab="tab_info"><span data-i18n="profile.tab_info">Informations</span></button>
-      <button class="tab_btn" data-tab="tab_badges"><span data-i18n="profile.tab_badges">Badges & Succès</span></button>
-      <button class="tab_btn" data-tab="tab_recipes"><span data-i18n="profile.tab_recipes">Mes Recettes</span></button>
-      <button class="tab_btn" data-tab="tab_journal"><span data-i18n="profile.tab_journal">Journal</span></button>
+      <button class="tab_btn" data-tab="tab_info"><i class="fa-solid fa-gear"></i> <span data-i18n="profile.tab_info">Informations</span></button>
+      <button class="tab_btn" data-tab="tab_badges"><i class="fa-solid fa-medal"></i> <span data-i18n="profile.tab_badges">Badges & Succès</span></button>
+      <button class="tab_btn active" data-tab="tab_recipes"><i class="fa-solid fa-table-cells"></i> <span data-i18n="profile.tab_recipes">Mes Recettes</span></button>
+      <button class="tab_btn" data-tab="tab_journal"><i class="fa-solid fa-bowl-food"></i> <span data-i18n="profile.tab_journal">Journal</span></button>
     </div>
 
-    <div id="tab_info" class="tab_content active">
+    <div id="tab_info" class="tab_content">
       <form id="profile_form">
         <h3 data-i18n="profile.settings_title">Réglages du profil</h3>
         <div class="form_group">
@@ -706,21 +571,23 @@
       <div id="like_badges_grid" class="badges_grid"></div>
     </div>
 
-    <div id="tab_recipes" class="tab_content">
+    <div id="tab_recipes" class="tab_content active">
       <h3 data-i18n="profile.published_recipes">Mes recettes publiées</h3>
       <div id="user_published_recipes" class="recipes_grid mini_grid"></div>
 
-      <h3 data-i18n="profile.saved_recipes">Mes recettes sauvegardées</h3>
-      <div class="saved_filters_row">
-        <select id="saved_filter_country">
-          <option value="" data-i18n="common.all_countries">Tous les pays</option>
-        </select>
-        <select id="saved_filter_tag">
-          <option value="" data-i18n="profile.all_tags">Tous les tags</option>
-        </select>
-      </div>
+      <details class="saved_recipes_group" id="saved_recipes_group">
+        <summary data-i18n="profile.saved_recipes">Mes recettes sauvegardées</summary>
+        <div class="saved_filters_row">
+          <select id="saved_filter_country">
+            <option value="" data-i18n="common.all_countries">Tous les pays</option>
+          </select>
+          <select id="saved_filter_tag">
+            <option value="" data-i18n="profile.all_tags">Tous les tags</option>
+          </select>
+        </div>
 
-      <div id="user_saved_recipes" class="recipes_grid mini_grid"></div>
+        <div id="user_saved_recipes" class="recipes_grid mini_grid"></div>
+      </details>
     </div>
 
     <div id="tab_journal" class="tab_content">
@@ -753,6 +620,204 @@
     </div>
   </section>
 
+  </div>
+  </div>
+  <!-- Fin du carrousel des 5 onglets principaux. Le détail recette reste une
+       page plein écran à part, jamais un slide du carrousel. -->
+  <section id="tab-recipe-detail" class="recipe_detail_container hidden">
+    <button id="back_to_feed_btn" class="text-btn"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="common.back">Retour</span></button>
+    <div id="single_recipe_content"></div>
+  </section>
+
+  <!-- ---------------- POPUP : SÉLECTEUR D'INGRÉDIENT ---------------- -->
+  <div id="ingredient_picker_modal" class="modal hidden">
+    <div class="ingredient-picker-layout">
+      <div class="modal-card modal-card-wide">
+        <button id="close_ingredient_picker_btn" class="close-btn">&times;</button>
+        <h2><i class="fa-solid fa-carrot"></i> <span data-i18n="modal.ingredient_picker.title">Ajouter un ingrédient</span></h2>
+        <input type="text" id="ingredient_search_input" data-i18n-placeholder="modal.ingredient_picker.search_placeholder" placeholder="Rechercher un aliment...">
+        <details class="food-category-toggle" id="food_category_toggle">
+          <summary><i class="fa-solid fa-filter"></i> <span data-i18n="modal.ingredient_picker.category_toggle">Filtrer par catégorie</span></summary>
+          <div class="food-category-tabs" id="food_category_tabs"></div>
+        </details>
+        <div class="food-picker-grid" id="food_picker_grid"></div>
+
+        <button type="button" id="confirm_add_ingredients_btn" class="btn-primary confirm-add-btn" disabled>
+          <i class="fa-solid fa-check"></i> <span data-i18n="modal.ingredient_picker.add">Ajouter</span> <span id="confirm_add_ingredients_count" class="count-pastille">0</span>
+        </button>
+
+        <div class="custom-ingredient-zone">
+          <button type="button" id="toggle_custom_ingredient_btn" class="add-row-btn"><i class="fa-solid fa-plus"></i> <span data-i18n="modal.ingredient_picker.custom_btn">Aliment pas dans la liste</span></button>
+          <div class="custom-ingredient-popover hidden" id="custom_ingredient_popover">
+            <input type="text" id="custom_ingredient_input" data-i18n-placeholder="modal.ingredient_picker.custom_placeholder" placeholder="Nom de l'aliment...">
+            <button type="button" id="create_custom_ingredient_btn" class="btn-primary"><i class="fa-solid fa-check"></i> <span data-i18n="modal.ingredient_picker.create">Créer</span></button>
+          </div>
+        </div>
+      </div>
+
+      <details class="ingredient-selection-cloud" id="ingredient_selection_cloud" open>
+        <summary><i class="fa-solid fa-basket-shopping"></i> <span data-i18n="modal.ingredient_picker.selection_title">Ta sélection</span></summary>
+        <div class="cloud-bubbles" id="cloud_bubbles">
+          <p class="cloud-empty-hint" data-i18n="modal.ingredient_picker.selection_empty">Clique sur des aliments pour les voir apparaître ici.</p>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- ---------------- POPUP : ÉDITEUR D'ÉTAPE ---------------- -->
+  <div id="step_editor_modal" class="modal hidden">
+    <div class="modal-card modal-card-xwide">
+      <button id="close_step_editor_btn" class="close-btn">&times;</button>
+      <h2 id="step_editor_title"><i class="fa-solid fa-list-ol"></i> <span data-i18n="modal.step_editor.title_add">Ajouter une étape</span></h2>
+
+      <details class="step-editor-section" open>
+        <summary><i class="fa-solid fa-list-check"></i> <span data-i18n="modal.step_editor.type_label">Type d'étape</span></summary>
+        <div class="step-type-selector" id="step_type_selector">
+          <button type="button" class="step-type-btn active" data-type="prep"><i class="fa-solid fa-utensils"></i> <span data-i18n="modal.step_editor.type_prep">Préparation</span></button>
+          <button type="button" class="step-type-btn" data-type="oven"><i class="fa-solid fa-fire-burner"></i> <span data-i18n="modal.step_editor.type_oven">Four</span></button>
+          <button type="button" class="step-type-btn" data-type="stovetop"><i class="fa-solid fa-fire"></i> <span data-i18n="modal.step_editor.type_stovetop">Cuisson (plaque)</span></button>
+          <button type="button" class="step-type-btn" data-type="fryer"><i class="fa-solid fa-oil-can"></i> <span data-i18n="modal.step_editor.type_fryer">Friture</span></button>
+          <button type="button" class="step-type-btn" data-type="rest"><i class="fa-solid fa-snowflake"></i> <span data-i18n="modal.step_editor.type_rest">Repos / Frigo</span></button>
+        </div>
+      </details>
+
+      <div class="step-editor-grid-2col">
+        <details class="step-editor-section" open>
+          <summary><i class="fa-solid fa-align-left"></i> <span data-i18n="modal.step_editor.description_label">Description de l'étape *</span></summary>
+          <textarea id="step_editor_text" rows="5" data-i18n-placeholder="modal.step_editor.description_placeholder" placeholder="Décris cette étape..."></textarea>
+
+          <div class="form_row">
+            <div class="form_group">
+              <label id="step_editor_time_label" data-i18n="modal.step_editor.time_label">Temps (min)</label>
+              <div class="time-clock-dial" data-target="step_editor_time">
+                <svg class="time-clock-dial-svg" viewBox="0 0 220 220" data-target="step_editor_time">
+                  <circle class="time-clock-face" cx="110" cy="110" r="98"></circle>
+                  <g class="time-clock-ticks"></g>
+                  <line class="time-clock-hand" x1="110" y1="110" x2="110" y2="24"></line>
+                  <circle class="time-clock-handle" cx="110" cy="24" r="13"></circle>
+                  <circle class="time-clock-center-dot" cx="110" cy="110" r="4"></circle>
+                </svg>
+              </div>
+              <div class="time-picker" data-target="step_editor_time">
+                <button type="button" class="time-picker-btn time-picker-minus" data-i18n-aria="modal.step_editor.minus_aria" aria-label="Moins 1 min"><i class="fa-solid fa-minus"></i></button>
+                <div class="time-picker-display">
+                  <input type="number" id="step_editor_time" min="0" placeholder="0">
+                  <span class="time-picker-unit">min</span>
+                </div>
+                <button type="button" class="time-picker-btn time-picker-plus" data-i18n-aria="modal.step_editor.plus_aria" aria-label="Plus 1 min"><i class="fa-solid fa-plus"></i></button>
+              </div>
+            </div>
+            <div class="form_group hidden" id="step_editor_temp_group">
+              <label><i class="fa-solid fa-temperature-half"></i> <span data-i18n="modal.step_editor.temp_label">Température (°C)</span></label>
+              <input type="number" id="step_editor_temp" min="0" data-i18n-placeholder="modal.step_editor.temp_placeholder" placeholder="Ex : 180">
+            </div>
+          </div>
+
+          <div class="field-label-row">
+            <label class="field-label" style="margin:0;">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="modal.step_editor.creates_ingredient">Cette étape crée un nouvel ingrédient</span>
+              <span class="info-tooltip">
+                <button type="button" class="info-icon-btn" id="step_editor_output_info_btn" data-i18n-aria="common.learn_more" aria-label="En savoir plus"><i class="fa-solid fa-circle-info"></i></button>
+                <span class="info-tooltip-bubble" data-i18n="modal.step_editor.creates_ingredient_tooltip">Suggestion automatique selon l'étape, les ingrédients et les outils choisis — modifie le nom si besoin, ou décoche pour ignorer.</span>
+              </span>
+            </label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="step_editor_creates_product" checked>
+              <span class="toggle-switch-slider"></span>
+            </label>
+          </div>
+          <div id="step_editor_output_product_wrap">
+            <input type="text" id="step_editor_output_product" data-i18n-placeholder="modal.step_editor.output_placeholder" placeholder="Ex : Frites coupées">
+          </div>
+        </details>
+
+        <details class="step-editor-section" open>
+          <summary><i class="fa-solid fa-photo-film"></i> <span data-i18n="modal.step_editor.media_label">Média (optionnel)</span></summary>
+          <div id="step_editor_existing_media"></div>
+          <div class="step_media_grid">
+            <div class="custom-file-upload">
+              <input type="file" id="step_editor_image_input" accept="image/*" class="hidden_file_input">
+              <label for="step_editor_image_input" class="upload-btn mini"><i class="fa-solid fa-image"></i> <span data-i18n="modal.step_editor.photo">Photo</span></label>
+            </div>
+            <div class="custom-file-upload">
+              <input type="file" id="step_editor_video_input" accept="video/*" class="hidden_file_input">
+              <label for="step_editor_video_input" class="upload-btn mini"><i class="fa-solid fa-video"></i> <span data-i18n="modal.step_editor.video">Vidéo</span></label>
+            </div>
+            <input type="url" id="step_editor_external_url" data-i18n-placeholder="modal.step_editor.external_url_placeholder" placeholder="Ou lien externe">
+          </div>
+        </details>
+      </div>
+
+      <div class="step-editor-grid-2col align-stretch">
+        <details class="step-editor-section" open>
+          <summary><i class="fa-solid fa-carrot"></i> <span data-i18n="modal.step_editor.ingredients_used">Ingrédients utilisés</span></summary>
+          <p class="sub-hint hidden" id="step_editor_no_ingredients_hint" data-i18n="modal.step_editor.no_ingredients_hint">Ajoute d'abord des ingrédients à l'étape 3 du formulaire.</p>
+          <div class="step-linked-ingredients-list" id="step_editor_linked_list"></div>
+          <button type="button" id="toggle_step_ing_picker_btn" class="add-row-btn"><i class="fa-solid fa-plus"></i> <span data-i18n="modal.step_editor.add_ingredient">Ajouter un ingrédient</span></button>
+        </details>
+
+        <details class="step-editor-section" open>
+          <summary><i class="fa-solid fa-kitchen-set"></i> <span data-i18n="modal.step_editor.tools_needed">Outils nécessaires</span></summary>
+          <p class="sub-hint" data-i18n="modal.step_editor.tools_hint">Suggéré automatiquement selon le type d'étape.</p>
+          <div class="step-linked-ingredients-list" id="step_editor_tools_list"></div>
+          <button type="button" id="toggle_step_tool_picker_btn" class="add-row-btn"><i class="fa-solid fa-plus"></i> <span data-i18n="modal.step_editor.add_tool">Ajouter un outil</span></button>
+        </details>
+      </div>
+
+      <div class="wizard-actions">
+        <button type="button" id="delete_step_editor_btn" class="btn-secondary danger hidden"><i class="fa-solid fa-trash"></i> <span data-i18n="modal.step_editor.delete">Supprimer</span></button>
+        <button type="button" id="save_step_editor_btn" class="btn-primary"><i class="fa-solid fa-check"></i> <span data-i18n="modal.step_editor.save">Enregistrer l'étape</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---------------- POPUP (niveau 2) : INGRÉDIENTS D'UNE ÉTAPE ---------------- -->
+  <div id="step_ingredient_picker_modal" class="modal hidden">
+    <div class="modal-card modal-card-wide">
+      <button id="close_step_ingredient_picker_btn" class="close-btn">&times;</button>
+      <h2><i class="fa-solid fa-carrot"></i> <span data-i18n="modal.step_ing_picker.title">Ingrédients de l'étape</span></h2>
+
+      <div class="step-picker-tabs" id="step_ing_picker_tabs">
+        <span class="step-picker-tab-indicator active" data-tab="choose"><i class="fa-solid fa-magnifying-glass"></i> <span data-i18n="modal.step_ing_picker.tab_choose">1. Choisir</span></span>
+        <span class="step-picker-tab-indicator" data-tab="qty"><i class="fa-solid fa-scale-balanced"></i> <span data-i18n="modal.step_ing_picker.tab_qty">2. Quantités</span></span>
+      </div>
+
+      <div class="step-picker-tab-panel" id="step_ing_picker_panel_choose">
+        <input type="text" id="step_ing_picker_search" data-i18n-placeholder="modal.step_ing_picker.search_placeholder" placeholder="Rechercher parmi les ingrédients de la recette...">
+        <div class="food-picker-grid" id="step_ing_picker_grid"></div>
+      </div>
+
+      <div class="step-picker-tab-panel hidden" id="step_ing_picker_panel_qty">
+        <p class="sub-hint" data-i18n="modal.step_ing_picker.qty_hint">Précise la quantité de chaque ingrédient sélectionné pour cette étape.</p>
+        <div class="step-linked-ingredients-list" id="step_ing_picker_qty_list"></div>
+      </div>
+
+      <div class="step-picker-footer" id="step_ing_picker_footer_choose">
+        <button type="button" id="step_ing_picker_next_btn" class="btn-primary confirm-add-btn" disabled>
+          <span data-i18n="modal.step_ing_picker.next">Suivant : préciser les quantités</span> <span id="step_ing_picker_count" class="count-pastille">0</span> <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+      <div class="step-picker-footer hidden" id="step_ing_picker_footer_qty">
+        <button type="button" id="step_ing_picker_back_btn" class="btn-secondary"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="modal.step_ing_picker.back">Modifier la sélection</span></button>
+        <button type="button" id="step_ing_picker_confirm_btn" class="btn-primary confirm-add-btn"><i class="fa-solid fa-check"></i> <span data-i18n="modal.step_ing_picker.confirm">Ajouter à l'étape</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---------------- POPUP (niveau 2) : OUTILS D'UNE ÉTAPE ---------------- -->
+  <div id="step_tool_picker_modal" class="modal hidden">
+    <div class="modal-card modal-card-wide">
+      <button id="close_step_tool_picker_btn" class="close-btn">&times;</button>
+      <h2><i class="fa-solid fa-kitchen-set"></i> <span data-i18n="modal.step_tool_picker.title">Outils de l'étape</span></h2>
+      <input type="text" id="step_tool_picker_search" data-i18n-placeholder="modal.step_tool_picker.search_placeholder" placeholder="Rechercher un outil...">
+      <div class="food-picker-grid" id="step_tool_picker_grid"></div>
+      <button type="button" id="step_tool_picker_confirm_btn" class="btn-primary confirm-add-btn" disabled>
+        <i class="fa-solid fa-check"></i> <span data-i18n="modal.step_tool_picker.confirm">Ajouter à l'étape</span> <span id="step_tool_picker_count" class="count-pastille">0</span>
+      </button>
+    </div>
+  </div>
+
+
   <!-- ---------------- PROFIL PUBLIC (celui d'un autre utilisateur) ---------------- -->
   <section id="tab-public-profile" class="profile_container hidden">
     <button id="back_to_feed_from_profile_btn" class="text-btn"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="common.back">Retour</span></button>
@@ -779,6 +844,7 @@
           </div>
         </div>
         <div class="profile_level_box">
+          <span class="profile_quick_stats" id="public_profile_quick_stats"></span>
           <span id="public_profile_level">Niv. 1</span>
           <div class="xp_bar"><div id="public_profile_xp_fill" class="xp_fill"></div></div>
           <span id="public_profile_xp_text">0 / 100 XP</span>
@@ -789,8 +855,8 @@
     <p class="sub-hint" id="public_profile_bio" style="margin:14px 0;"></p>
 
     <div class="profile_tabs_nav">
-      <button class="tab_btn active" data-ptab="public_tab_badges"><span data-i18n="public_profile.tab_badges">Badges & Succès</span></button>
-      <button class="tab_btn" data-ptab="public_tab_recipes"><span data-i18n="public_profile.tab_recipes">Recettes publiées</span></button>
+      <button class="tab_btn active" data-ptab="public_tab_badges"><i class="fa-solid fa-medal"></i> <span data-i18n="public_profile.tab_badges">Badges & Succès</span></button>
+      <button class="tab_btn" data-ptab="public_tab_recipes"><i class="fa-solid fa-table-cells"></i> <span data-i18n="public_profile.tab_recipes">Recettes publiées</span></button>
     </div>
 
     <div id="public_tab_badges" class="tab_content active">
@@ -1086,7 +1152,30 @@
   </div>
 </div>
 
+<!-- ---------------- NAVIGATION MOBILE (barre basse façon Instagram) ---------------- -->
+<nav class="mobile-tabbar" id="mobile_tabbar">
+  <button type="button" class="mobile-tab-btn active" data-mobiletab="feed" data-i18n-aria="nav.feed" aria-label="Feed"><i class="fa-solid fa-house"></i></button>
+  <button type="button" class="mobile-tab-btn" data-mobiletab="search" data-i18n-aria="nav.search" aria-label="Recherche"><i class="fa-solid fa-magnifying-glass"></i></button>
+  <button type="button" class="mobile-tab-btn mobile-tab-publish" data-mobiletab="publish" data-i18n-aria="nav.publish" aria-label="Publier"><i class="fa-solid fa-square-plus"></i></button>
+  <button type="button" class="mobile-tab-btn" data-mobiletab="leaderboard" data-i18n-aria="nav.leaderboard" aria-label="Classement"><i class="fa-solid fa-trophy"></i></button>
+  <button type="button" class="mobile-tab-btn mobile-tab-profile" id="mobile_profile_tab_btn" data-i18n-aria="common.my_profile" aria-label="Mon profil"><i class="fa-solid fa-circle-user"></i></button>
+</nav>
+
+<!-- ---------------- APERÇU DU MODE MOBILE (cadre téléphone) ---------------- -->
+<!-- Une vraie fenêtre de navigateur réduite, pas un habillage CSS de la page
+     courante : l'iframe a sa propre largeur, donc les @media (max-width:700px)
+     et le JS du carrousel s'y déclenchent exactement comme sur un vrai
+     téléphone, sans qu'on ait à dupliquer la moindre règle. -->
+<div id="mobile_preview_overlay" class="mobile-preview-overlay hidden">
+  <div class="mobile-preview-frame">
+    <button type="button" class="mobile-preview-close" id="close_mobile_preview_btn" data-i18n-aria="nav.test_mobile_close" aria-label="Fermer l'aperçu mobile">&times;</button>
+    <div class="mobile-preview-notch"></div>
+    <iframe id="mobile_preview_iframe" title="Aperçu mobile" loading="lazy"></iframe>
+  </div>
+</div>
+
 <script src="i18n.js"></script>
 <script src="app.js"></script>
+<script src="mobile.js"></script>
 </body>
 </html>

@@ -13,7 +13,9 @@
       "leaderboard": "排行榜",
       "login": "登录",
       "change_language": "切换语言",
-      "admin": "管理"
+      "admin": "管理",
+      "test_mobile": "移动预览",
+      "test_mobile_close": "关闭移动预览"
     },
     "common": {
       "all_countries": "所有国家",
@@ -69,7 +71,7 @@
       "title": "最新菜谱",
       "tab_all": "全部",
       "tab_week": "本周",
-      "tab_ideas": "本周灵感",
+      "tab_ideas": "灵感",
       "search_placeholder": "搜索标题、食材或作者...",
       "filters_btn": "筛选",
       "filter_category": "分类",
@@ -133,7 +135,11 @@
       "reset": "重置",
       "results_count": "找到 {{count}} 个菜谱",
       "empty": "没有符合这些条件的菜谱，试着放宽筛选条件。",
-      "prompt_hint": "先选择筛选条件,然后点击搜索查看结果。"
+      "prompt_hint": "先选择筛选条件,然后点击搜索查看结果。",
+      "text_placeholder": "搜索食谱标题...",
+      "difficulty_country": "难度和国家",
+      "kcal_protein": "卡路里和蛋白质",
+      "filters_toggle": "筛选"
     },
     "leaderboard": {
       "title": "排行榜",
@@ -248,7 +254,8 @@
       "checking_content": "正在自动审核内容……",
       "checking_content_timer": "正在自动审核内容……（{seconds}秒）",
       "flagged_title": "菜谱正在等待审核",
-      "flagged_message": "你的菜谱已保存，但自动审核发现了潜在问题。管理员会在其公开前进行审核。"
+      "flagged_message": "你的菜谱已保存，但自动审核发现了潜在问题。管理员会在其公开前进行审核。",
+      "details_group_label": "份量、难度和国家 *"
     },
     "modal": {
       "ingredient_picker": {
@@ -262,7 +269,8 @@
         "selection_empty": "点击食材后会显示在这里。",
         "toast_added_multiple": "已添加 {{count}} 种食材",
         "toast_added_single": "已将\"{{name}}\"添加到菜谱",
-        "toast_custom_added": "\"{{name}}\"已添加到列表——点击\"添加\"以确认。"
+        "toast_custom_added": "\"{{name}}\"已添加到列表——点击\"添加\"以确认。",
+        "category_toggle": "按类别筛选"
       },
       "step_editor": {
         "title_add": "添加步骤",
@@ -373,7 +381,8 @@
       "tab_journal": "日记",
       "calorie_goal_label": "每日热量目标",
       "calorie_goal_placeholder": "例如：2000",
-      "calorie_goal_unit": "千卡 / 天"
+      "calorie_goal_unit": "千卡 / 天",
+      "menu_open": "个人资料菜单"
     },
     "public_profile": {
       "tab_badges": "徽章与成就",
@@ -655,7 +664,8 @@
       "Épices & Condiments": "香料与调味品",
       "Fruits secs & Oléagineux": "坚果与籽类",
       "Sucré & Pâtisserie": "甜品与烘焙",
-      "Boissons & Autres": "饮品与其他"
+      "Boissons & Autres": "饮品与其他",
+      "Fruits & Légumes": "水果和蔬菜"
     },
     "tools": {
       "Four": "烤箱",

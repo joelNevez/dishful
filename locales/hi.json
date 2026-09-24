@@ -13,7 +13,9 @@
       "leaderboard": "लीडरबोर्ड",
       "login": "लॉग इन करें",
       "change_language": "भाषा बदलें",
-      "admin": "एडमिन"
+      "admin": "एडमिन",
+      "test_mobile": "मोबाइल पूर्वावलोकन",
+      "test_mobile_close": "मोबाइल पूर्वावलोकन बंद करें"
     },
     "common": {
       "all_countries": "सभी देश",
@@ -69,7 +71,7 @@
       "title": "लेटेस्ट रेसिपीज़",
       "tab_all": "सभी",
       "tab_week": "इस हफ़्ते",
-      "tab_ideas": "हफ़्ते के आइडियाज़",
+      "tab_ideas": "आइडियाज़",
       "search_placeholder": "टाइटल, इंग्रीडिएंट या लेखक खोजें...",
       "filters_btn": "फ़िल्टर",
       "filter_category": "कैटेगरी",
@@ -133,7 +135,11 @@
       "reset": "रीसेट करें",
       "results_count": "{{count}} रेसिपी मिलीं",
       "empty": "इन शर्तों से कोई रेसिपी मेल नहीं खाती। अपने फ़िल्टर थोड़े ढीले करें।",
-      "prompt_hint": "अपने मानदंड चुनें, फिर रेसिपी देखने के लिए खोजें।"
+      "prompt_hint": "अपने मानदंड चुनें, फिर रेसिपी देखने के लिए खोजें।",
+      "text_placeholder": "रेसिपी का नाम खोजें...",
+      "difficulty_country": "कठिनाई और देश",
+      "kcal_protein": "कैलोरी और प्रोटीन",
+      "filters_toggle": "फ़िल्टर"
     },
     "leaderboard": {
       "title": "लीडरबोर्ड",
@@ -248,7 +254,8 @@
       "checking_content": "कंटेंट की ऑटोमैटिक जांच हो रही है...",
       "checking_content_timer": "कंटेंट की ऑटोमैटिक जांच हो रही है... ({seconds}s)",
       "flagged_title": "रेसिपी समीक्षा के इंतज़ार में है",
-      "flagged_message": "आपकी रेसिपी सेव कर दी गई है, लेकिन ऑटोमैटिक जांच में कोई संभावित समस्या मिली है। पब्लिक होने से पहले इसे एक एडमिन रिव्यू करेगा।"
+      "flagged_message": "आपकी रेसिपी सेव कर दी गई है, लेकिन ऑटोमैटिक जांच में कोई संभावित समस्या मिली है। पब्लिक होने से पहले इसे एक एडमिन रिव्यू करेगा।",
+      "details_group_label": "सर्विंग, कठिनाई और देश *"
     },
     "modal": {
       "ingredient_picker": {
@@ -262,7 +269,8 @@
         "selection_empty": "फूड आइटम्स पर क्लिक करें, वे यहां दिखने लगेंगे।",
         "toast_added_multiple": "{{count}} इंग्रीडिएंट्स जोड़े गए",
         "toast_added_single": "\"{{name}}\" रेसिपी में जोड़ा गया",
-        "toast_custom_added": "\"{{name}}\" लिस्ट में जोड़ा गया — कन्फर्म करने के लिए \"जोड़ें\" पर क्लिक करें।"
+        "toast_custom_added": "\"{{name}}\" लिस्ट में जोड़ा गया — कन्फर्म करने के लिए \"जोड़ें\" पर क्लिक करें।",
+        "category_toggle": "श्रेणी के अनुसार फ़िल्टर करें"
       },
       "step_editor": {
         "title_add": "स्टेप जोड़ें",
@@ -373,7 +381,8 @@
       "tab_journal": "जर्नल",
       "calorie_goal_label": "दैनिक कैलोरी लक्ष्य",
       "calorie_goal_placeholder": "उदा: 2000",
-      "calorie_goal_unit": "कैलोरी / दिन"
+      "calorie_goal_unit": "कैलोरी / दिन",
+      "menu_open": "प्रोफ़ाइल मेनू"
     },
     "public_profile": {
       "tab_badges": "बैज और अचीवमेंट्स",
@@ -655,7 +664,8 @@
       "Épices & Condiments": "मसाले और चटनी",
       "Fruits secs & Oléagineux": "मेवे और बीज",
       "Sucré & Pâtisserie": "मिठाई और बेकिंग",
-      "Boissons & Autres": "ड्रिंक्स और अन्य"
+      "Boissons & Autres": "ड्रिंक्स और अन्य",
+      "Fruits & Légumes": "फल और सब्ज़ियाँ"
     },
     "tools": {
       "Four": "ओवन",

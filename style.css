@@ -74,6 +74,7 @@ nav.tabs button.active{background:var(--ink);color:var(--paper);}
   nav.tabs button{min-width:0;flex:1 1 calc(50% - 4px);}
 }
 
+
 /* ---------- Sélecteur de langue ---------- */
 .lang-switcher{position:relative;}
 .lang-switcher-toggle{
@@ -484,6 +485,14 @@ label.field-label{
   min-width: 180px;
 }
 
+.profile_quick_stats {
+  display: block;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
 .xp_bar {
   width: 100%;
   height: 8px;
@@ -828,6 +837,20 @@ label.field-label{
   margin-bottom: 12px;
 }
 
+/* Recettes sauvegardées : repliée par défaut, ce n'est pas ce qu'on vient
+   voir en premier sur son propre profil (les recettes qu'on a publiées, oui). */
+.saved_recipes_group{margin-top:8px;}
+.saved_recipes_group summary{
+  font-family:'Fraunces',serif;font-weight:600;font-size:1.15rem;color:var(--ink);
+  cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px;margin-bottom:12px;
+}
+.saved_recipes_group summary::-webkit-details-marker{display:none;}
+.saved_recipes_group summary::after{
+  content:"\f078";font-family:"Font Awesome 6 Free";font-weight:900;font-size:13px;
+  color:var(--ink-soft);margin-left:auto;transition:transform .15s ease;
+}
+.saved_recipes_group[open] summary::after{transform:rotate(180deg);}
+
 .saved_filters_row select {
   padding: 6px 12px;
   border-radius: 8px;
@@ -1094,7 +1117,7 @@ label.field-label{
   max-height: 550px;
 }
 
- /**--------------------------------*/  
+ /**--------------------------------*/
   /* Navigation par étapes (Wizard) */
 .wizard-steps-nav {
   display: flex;
@@ -1281,10 +1304,16 @@ label.field-label{
   padding:20px;max-height:88vh;overflow-y:auto;
   box-shadow:0 20px 50px rgba(43,36,28,0.25);
 }
-.ingredient-selection-cloud h3{
+.ingredient-selection-cloud summary{
   font-size:13px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.03em;
-  display:flex;align-items:center;gap:7px;margin-bottom:14px;
+  display:flex;align-items:center;gap:7px;margin-bottom:14px;cursor:pointer;list-style:none;
 }
+.ingredient-selection-cloud summary::-webkit-details-marker{display:none;}
+.ingredient-selection-cloud summary::after{
+  content:"\f078";font-family:"Font Awesome 6 Free";font-weight:900;font-size:10px;
+  margin-left:auto;transition:transform .15s ease;
+}
+.ingredient-selection-cloud[open] summary::after{transform:rotate(180deg);}
 .cloud-bubbles{display:flex;flex-wrap:wrap;gap:8px;}
 .cloud-empty-hint{font-size:12.5px;color:var(--ink-soft);font-style:italic;line-height:1.5;margin:0;}
 .cloud-bubble{
@@ -1358,6 +1387,15 @@ label.field-label{
 .step-picker-footer{display:flex;gap:10px;}
 .step-picker-footer .confirm-add-btn{flex:1;margin-bottom:0;}
 .step-picker-footer .btn-secondary{flex:0 0 auto;margin-top:0;}
+/* Repliable : 9 catégories + "Tout" en permanence à l'écran, ça fait
+   beaucoup pour choisir un simple filtre facultatif. */
+.food-category-toggle{margin-bottom:14px;}
+.food-category-toggle summary{
+  list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;
+  font-size:12.5px;font-weight:700;color:var(--ink-soft);padding:6px 2px;
+}
+.food-category-toggle summary::-webkit-details-marker{display:none;}
+.food-category-toggle[open] summary{color:var(--ink);margin-bottom:8px;}
 .food-category-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
 .food-cat-tab{
   padding:6px 13px;border-radius:999px;border:1px solid var(--line);background:var(--paper);
@@ -1433,6 +1471,20 @@ label.field-label{
 }
 .step-editor-section .field-label{margin-top:0;}
 .step-editor-section .sub-hint{margin:-6px 0 0;}
+
+/* Les 5 sections de l'éditeur d'étape (type / description / média /
+   ingrédients / outils) sont chacune un <details> repliable — beaucoup de
+   champs à la fois sinon, surtout sur mobile. */
+.step-editor-section > summary{
+  list-style:none;cursor:pointer;display:flex;align-items:center;gap:9px;
+  font-size:14px;font-weight:700;color:var(--ink);
+}
+.step-editor-section > summary::-webkit-details-marker{display:none;}
+.step-editor-section > summary::after{
+  content:"\f078";font-family:"Font Awesome 6 Free";font-weight:900;font-size:11px;
+  color:var(--ink-soft);margin-left:auto;transition:transform .15s ease;
+}
+.step-editor-section[open] > summary::after{transform:rotate(180deg);}
 
 /* Hauteur FIXE (pas max-height) pour les listes ingrédients/outils de l'éditeur
    d'étape : la case garde toujours la même taille, qu'il y ait 1 ou 20 éléments —
@@ -1609,6 +1661,75 @@ label.field-label{
 .search-filters-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
 .search-filters-actions .btn-primary{margin:0;flex:none;padding:11px 22px;}
 .allergen-filter-chip.active{background:var(--rust);border-color:#9c4527;}
+
+/* Barre de recherche texte + groupes de filtres repliables (natifs <details>,
+   pas de JS nécessaire pour ouvrir/fermer) : on ne montre le long panneau de
+   filtres que sur demande plutôt que de forcer à le parcourir en entier. */
+.search-text-row{
+  display:flex;align-items:center;gap:10px;background:var(--paper);border:1px solid var(--line);
+  border-radius:999px;padding:10px 16px;
+}
+.search-text-row i{color:var(--ink-soft);}
+.search-text-row input{flex:1;border:none;background:none;padding:0;font-size:14px;}
+.search-text-row input:focus{outline:none;}
+
+/* Le "Filtres" englobant : replié par défaut, ne laisse voir que la barre
+   de recherche texte au premier coup d'œil — les 4 groupes de filtres
+   individuels (toujours repliables un par un) n'apparaissent qu'une fois
+   ouvert. */
+.search-filters-toggle{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--paper);}
+.search-filters-toggle > summary{
+  list-style:none;cursor:pointer;padding:12px 14px;font-size:13.5px;font-weight:700;
+  color:var(--ink);display:flex;align-items:center;gap:9px;
+}
+.search-filters-toggle > summary::-webkit-details-marker{display:none;}
+.search-filters-toggle > summary::after{
+  content:"\f078";font-family:"Font Awesome 6 Free";font-weight:900;font-size:11px;
+  color:var(--ink-soft);margin-left:auto;transition:transform .15s ease;
+}
+.search-filters-toggle[open] > summary::after{transform:rotate(180deg);}
+.search-filters-toggle[open] > summary{border-bottom:1px solid var(--line);}
+.search-filters-toggle > .search-filter-group{
+  margin:12px;
+}
+.search-filters-toggle > .search-filter-group + .search-filter-group{margin-top:0;}
+
+/* Sections du formulaire de publication (catégories / portions-difficulté-
+   pays / tags) : mêmes repliables que la recherche, plutôt que tous les
+   champs et boutons d'un coup. Les groupes avec un champ obligatoire (*)
+   restent ouverts par défaut pour ne pas cacher ce qui bloque la
+   validation ; seuls les tags (facultatifs) partent repliés. */
+.publish-step-group{border:1px solid var(--line);border-radius:12px;padding:0 14px 14px;overflow:hidden;margin-bottom:12px;}
+.publish-step-group:not([open]){padding-bottom:0;}
+/* Marge négative : le résumé revient border-to-border malgré le padding du
+   parent (qui, lui, sert à inset le contenu une fois ouvert). */
+.publish-step-group summary{
+  list-style:none;cursor:pointer;margin:0 -14px;padding:12px 14px;font-size:13.5px;font-weight:700;
+  color:var(--ink);display:flex;align-items:center;gap:9px;
+}
+.publish-step-group summary::-webkit-details-marker{display:none;}
+.publish-step-group summary::after{
+  content:"\f078";font-family:"Font Awesome 6 Free";font-weight:900;font-size:11px;
+  color:var(--ink-soft);margin-left:auto;transition:transform .15s ease;
+}
+.publish-step-group[open] summary::after{transform:rotate(180deg);}
+.publish-step-group[open] summary{border-bottom:1px solid var(--line);margin-bottom:12px;}
+.publish-step-group > *:not(summary) + *:not(summary){margin-top:10px;}
+
+.search-filter-group{border:1px solid var(--line);border-radius:12px;padding:0;overflow:hidden;}
+.search-filter-group summary{
+  list-style:none;cursor:pointer;padding:12px 14px;font-size:13px;font-weight:700;
+  color:var(--ink);display:flex;align-items:center;gap:9px;
+}
+.search-filter-group summary::-webkit-details-marker{display:none;}
+.search-filter-group summary::after{
+  content:"\f078";font-family:"Font Awesome 6 Free";font-weight:900;font-size:11px;
+  color:var(--ink-soft);margin-left:auto;transition:transform .15s ease;
+}
+.search-filter-group[open] summary::after{transform:rotate(180deg);}
+.search-filter-group[open] summary{border-bottom:1px solid var(--line);}
+.search-filter-group > .filter-row,
+.search-filter-group > .filter-row-split{padding:14px;}
 
 .recipe-card-stats-row{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 10px;}
 .recipe-card-stat{
@@ -2073,4 +2194,5 @@ label.field-label{
   transform-origin:0 0;pointer-events:none;user-select:none;
 }
 .crop-zoom-row{display:flex;align-items:center;gap:12px;color:var(--ink-soft);font-size:14px;}
+
 .crop-zoom-row input[type=range]{flex:1;accent-color:var(--rust);}

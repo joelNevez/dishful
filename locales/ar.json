@@ -13,7 +13,9 @@
       "leaderboard": "لوحة الصدارة",
       "login": "تسجيل الدخول",
       "change_language": "تغيير اللغة",
-      "admin": "الإدارة"
+      "admin": "الإدارة",
+      "test_mobile": "معاينة الجوال",
+      "test_mobile_close": "إغلاق معاينة الجوال"
     },
     "common": {
       "all_countries": "كل الدول",
@@ -69,7 +71,7 @@
       "title": "أحدث الوصفات",
       "tab_all": "الكل",
       "tab_week": "هذا الأسبوع",
-      "tab_ideas": "أفكار الأسبوع",
+      "tab_ideas": "أفكار",
       "search_placeholder": "ابحث عن عنوان، مكوّن، أو صاحب وصفة...",
       "filters_btn": "الفلاتر",
       "filter_category": "الفئة",
@@ -133,7 +135,11 @@
       "reset": "إعادة ضبط",
       "results_count": "{{count}} وصفة موجودة",
       "empty": "لا توجد وصفات مطابقة لهذه المعايير. حاول توسيع الفلاتر.",
-      "prompt_hint": "اختر معاييرك ثم ابدأ البحث لتظهر لك الوصفات."
+      "prompt_hint": "اختر معاييرك ثم ابدأ البحث لتظهر لك الوصفات.",
+      "text_placeholder": "البحث عن عنوان وصفة...",
+      "difficulty_country": "الصعوبة والبلد",
+      "kcal_protein": "السعرات الحرارية والبروتين",
+      "filters_toggle": "الفلاتر"
     },
     "leaderboard": {
       "title": "لوحة الصدارة",
@@ -248,7 +254,8 @@
       "checking_content": "جارٍ التحقق التلقائي من المحتوى...",
       "checking_content_timer": "جارٍ التحقق التلقائي من المحتوى... ({seconds} ثانية)",
       "flagged_title": "الوصفة بانتظار المراجعة",
-      "flagged_message": "تم حفظ وصفتك، لكن التحقق التلقائي رصد مشكلة محتملة. سيقوم أحد المسؤولين بمراجعتها قبل نشرها للعامة."
+      "flagged_message": "تم حفظ وصفتك، لكن التحقق التلقائي رصد مشكلة محتملة. سيقوم أحد المسؤولين بمراجعتها قبل نشرها للعامة.",
+      "details_group_label": "الحصص والصعوبة والبلد *"
     },
     "modal": {
       "ingredient_picker": {
@@ -262,7 +269,8 @@
         "selection_empty": "انقر على الأطعمة لتظهر هنا.",
         "toast_added_multiple": "تمت إضافة {{count}} مكوّنات",
         "toast_added_single": "تمت إضافة \"{{name}}\" إلى الوصفة",
-        "toast_custom_added": "تمت إضافة \"{{name}}\" إلى القائمة — انقر على \"إضافة\" للتأكيد."
+        "toast_custom_added": "تمت إضافة \"{{name}}\" إلى القائمة — انقر على \"إضافة\" للتأكيد.",
+        "category_toggle": "تصفية حسب الفئة"
       },
       "step_editor": {
         "title_add": "إضافة خطوة",
@@ -373,7 +381,8 @@
       "tab_journal": "السجل",
       "calorie_goal_label": "الهدف اليومي للسعرات الحرارية",
       "calorie_goal_placeholder": "مثال: 2000",
-      "calorie_goal_unit": "سعرة حرارية / يوم"
+      "calorie_goal_unit": "سعرة حرارية / يوم",
+      "menu_open": "قائمة الملف الشخصي"
     },
     "public_profile": {
       "tab_badges": "الأوسمة والإنجازات",
@@ -655,7 +664,8 @@
       "Épices & Condiments": "بهارات وتوابل",
       "Fruits secs & Oléagineux": "مكسرات وبذور",
       "Sucré & Pâtisserie": "حلويات ومعجنات",
-      "Boissons & Autres": "مشروبات وأخرى"
+      "Boissons & Autres": "مشروبات وأخرى",
+      "Fruits & Légumes": "الفواكه والخضروات"
     },
     "tools": {
       "Four": "فرن",

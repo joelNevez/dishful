@@ -13,7 +13,9 @@
       "leaderboard": "Classement",
       "login": "Se connecter",
       "change_language": "Changer de langue",
-      "admin": "Admin"
+      "admin": "Admin",
+      "test_mobile": "Test mobile",
+      "test_mobile_close": "Fermer l’aperçu mobile"
     },
     "common": {
       "all_countries": "Tous les pays",
@@ -69,7 +71,7 @@
       "title": "Les dernières recettes",
       "tab_all": "Tout",
       "tab_week": "Cette semaine",
-      "tab_ideas": "Idées de la semaine",
+      "tab_ideas": "Idées",
       "search_placeholder": "Rechercher un titre, un ingrédient, un auteur...",
       "filters_btn": "Filtres",
       "filter_category": "Catégorie",
@@ -133,7 +135,11 @@
       "reset": "Réinitialiser",
       "results_count": "{{count}} recette(s) trouvée(s)",
       "empty": "Aucune recette ne correspond à ces critères. Essaie d'élargir tes filtres.",
-      "prompt_hint": "Choisis tes critères puis lance la recherche pour voir apparaître des recettes."
+      "prompt_hint": "Choisis tes critères puis lance la recherche pour voir apparaître des recettes.",
+      "text_placeholder": "Rechercher un titre de recette...",
+      "difficulty_country": "Difficulté & pays",
+      "kcal_protein": "Calories & protéines",
+      "filters_toggle": "Filtres"
     },
     "leaderboard": {
       "title": "Classement",
@@ -248,7 +254,8 @@
       "checking_content": "Vérification automatique du contenu...",
       "checking_content_timer": "Vérification automatique du contenu... ({seconds}s)",
       "flagged_title": "Recette en attente de vérification",
-      "flagged_message": "Ta recette a été enregistrée mais la vérification automatique a détecté un possible souci. Elle sera examinée par un administrateur avant d'être rendue publique."
+      "flagged_message": "Ta recette a été enregistrée mais la vérification automatique a détecté un possible souci. Elle sera examinée par un administrateur avant d'être rendue publique.",
+      "details_group_label": "Portions, difficulté & pays *"
     },
     "modal": {
       "ingredient_picker": {
@@ -262,7 +269,8 @@
         "selection_empty": "Clique sur des aliments pour les voir apparaître ici.",
         "toast_added_multiple": "{{count}} ingrédients ajoutés",
         "toast_added_single": "\"{{name}}\" ajouté à la recette",
-        "toast_custom_added": "\"{{name}}\" ajouté à la liste — clique sur \"Ajouter\" pour le confirmer."
+        "toast_custom_added": "\"{{name}}\" ajouté à la liste — clique sur \"Ajouter\" pour le confirmer.",
+        "category_toggle": "Filtrer par catégorie"
       },
       "step_editor": {
         "title_add": "Ajouter une étape",
@@ -373,7 +381,8 @@
       "tab_journal": "Journal",
       "calorie_goal_label": "Objectif calorique quotidien",
       "calorie_goal_placeholder": "Ex : 2000",
-      "calorie_goal_unit": "kcal / jour"
+      "calorie_goal_unit": "kcal / jour",
+      "menu_open": "Menu du profil"
     },
     "public_profile": {
       "tab_badges": "Badges & Succès",
@@ -655,7 +664,8 @@
       "Épices & Condiments": "Épices & Condiments",
       "Fruits secs & Oléagineux": "Fruits secs & Oléagineux",
       "Sucré & Pâtisserie": "Sucré & Pâtisserie",
-      "Boissons & Autres": "Boissons & Autres"
+      "Boissons & Autres": "Boissons & Autres",
+      "Fruits & Légumes": "Fruits & Légumes"
     },
     "tools": {
       "Four": "Four",

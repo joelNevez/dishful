@@ -6,6 +6,12 @@
 // =====================================================================
 (function () {
 
+  // Pont minimal vers mobile.js (carrousel d'onglets, barre de navigation
+  // basse) : deux IIFE séparées ne partagent rien par défaut, seul ce qui
+  // est posé explicitement ici est visible de l'autre côté. Les exports
+  // côté app.js (switch_tab, etc.) sont tout en bas de ce fichier.
+  const Dishful = window.Dishful = window.Dishful || {};
+
   const country_list = [
   { code: "AF", name: "Afghanistan", flag: "🇦🇫" },
   { code: "ZA", name: "Afrique du Sud", flag: "🇿🇦" },
@@ -205,6 +211,22 @@ const COMMON_FOODS = [
   {name:"Bouillon de volaille", emoji:"🍲", cat:"Boissons & Autres"}, {name:"Lait concentré", emoji:"🥛", cat:"Boissons & Autres"}
 ];
 const FOOD_CATEGORIES = [...new Set(COMMON_FOODS.map(f => f.cat))];
+// Regroupement purement visuel de deux catégories dans le sélecteur d'ingrédients
+// mobile (9 onglets de catégorie + "Tout" ne tenaient pas sur un écran de
+// téléphone, même repliés) : les données de COMMON_FOODS ne changent pas, seul
+// l'onglet affiché fusionne les deux catégories sous un même filtre.
+const FOOD_CATEGORY_GROUPS = { 'Fruits & Légumes': ['Fruits', 'Légumes'] };
+const FOOD_CATEGORY_GROUPED_CATS = new Set(Object.values(FOOD_CATEGORY_GROUPS).flat());
+function food_category_tab_entries() {
+  const entries = Object.keys(FOOD_CATEGORY_GROUPS).map(key => ({ key, label: I18N.td('food_categories', key) }));
+  FOOD_CATEGORIES.forEach(c => { if (!FOOD_CATEGORY_GROUPED_CATS.has(c)) entries.push({ key: c, label: I18N.td('food_categories', c) }); });
+  return entries;
+}
+function food_matches_active_category(food) {
+  if (!active_food_category) return true;
+  const group = FOOD_CATEGORY_GROUPS[active_food_category];
+  return group ? group.includes(food.cat) : food.cat === active_food_category;
+}
 
 // =====================================================================
 // Valeurs nutritionnelles + allergènes courants, pour 100g (ou 100ml pour les
@@ -704,27 +726,41 @@ function populate_nationality_select() {
   });
 }
 
-// 2. Gestion des 3 sous-onglets du profil
+// 2. Gestion des sous-onglets du profil : la rangée d'icônes (desktop) ET le
+// menu burger (mode mobile, remplace cette rangée sauf pour "Mes Recettes"
+// qui reste la vue par défaut façon grille Instagram) pilotent le même état,
+// donc un seul handler sur tout ce qui porte [data-tab] dans #tab-profile.
 function init_profile_subtabs() {
   // Scopé à #tab-profile : sinon ce sélecteur global attrape aussi les onglets du
   // profil PUBLIC (#tab-public-profile), qui partagent les mêmes classes .profile_tabs_nav/.tab_btn
   // mais utilisent data-ptab au lieu de data-tab -> les deux handlers se marchaient dessus.
-  const tab_buttons = document.querySelectorAll("#tab-profile .profile_tabs_nav .tab_btn");
+  const tab_buttons = document.querySelectorAll("#tab-profile [data-tab].tab_btn");
   const tab_contents = document.querySelectorAll("#tab-profile .tab_content");
 
   tab_buttons.forEach((button) => {
     button.addEventListener("click", () => {
       const target_tab_id = button.dataset.tab;
 
-      tab_buttons.forEach((btn) => btn.classList.remove("active"));
+      tab_buttons.forEach((btn) => btn.classList.toggle("active", btn.dataset.tab === target_tab_id));
       tab_contents.forEach((content) => content.classList.remove("active"));
 
-      button.classList.add("active");
       const target_content = document.getElementById(target_tab_id);
       if (target_content) {
         target_content.classList.add("active");
       }
+      document.getElementById('profile_menu_dropdown')?.classList.add('hidden');
     });
+  });
+
+  const menu_btn = document.getElementById('profile_menu_btn');
+  const menu_dropdown = document.getElementById('profile_menu_dropdown');
+  menu_btn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    menu_dropdown?.classList.toggle('hidden');
+  });
+  document.addEventListener('click', (e) => {
+    if (!menu_dropdown || menu_dropdown.classList.contains('hidden')) return;
+    if (!menu_dropdown.contains(e.target) && e.target !== menu_btn) menu_dropdown.classList.add('hidden');
   });
 }
 
@@ -732,8 +768,14 @@ function init_profile_subtabs() {
 document.addEventListener("DOMContentLoaded", () => {
   populate_nationality_select();
   init_profile_subtabs();
-  document.getElementById("logout_btn_profile")?.addEventListener("click", async () => {
-    if (supabase) await supabase.auth.signOut();
+  const handle_logout = async () => { if (supabase) await supabase.auth.signOut(); };
+  document.getElementById("logout_btn_profile")?.addEventListener("click", handle_logout);
+  // Même action que le bouton ci-dessus, mais depuis le menu burger (mode
+  // mobile) où la déconnexion est rangée avec le reste des réglages plutôt
+  // que d'occuper un gros bouton permanent dans l'en-tête.
+  document.getElementById("logout_btn_menu")?.addEventListener("click", () => {
+    document.getElementById('profile_menu_dropdown')?.classList.add('hidden');
+    handle_logout();
   });
 
   document.getElementById("brand_home_btn")?.addEventListener("click", () => switch_tab("feed"));
@@ -798,6 +840,11 @@ document.querySelectorAll('nav.tabs button').forEach(btn => {
 const auth_modal = document.getElementById('auth_modal');
 document.getElementById('open_auth_btn').addEventListener('click', () => auth_modal.classList.remove('hidden'));
 document.getElementById('close_auth_btn').addEventListener('click', () => auth_modal.classList.add('hidden'));
+
+// La barre de navigation mobile, l'aperçu "Test mobile" et le carrousel
+// d'onglets glissable vivent dans mobile.js (voir le pont Dishful.* utilisé
+// par switch_tab() plus bas, et les exports Dishful.switch_tab / etc. tout
+// en bas de ce fichier).
 
 // =====================================================================
 // 1. INIT SUPABASE
@@ -1318,7 +1365,7 @@ function add_ingredient_to_pool(name, emoji) {
 function render_food_category_tabs() {
   const container = document.getElementById('food_category_tabs');
   container.innerHTML = `<button type="button" class="food-cat-tab ${!active_food_category ? 'active' : ''}" data-cat="">${escape_html(I18N.t('common.all'))}</button>` +
-    FOOD_CATEGORIES.map(c => `<button type="button" class="food-cat-tab ${active_food_category === c ? 'active' : ''}" data-cat="${escape_attr(c)}">${escape_html(I18N.td('food_categories', c))}</button>`).join('');
+    food_category_tab_entries().map(({ key, label }) => `<button type="button" class="food-cat-tab ${active_food_category === key ? 'active' : ''}" data-cat="${escape_attr(key)}">${escape_html(label)}</button>`).join('');
   container.querySelectorAll('.food-cat-tab').forEach(btn => {
     btn.addEventListener('click', () => {
       active_food_category = btn.dataset.cat || null;
@@ -1340,7 +1387,7 @@ function render_food_picker_grid() {
   const search = document.getElementById('ingredient_search_input').value.trim().toLowerCase();
   const grid = document.getElementById('food_picker_grid');
   let list = [...COMMON_FOODS, ...custom_food_entries];
-  if (active_food_category) list = list.filter(f => f.cat === active_food_category);
+  if (active_food_category) list = list.filter(food_matches_active_category);
   if (search) list = list.filter(f => normalize_for_search(f.name).includes(normalize_for_search(search)) || normalize_for_search(I18N.td('foods', f.name)).includes(normalize_for_search(search)));
 
   if (list.length === 0) {
@@ -3004,6 +3051,10 @@ function pick_ideas_recipe(pools, day_key, slot_key, variant) {
 
 function ideas_slot_cell_html(slot, recipe) {
   const cover_image = recipe.cover_image || (recipe.images && recipe.images[0]) || '';
+  // Calories affichées plutôt que les likes : pour planifier sa semaine, c'est
+  // l'info qui compte réellement d'un coup d'œil (le reste attend le clic).
+  const totals = compute_recipe_nutrition(recipe.steps, 1);
+  const kcal_per_serving = totals.kcal ? Math.round(totals.kcal / (recipe.servings || 1)) : 0;
   return `
     <div class="ideas-slot-cell">
       <span class="ideas-slot-label"><i class="fa-solid ${slot.icon}"></i> ${escape_html(I18N.t(`feed.slot_${slot.key}`))}</span>
@@ -3011,7 +3062,7 @@ function ideas_slot_cell_html(slot, recipe) {
         <div class="mini_card_img" style="background-image: url('${escape_attr(cover_image)}')"></div>
         <div class="mini_card_info">
           <h4>${escape_html(recipe.title)}</h4>
-          <span class="mini_card_meta"><i class="fa-solid fa-heart"></i> ${recipe.likes_count || 0}</span>
+          <span class="mini_card_meta">${kcal_per_serving ? `<i class="fa-solid fa-fire"></i> ${kcal_per_serving} kcal` : ''}</span>
         </div>
       </div>
     </div>`;
@@ -3021,6 +3072,10 @@ function ideas_slot_cell_html(slot, recipe) {
 // et jour actuellement affiché — vivent hors de render_feed_ideas pour survivre aux re-rendus.
 let ideas_day_variant = {};
 let ideas_selected_day = IDEAS_DAYS[0].key;
+// Mode mobile uniquement : le sélecteur de jour part replié (juste le jour
+// courant + flèches précédent/suivant) et ne s'ouvre en petit calendrier
+// que sur demande — il se referme automatiquement dès qu'un jour est choisi.
+let ideas_calendar_expanded = false;
 
 function ideas_nutrition_summary_html(recipes) {
   if (!recipes.length) return '';
@@ -3062,17 +3117,43 @@ function render_feed_ideas() {
       ${escape_html(ideas_day_label(day))}
     </button>`).join('');
 
+  // Barre compacte (mode mobile uniquement, invisible sur desktop) : jour
+  // courant + flèches, et un bouton pour déplier le petit calendrier ci-dessous.
+  const current_day_idx = IDEAS_DAYS.findIndex(d => d.key === ideas_selected_day);
+  const compact_nav_html = `
+    <div class="ideas-day-nav-compact">
+      <button type="button" class="ideas-day-arrow" id="ideas_day_prev_btn" ${current_day_idx <= 0 ? 'disabled' : ''} data-i18n-aria="journal.prev_day" aria-label="Jour précédent"><i class="fa-solid fa-chevron-left"></i></button>
+      <button type="button" class="ideas-day-current" id="ideas_day_toggle_btn">
+        <i class="fa-solid fa-calendar-days"></i> ${escape_html(ideas_day_label(IDEAS_DAYS[current_day_idx] || IDEAS_DAYS[0]))}
+      </button>
+      <button type="button" class="ideas-day-arrow" id="ideas_day_next_btn" ${current_day_idx >= IDEAS_DAYS.length - 1 ? 'disabled' : ''} data-i18n-aria="journal.next_day" aria-label="Jour suivant"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>`;
+
   container.innerHTML = `
     ${week_total ? `<div class="ideas-week-total"><i class="fa-solid fa-calendar-week"></i> <strong>${escape_html(I18N.t('feed.week_total_label'))}</strong> : ${week_total}</div>` : ''}
-    <div class="ideas-day-tabs">${tabs_html}</div>
+    ${compact_nav_html}
+    <div class="ideas-day-tabs ${ideas_calendar_expanded ? 'expanded' : ''}" id="ideas_day_tabs">${tabs_html}</div>
     <div class="ideas-day-panel" id="ideas_day_panel"></div>
   `;
 
   container.querySelectorAll('.ideas-day-tab').forEach(btn => {
     btn.addEventListener('click', () => {
       ideas_selected_day = btn.dataset.day;
+      ideas_calendar_expanded = false; // se replie une fois le jour choisi
       render_feed_ideas();
     });
+  });
+  document.getElementById('ideas_day_toggle_btn')?.addEventListener('click', () => {
+    ideas_calendar_expanded = !ideas_calendar_expanded;
+    render_feed_ideas();
+  });
+  document.getElementById('ideas_day_prev_btn')?.addEventListener('click', () => {
+    const idx = IDEAS_DAYS.findIndex(d => d.key === ideas_selected_day);
+    if (idx > 0) { ideas_selected_day = IDEAS_DAYS[idx - 1].key; render_feed_ideas(); }
+  });
+  document.getElementById('ideas_day_next_btn')?.addEventListener('click', () => {
+    const idx = IDEAS_DAYS.findIndex(d => d.key === ideas_selected_day);
+    if (idx < IDEAS_DAYS.length - 1) { ideas_selected_day = IDEAS_DAYS[idx + 1].key; render_feed_ideas(); }
   });
 
   render_ideas_day_panel(pools);
@@ -3227,12 +3308,14 @@ function render_search_prompt_state() {
 function run_search() {
   const grid = document.getElementById('search_results_grid');
   if (!grid) return;
+  const search_text = (document.getElementById('search_text_input')?.value || '').trim().toLowerCase();
   const kcal_min = parseFloat(document.getElementById('search_kcal_min').value);
   const kcal_max = parseFloat(document.getElementById('search_kcal_max').value);
   const protein_min = parseFloat(document.getElementById('search_protein_min').value);
   const has_kcal_min = !isNaN(kcal_min), has_kcal_max = !isNaN(kcal_max), has_protein_min = !isNaN(protein_min);
 
   let results = all_recipes.filter(r => {
+    if (search_text && !(r.title || '').toLowerCase().includes(search_text)) return false;
     if (search_category && !(r.categories || []).includes(search_category)) return false;
     if (search_difficulty && (r.difficulty || 'moyen') !== search_difficulty) return false;
     if (search_country && r.country_code !== search_country) return false;
@@ -3313,9 +3396,26 @@ function search_result_card_html(r, match_ctx, nutrition) {
     </div>
   </article>`;
 }
-document.getElementById('run_search_btn')?.addEventListener('click', run_search);
+// Les groupes de filtres sont des <details> repliés par défaut (pour ne pas
+// imposer un long panneau ouvert avant même d'avoir cherché quoi que ce
+// soit) : on les referme systématiquement après une recherche, qu'ils aient
+// servi ou non, pour que les résultats prennent toute la place.
+function collapse_search_filter_groups() {
+  document.querySelectorAll('#tab-search .search-filter-group[open], #tab-search .search-filters-toggle[open]')
+    .forEach(el => el.removeAttribute('open'));
+}
+function run_search_and_collapse() {
+  run_search();
+  collapse_search_filter_groups();
+}
+document.getElementById('run_search_btn')?.addEventListener('click', run_search_and_collapse);
+document.getElementById('search_text_input')?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); run_search_and_collapse(); }
+});
 document.getElementById('reset_search_btn')?.addEventListener('click', () => {
   search_category = null; search_difficulty = null; search_country = null; search_excluded_allergens.clear();
+  const text_input = document.getElementById('search_text_input');
+  if (text_input) text_input.value = '';
   document.getElementById('search_kcal_min').value = '';
   document.getElementById('search_kcal_max').value = '';
   document.getElementById('search_protein_min').value = '';
@@ -3370,12 +3470,12 @@ function recipe_card_html(r) {
         ${total_time ? `<span class="recipe-card-stat"><i class="fa-solid fa-stopwatch"></i> ${total_time} ${escape_html(I18N.t('common.minutes_short'))}</span>` : ''}
         <span class="recipe-card-stat"><i class="fa-solid fa-gauge"></i> ${escape_html(difficulty_label)}</span>
         ${r.servings ? `<span class="recipe-card-stat"><i class="fa-solid fa-users"></i> ${r.servings} ${escape_html(I18N.t('common.servings'))}</span>` : ''}
-        ${r.views_count ? `<span class="recipe-card-stat"><i class="fa-solid fa-eye"></i> ${r.views_count}</span>` : ''}
       </div>
       <div class="chips-row">${tag_chips}</div>
       <div class="recipe-actions">
         <button class="action-btn like-btn ${is_liked ? 'liked' : ''}" data-recipe-id="${escape_attr(r.id)}"><i class="fa-solid fa-heart"></i> <span class="like-count">${r.likes_count || 0}</span></button>
         <span class="action-btn"><i class="fa-regular fa-comment"></i> ${r.comments_count || 0}</span>
+        ${r.views_count ? `<span class="action-btn recipe-card-views"><i class="fa-solid fa-eye"></i> ${r.views_count}</span>` : ''}
         <button class="translate-btn"><i class="fa-solid fa-language"></i> ${escape_html(I18N.t('common.translate_btn'))}</button>
         ${donation_link ? `<a class="donate-btn" href="${escape_attr(donation_link)}" target="_blank" rel="noopener"><i class="fa-solid fa-hand-holding-heart"></i> ${escape_html(I18N.t('common.donate_btn'))}</a>` : ''}
       </div>
@@ -4113,6 +4213,11 @@ async function render_badges_tab() {
     : 0;
   const user_level = current_profile?.user_level || 1;
 
+  const quick_stats_el = document.getElementById("profile_quick_stats");
+  if (quick_stats_el) {
+    quick_stats_el.textContent = `${total_published} ${I18N.t('profile.unit_recipes')} · ${total_likes} ${I18N.t('profile.unit_likes')}`;
+  }
+
   const equipped_badge_id = current_profile?.equipped_badge || null;
   const all_badges = [...recipe_badge_list, ...like_badge_list, ...level_badge_list];
   const active_badge = all_badges.find((b) => b.id === equipped_badge_id);
@@ -4263,7 +4368,7 @@ function apply_saved_recipes_filter(saved_recipes) {
 }
 
 function get_visible_tab_name() {
-  const tab_ids = ["feed", "publish", "profile", "recipe-detail", "leaderboard", "public-profile", "search"];
+  const tab_ids = ["feed", "publish", "profile", "recipe-detail", "leaderboard", "public-profile", "search", "admin"];
   for (const id of tab_ids) {
     const el = document.getElementById("tab-" + id);
     if (el && !el.classList.contains("hidden")) return id;
@@ -4277,16 +4382,43 @@ function switch_tab(tab_name) {
     tab_name = "feed";
   }
 
+  // Le profil suppose d'être connecté (l'onglet contient les champs du compte,
+  // pas juste une consultation) : le clic sur l'avatar/l'icône du bas gère déjà
+  // ce garde-fou en amont, mais un swipe peut arriver directement ici sans être
+  // passé par ce clic — même garde-fou ici (repli sur le feed) pour ne jamais
+  // atterrir sur une page profil vide, tout en laissant le reste de la fonction
+  // (états actifs, chargement des données...) s'appliquer normalement au feed.
+  if (tab_name === "profile" && !current_user) {
+    auth_modal?.classList.remove("hidden");
+    tab_name = "feed";
+  }
+
   document.querySelectorAll("nav.tabs button").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.tab === tab_name);
   });
-
-  ["feed", "publish", "profile", "recipe-detail", "leaderboard", "public-profile", "search", "admin"].forEach((tab_id) => {
-    const page_element = document.getElementById("tab-" + tab_id);
-    if (page_element) {
-      page_element.classList.toggle("hidden", tab_id !== tab_name);
-    }
+  document.querySelectorAll(".mobile-tab-btn[data-mobiletab]").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.mobiletab === tab_name);
   });
+  document.getElementById("mobile_profile_tab_btn")?.classList.toggle("active", tab_name === "profile");
+
+  // is_mobile_mode/MOBILE_SWIPE_TABS/goto_mobile_slide viennent de mobile.js
+  // via le pont Dishful (voir le commentaire en haut de ce fichier) : si ce
+  // script n'est pas chargé, l'app se comporte simplement en desktop pur.
+  if (Dishful.is_mobile_mode?.() && Dishful.MOBILE_SWIPE_TABS?.includes(tab_name)) {
+    // Les 5 onglets du carrousel restent TOUS démasqués (on ne fait que les
+    // faire glisser hors champ), seules les pages plein écran (détail recette,
+    // profil public) utilisent encore le masquage classique.
+    Dishful.MOBILE_SWIPE_TABS.forEach((id) => document.getElementById("tab-" + id)?.classList.remove("hidden"));
+    ["recipe-detail", "public-profile", "admin"].forEach((id) => document.getElementById("tab-" + id)?.classList.add("hidden"));
+    Dishful.goto_mobile_slide(tab_name);
+  } else {
+    ["feed", "publish", "profile", "recipe-detail", "leaderboard", "public-profile", "search", "admin"].forEach((tab_id) => {
+      const page_element = document.getElementById("tab-" + tab_id);
+      if (page_element) {
+        page_element.classList.toggle("hidden", tab_id !== tab_name);
+      }
+    });
+  }
 
   if (tab_name === "profile" && typeof render_profile_tab === "function") {
     render_profile_tab();
@@ -4486,7 +4618,7 @@ async function load_leaderboard() {
         <span class="leaderboard-rank">${i + 1}</span>
         <div class="avatar leaderboard-avatar">${avatar_html}</div>
         <div class="leaderboard-identity">
-          <span class="leaderboard-name">${escape_html(display_name)}${is_me ? ` <span class="its-me-badge"><i class="fa-solid fa-star"></i> ${escape_html(I18N.t('leaderboard.its_me'))}</span>` : ''}</span>
+          <span class="leaderboard-name"><span class="leaderboard-name-text">${escape_html(display_name)}</span>${is_me ? ` <span class="its-me-badge"><i class="fa-solid fa-star"></i> ${escape_html(I18N.t('leaderboard.its_me'))}</span>` : ''}</span>
           <span class="leaderboard-username">@${escape_html(p.username || '')}</span>
         </div>
         <div class="leaderboard-level">
@@ -4560,7 +4692,7 @@ async function load_weekly_chefs_ranking(container) {
         <span class="leaderboard-rank">${i + 1}</span>
         <div class="avatar leaderboard-avatar">${avatar_html}</div>
         <div class="leaderboard-identity">
-          <span class="leaderboard-name">${escape_html(display_name)}${is_me ? ` <span class="its-me-badge"><i class="fa-solid fa-star"></i> ${escape_html(I18N.t('leaderboard.its_me'))}</span>` : ''}</span>
+          <span class="leaderboard-name"><span class="leaderboard-name-text">${escape_html(display_name)}</span>${is_me ? ` <span class="its-me-badge"><i class="fa-solid fa-star"></i> ${escape_html(I18N.t('leaderboard.its_me'))}</span>` : ''}</span>
           <span class="leaderboard-username">@${escape_html(p.username || '')}</span>
         </div>
         <div class="leaderboard-level">
@@ -4726,7 +4858,7 @@ function render_chef_aggregate_rows(container, ranked, kind, is_weekly) {
         <span class="leaderboard-rank">${i + 1}</span>
         <div class="avatar leaderboard-avatar">${avatar_html}</div>
         <div class="leaderboard-identity">
-          <span class="leaderboard-name">${escape_html(display_name)}${is_me ? ` <span class="its-me-badge"><i class="fa-solid fa-star"></i> ${escape_html(I18N.t('leaderboard.its_me'))}</span>` : ''}</span>
+          <span class="leaderboard-name"><span class="leaderboard-name-text">${escape_html(display_name)}</span>${is_me ? ` <span class="its-me-badge"><i class="fa-solid fa-star"></i> ${escape_html(I18N.t('leaderboard.its_me'))}</span>` : ''}</span>
           <span class="leaderboard-username">@${escape_html(p.username || '')}</span>
         </div>
         <div class="leaderboard-level">${stat_html}</div>
@@ -4752,7 +4884,7 @@ function recipe_ranking_row_html(r, rank, kind) {
       <span class="leaderboard-rank">${rank + 1}</span>
       ${cover ? `<img class="leaderboard-avatar" style="border-radius:10px;object-fit:cover;" src="${escape_attr(cover)}" alt="">` : `<div class="avatar leaderboard-avatar">🍽️</div>`}
       <div class="leaderboard-identity" style="min-width:160px;">
-        <span class="leaderboard-name">${escape_html(r.title)}</span>
+        <span class="leaderboard-name"><span class="leaderboard-name-text">${escape_html(r.title)}</span></span>
         <span class="leaderboard-username">${escape_html(I18N.t('leaderboard.by_author', { author }))}${is_me ? ` <span class="its-me-badge"><i class="fa-solid fa-star"></i> ${escape_html(I18N.t('leaderboard.its_me'))}</span>` : ''}</span>
       </div>
       <div class="leaderboard-level">${stat_html}</div>
@@ -4838,7 +4970,8 @@ async function load_weekly_recipe_ranking(kind, container) {
 // clavier du mode cuisine si on quitte la page recette sans avoir cliqué "Terminé".
 let cooking_keydown_handler = null;
 
-async function show_recipe_detail_page(recipe_id) {
+async function show_recipe_detail_page(recipe_id, opts) {
+  const from_popstate = !!(opts && opts.from_popstate);
   const container = document.getElementById("single_recipe_content");
   if (!container) return;
 
@@ -4876,7 +5009,15 @@ async function show_recipe_detail_page(recipe_id) {
 
   switch_tab("recipe-detail");
   window.scrollTo(0, 0);
-  history.replaceState(null, '', '?recipe=' + recipe.id);
+  // pushState (pas replaceState) : ouvrir une recette crée une vraie entrée
+  // d'historique, pour que le geste "retour" natif du téléphone (ou le
+  // bouton retour du navigateur) fonctionne tout seul — indispensable en
+  // mode mobile où le bouton "Retour" est masqué au profit de ce geste.
+  // On ne pousse rien quand on restaure depuis un popstate (sinon on
+  // repousse une entrée à chaque retour en arrière et l'historique boucle).
+  if (!from_popstate) {
+    history.pushState({ dishful_tab: 'recipe-detail', return_tab: recipe_detail_return_tab }, '', '?recipe=' + recipe.id);
+  }
 
   // Vue comptée à chaque ouverture de la page recette (best-effort, ne bloque pas l'affichage).
   if (supabase) {
@@ -4914,14 +5055,14 @@ async function show_recipe_detail_page(recipe_id) {
     const display = document.getElementById('cooking_timer_display');
     const btn = document.getElementById('cooking_timer_btn');
     if (display) display.classList.remove('cooking_timer_done');
-    if (btn) btn.innerHTML = `<i class="fa-solid fa-pause"></i> ${escape_html(I18N.t('recipe_detail.timer_running'))}`;
+    if (btn) btn.innerHTML = `<i class="fa-solid fa-pause"></i> <span class="cooking_timer_btn_label">${escape_html(I18N.t('recipe_detail.timer_running'))}</span>`;
     cooking_timer_interval = setInterval(() => {
       cooking_timer_remaining--;
       if (display) display.textContent = format_timer(Math.max(cooking_timer_remaining, 0));
       if (cooking_timer_remaining <= 0) {
         stop_cooking_timer();
         if (display) display.classList.add('cooking_timer_done');
-        if (btn) btn.innerHTML = `<i class="fa-solid fa-check"></i> ${escape_html(I18N.t('recipe_detail.timer_finished'))}`;
+        if (btn) btn.innerHTML = `<i class="fa-solid fa-check"></i> <span class="cooking_timer_btn_label">${escape_html(I18N.t('recipe_detail.timer_finished'))}</span>`;
         show_alert_modal(I18N.t('recipe_detail.timer_done'), { type: 'success' });
       }
     }, 1000);
@@ -4971,7 +5112,7 @@ async function show_recipe_detail_page(recipe_id) {
       ${step.time_min ? `
         <div class="cooking_timer_block">
           <span class="cooking_timer_display" id="cooking_timer_display">${format_timer(step.time_min * 60)}</span>
-          <button type="button" id="cooking_timer_btn" class="btn-primary"><i class="fa-solid fa-play"></i> ${escape_html(I18N.t('recipe_detail.start_timer'))}</button>
+          <button type="button" id="cooking_timer_btn" class="btn-primary"><i class="fa-solid fa-play"></i> <span class="cooking_timer_btn_label">${escape_html(I18N.t('recipe_detail.start_timer'))}</span></button>
         </div>` : ''}
     `;
 
@@ -5681,8 +5822,27 @@ document.querySelectorAll('#tab-public-profile .profile_tabs_nav .tab_btn').forE
 document.getElementById('back_to_feed_from_profile_btn')?.addEventListener('click', () => switch_tab('feed'));
 
 document.getElementById('back_to_feed_btn')?.addEventListener('click', () => {
-  switch_tab(recipe_detail_return_tab || 'feed');
-  window.scrollTo(0, 0);
+  // Passe par l'historique réel plutôt que de rebasculer l'onglet directement :
+  // ça garde un seul chemin (popstate, ci-dessous) pour "revenir en arrière",
+  // que ce soit via ce bouton, le geste natif du téléphone ou le bouton
+  // retour du navigateur.
+  history.back();
+});
+
+// Geste "retour" natif (téléphone ou navigateur) depuis la page recette :
+// pushState plus haut a créé une vraie entrée d'historique à l'ouverture,
+// donc revenir en arrière déclenche cet évènement plutôt que de quitter le
+// site. On retombe soit sur une AUTRE recette déjà visitée (l'URL contient
+// encore ?recipe=), soit sur l'onglet d'origine.
+window.addEventListener('popstate', () => {
+  if (document.getElementById('tab-recipe-detail')?.classList.contains('hidden')) return;
+  const recipe_id = new URLSearchParams(location.search).get('recipe');
+  if (recipe_id) {
+    show_recipe_detail_page(recipe_id, { from_popstate: true });
+  } else {
+    switch_tab(recipe_detail_return_tab || 'feed');
+    window.scrollTo(0, 0);
+  }
 });
 
 let current_public_profile_user_id = null;
@@ -5738,6 +5898,10 @@ async function show_public_profile_page(user_id) {
   document.getElementById('public_profile_level').textContent = I18N.t('profile.level_short_display', { n: user_level });
   document.getElementById('public_profile_xp_text').textContent = I18N.t('profile.level_progress', { xp: xp_in_current_level, level: user_level, total: xp_points });
   document.getElementById('public_profile_xp_fill').style.width = `${xp_percentage}%`;
+  const public_quick_stats_el = document.getElementById('public_profile_quick_stats');
+  if (public_quick_stats_el) {
+    public_quick_stats_el.textContent = `${total_published} ${I18N.t('profile.unit_recipes')} · ${total_likes} ${I18N.t('profile.unit_likes')}`;
+  }
 
   const equipped_badge_id = profile.equipped_badge || null;
   const all_badges = [...recipe_badge_list, ...like_badge_list, ...level_badge_list];
@@ -6030,5 +6194,11 @@ function restore_pending_state_after_lang_switch() {
     console.error('[Dishful] Erreur au démarrage :', err);
   }
 })();
+
+// Pont vers mobile.js : le carrousel d'onglets et la barre de navigation
+// basse ont besoin d'appeler ces quelques fonctions/variables partagées.
+Dishful.switch_tab = switch_tab;
+Dishful.get_visible_tab_name = get_visible_tab_name;
+Dishful.get_current_user = () => current_user;
 
 })(); // fin de l'IIFE qui protège tout le fichier
