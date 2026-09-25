@@ -24,10 +24,18 @@ self.addEventListener('activate', (event) => {
     caches.keys()
       .then((names) => Promise.all(names.map((name) => caches.delete(name))))
       .then(() => self.registration.unregister())
-      .then(() => self.clients.matchAll())
-      .then((clients) => clients.forEach((client) => client.navigate(client.url)))
   );
 });
 
 // Pas de handler 'fetch' du tout : aucune requête n'est interceptée pendant
 // la (très brève) fenêtre où ce service worker est encore actif.
+//
+// Volontairement PAS de client.navigate()/reload forcé ici : ça avait l'air
+// pratique pour que le nettoyage s'applique tout de suite, mais combiné au
+// re-enregistrement de pwa.js à chaque chargement (tant qu'un enregistrement
+// existe), le moindre décalage entre "unregister() a fini" et "le nouveau
+// chargement revérifie déjà" rebouclait — page qui se recharge en boucle
+// jusqu'au plantage. Sans reload forcé, l'onglet déjà ouvert garde son
+// ancien SW jusqu'à sa PROCHAINE navigation naturelle (à ce moment-là plus
+// aucun SW n'est enregistré) : un peu moins immédiat, mais aucun risque de
+// boucle.
