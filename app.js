@@ -1134,7 +1134,11 @@ function render_user_zone() {
     document.getElementById('open_profile_btn').addEventListener('click', () => switch_tab('profile'));
   } else {
     // si on était sur l'onglet profil en se déconnectant, on revient au feed
-    if (!document.getElementById('tab-profile').classList.contains('hidden')) {
+    // (get_visible_tab_name(), pas la classe "hidden" de tab-profile directement : en mode
+    // mobile celle-ci reste toujours démasquée, ce qui déclenchait switch_tab('feed') à
+    // CHAQUE appel de render_user_zone() sans utilisateur connecté -> boucle infinie avec
+    // refresh_session(), voir le commentaire de get_visible_tab_name())
+    if (get_visible_tab_name() === 'profile') {
       switch_tab('feed');
     }
     zone.innerHTML = `<button id="open_auth_btn" class="text-btn"><i class="fa-solid fa-right-to-bracket"></i> ${escape_html(I18N.t('nav.login'))}</button>`;
@@ -4404,8 +4408,25 @@ function apply_saved_recipes_filter(saved_recipes) {
   render_mini_recipes_grid("user_saved_recipes", filtered);
 }
 
+// En mode mobile, les 5 onglets du carrousel (feed/search/publish/leaderboard/profile)
+// restent TOUS démasqués en même temps (ils glissent via transform, pas via la classe
+// "hidden" — voir mobile.js) : leur classe "hidden" ne reflète donc PAS celui réellement
+// affiché dans ce mode, seul l'index de slide suivi côté mobile.js le sait. S'y fier quand
+// même (comme le faisait cette fonction avant) fait toujours retourner le premier de la
+// liste ("feed") en mode mobile, quel que soit l'onglet réellement visible — un bug qui a
+// notamment provoqué une boucle infinie render_user_zone() -> switch_tab('feed') ->
+// refresh_session() -> render_user_zone() dès que l'utilisateur n'était pas connecté sur
+// mobile (le test "!hidden sur tab-profile" était alors toujours vrai).
 function get_visible_tab_name() {
-  const tab_ids = ["feed", "publish", "profile", "recipe-detail", "leaderboard", "public-profile", "search", "admin"];
+  const overlay_ids = ["recipe-detail", "public-profile", "admin"];
+  for (const id of overlay_ids) {
+    const el = document.getElementById("tab-" + id);
+    if (el && !el.classList.contains("hidden")) return id;
+  }
+  if (Dishful.is_mobile_mode?.() && Dishful.get_mobile_slide_tab) {
+    return Dishful.get_mobile_slide_tab();
+  }
+  const tab_ids = ["feed", "publish", "profile", "leaderboard", "search"];
   for (const id of tab_ids) {
     const el = document.getElementById("tab-" + id);
     if (el && !el.classList.contains("hidden")) return id;

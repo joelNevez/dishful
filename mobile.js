@@ -216,5 +216,10 @@
   Dishful.is_mobile_mode = is_mobile_mode;
   Dishful.MOBILE_SWIPE_TABS = MOBILE_SWIPE_TABS;
   Dishful.goto_mobile_slide = goto_mobile_slide;
+  // Les 5 onglets du carrousel restent TOUS démasqués en mode mobile (voir plus haut) —
+  // leur classe "hidden" ne dit donc rien de celui réellement affiché. Seul l'index de
+  // slide suivi ici sait lequel c'est ; get_visible_tab_name() côté app.js en a besoin
+  // pour ne pas se fier à tort à "hidden" en mode mobile (voir son commentaire).
+  Dishful.get_mobile_slide_tab = () => MOBILE_SWIPE_TABS[current_mobile_slide_index];
 
 })();
