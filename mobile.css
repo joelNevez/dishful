@@ -205,17 +205,6 @@
   .search-result-card .recipe-card-media{height:140px;aspect-ratio:auto;}
   .search-result-card .recipe-card-stats-row{display:flex;order:6;}
 
-  /* ---------- Tirer pour actualiser (feed uniquement, voir mobile.js) ----------
-     Hauteur 0 par défaut, poussée en JS pendant le geste (dy en px) : le
-     contenu du feed est donc simplement repoussé vers le bas au fil du tirer,
-     comme le fait une vraie appli native. */
-  .pull-refresh-indicator{
-    display:flex;align-items:center;justify-content:center;height:0;overflow:hidden;
-    color:var(--rust);font-size:19px;
-  }
-  .pull-refresh-indicator.refreshing i{animation:pull-refresh-spin .7s linear infinite;}
-  @keyframes pull-refresh-spin{to{transform:rotate(360deg);}}
-
   /* ---------- Entêtes + filtres partagés (feed / recherche / classement) ---------- */
   .feed-header{margin-bottom:10px;}
   .feed-header h1{font-size:21px;font-weight:700;}
