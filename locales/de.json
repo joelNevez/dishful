@@ -252,7 +252,7 @@
       "published_success": "Rezept veröffentlicht! +20 XP erhalten.",
       "change_photo": "Foto ändern",
       "checking_content": "Inhalt wird automatisch überprüft...",
-      "checking_content_timer": "Inhalt wird automatisch überprüft... ({seconds}s)",
+      "checking_content_timer": "Inhalt wird automatisch überprüft... ({{seconds}}s)",
       "flagged_title": "Rezept wartet auf Überprüfung",
       "flagged_message": "Dein Rezept wurde gespeichert, aber die automatische Prüfung hat ein mögliches Problem erkannt. Ein Administrator prüft es, bevor es veröffentlicht wird.",
       "details_group_label": "Portionen, Schwierigkeit & Land *"
@@ -419,7 +419,7 @@
       "account_created_confirm": "Konto erstellt! Schau in deinem Postfach nach, um deine Adresse zu bestätigen, und melde dich dann an.",
       "banned_title": "Konto gesperrt",
       "banned_message": "Dein Konto wurde von einem Administrator gesperrt. Du wurdest abgemeldet.",
-      "banned_message_reason": "Dein Konto wurde von einem Administrator gesperrt (Grund: {reason}). Du wurdest abgemeldet."
+      "banned_message_reason": "Dein Konto wurde von einem Administrator gesperrt (Grund: {{reason}}). Du wurdest abgemeldet."
     },
     "publish_success": {
       "title": "Rezept veröffentlicht!",
@@ -511,7 +511,9 @@
       "log_meal_slot_label": "Mahlzeit",
       "log_meal_date_label": "Datum",
       "log_meal_confirm_btn": "Zum Tagebuch hinzufügen",
-      "log_meal_success": "Zu deinem Tagebuch hinzugefügt!"
+      "log_meal_success": "Zu deinem Tagebuch hinzugefügt!",
+      "status_pending_badge": "Ausstehend",
+      "status_flagged_badge": "Gemeldet"
     },
     "time": {
       "just_now": "gerade eben",
@@ -597,7 +599,7 @@
       "banned_msg": "Konto gesperrt.",
       "unbanned_msg": "Konto entsperrt.",
       "delete_account_btn": "Konto löschen",
-      "delete_account_confirm": "Das Konto von {name} endgültig löschen? Alle Rezepte, Kommentare und Likes werden gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
+      "delete_account_confirm": "Das Konto von {{name}} endgültig löschen? Alle Rezepte, Kommentare und Likes werden gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
       "account_deleted_msg": "Konto gelöscht."
     }
   },

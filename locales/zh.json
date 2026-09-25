@@ -252,7 +252,7 @@
       "published_success": "菜谱发布成功！获得 +20 经验值。",
       "change_photo": "更换照片",
       "checking_content": "正在自动审核内容……",
-      "checking_content_timer": "正在自动审核内容……（{seconds}秒）",
+      "checking_content_timer": "正在自动审核内容……（{{seconds}}秒）",
       "flagged_title": "菜谱正在等待审核",
       "flagged_message": "你的菜谱已保存，但自动审核发现了潜在问题。管理员会在其公开前进行审核。",
       "details_group_label": "份量、难度和国家 *"
@@ -419,7 +419,7 @@
       "account_created_confirm": "账号创建成功！请查收邮件以确认你的邮箱地址，然后登录。",
       "banned_title": "账户已被封禁",
       "banned_message": "你的账户已被管理员封禁，系统已将你登出。",
-      "banned_message_reason": "你的账户已被管理员封禁（原因：{reason}），系统已将你登出。"
+      "banned_message_reason": "你的账户已被管理员封禁（原因：{{reason}}），系统已将你登出。"
     },
     "publish_success": {
       "title": "菜谱发布成功！",
@@ -511,7 +511,9 @@
       "log_meal_slot_label": "餐次",
       "log_meal_date_label": "日期",
       "log_meal_confirm_btn": "添加到日记",
-      "log_meal_success": "已添加到你的日记！"
+      "log_meal_success": "已添加到你的日记！",
+      "status_pending_badge": "待审核",
+      "status_flagged_badge": "已标记"
     },
     "time": {
       "just_now": "刚刚",
@@ -597,7 +599,7 @@
       "banned_msg": "账户已封禁。",
       "unbanned_msg": "账户已解除封禁。",
       "delete_account_btn": "删除账户",
-      "delete_account_confirm": "确定永久删除 {name} 的账户？其所有菜谱、评论和点赞都将被删除。此操作无法撤销。",
+      "delete_account_confirm": "确定永久删除 {{name}} 的账户？其所有菜谱、评论和点赞都将被删除。此操作无法撤销。",
       "account_deleted_msg": "账户已删除。"
     }
   },

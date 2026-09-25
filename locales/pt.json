@@ -252,7 +252,7 @@
       "published_success": "Receita publicada! +20 XP ganhos.",
       "change_photo": "Mudar a foto",
       "checking_content": "A verificar automaticamente o conteúdo...",
-      "checking_content_timer": "A verificar automaticamente o conteúdo... ({seconds}s)",
+      "checking_content_timer": "A verificar automaticamente o conteúdo... ({{seconds}}s)",
       "flagged_title": "Receita a aguardar verificação",
       "flagged_message": "A tua receita foi guardada, mas a verificação automática detetou um possível problema. Será revista por um administrador antes de ficar pública.",
       "details_group_label": "Porções, dificuldade e país *"
@@ -419,7 +419,7 @@
       "account_created_confirm": "Conta criada! Verifica a tua caixa de correio para confirmar o teu endereço e depois inicia sessão.",
       "banned_title": "Conta banida",
       "banned_message": "A tua conta foi banida por um administrador. Foste desligado.",
-      "banned_message_reason": "A tua conta foi banida por um administrador (motivo: {reason}). Foste desligado."
+      "banned_message_reason": "A tua conta foi banida por um administrador (motivo: {{reason}}). Foste desligado."
     },
     "publish_success": {
       "title": "Receita publicada!",
@@ -511,7 +511,9 @@
       "log_meal_slot_label": "Refeição",
       "log_meal_date_label": "Data",
       "log_meal_confirm_btn": "Adicionar ao diário",
-      "log_meal_success": "Adicionado ao teu diário!"
+      "log_meal_success": "Adicionado ao teu diário!",
+      "status_pending_badge": "Pendente",
+      "status_flagged_badge": "Sinalizada"
     },
     "time": {
       "just_now": "agora mesmo",
@@ -597,7 +599,7 @@
       "banned_msg": "Conta banida.",
       "unbanned_msg": "Conta desbanida.",
       "delete_account_btn": "Eliminar conta",
-      "delete_account_confirm": "Eliminar definitivamente a conta de {name}? Todas as receitas, comentários e gostos serão eliminados. Esta ação é irreversível.",
+      "delete_account_confirm": "Eliminar definitivamente a conta de {{name}}? Todas as receitas, comentários e gostos serão eliminados. Esta ação é irreversível.",
       "account_deleted_msg": "Conta eliminada."
     }
   },

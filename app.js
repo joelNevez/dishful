@@ -1599,8 +1599,8 @@ function render_recipe_preview() {
             ${recipe_steps.map((s) => {
               const type_key = STEP_TYPES[s.type] ? s.type : 'prep';
               const type_info = STEP_TYPES[type_key];
-              const ing_tags = (s.ingredients || []).map(ing => `<span class="tag-chip">${ing.amount || ''}${escape_html(unit_label(ing.unit))} ${escape_html(I18N.td('foods', ing.name))}</span>`).join('');
-              const tool_tags = (s.tools || []).map(t => `<span class="tag-chip tool-tag-chip">${t.emoji || '🔧'} ${escape_html(I18N.td('tools', t.name))}</span>`).join('');
+              const ing_tags = step_ingredients_chips_html(s.ingredients, 1);
+              const tool_tags = step_tools_chips_html(s.tools);
               const media = step_preview_media(s);
               const media_html = media
                 ? (media.type === 'image'
@@ -1663,6 +1663,33 @@ function compute_steps_total_ingredient_quantities(steps, ratio) {
 
 function compute_total_ingredient_quantities() {
   return compute_steps_total_ingredient_quantities(recipe_steps, 1);
+}
+
+// Puce icône + nom + quantité pour UN ingrédient/outil d'étape — remplace les anciens
+// tag-chips plats (juste du texte concaténé "150g Poulet", sans repère visuel, pas
+// d'icône pour les ingrédients) par des blocs où l'icône, le nom et la quantité sont
+// des éléments bien séparés. Réutilisé par l'aperçu de publication, la page recette
+// publiée et le mode cuisine, pour que les trois soient identiques et cohérents.
+function step_item_chip_html(icon, name, qty, is_tool) {
+  return `
+    <div class="step-item-chip${is_tool ? ' tool' : ''}">
+      <span class="step-item-icon">${icon}</span>
+      <span class="step-item-name">${escape_html(name)}</span>
+      ${qty ? `<span class="step-item-qty">${escape_html(qty)}</span>` : ''}
+    </div>`;
+}
+
+function step_ingredients_chips_html(ingredients, ratio) {
+  return (ingredients || []).map(ing => {
+    const scaled_amount = ing.amount !== '' && ing.amount != null ? Math.round(Number(ing.amount) * (ratio || 1) * 100) / 100 : '';
+    const qty = scaled_amount !== '' ? `${scaled_amount} ${unit_label(ing.unit)}` : (ing.unit ? unit_label(ing.unit) : '');
+    const food = find_food_by_name(ing.name);
+    return step_item_chip_html(food?.emoji || '🍽️', I18N.td('foods', ing.name || ''), qty, false);
+  }).join('');
+}
+
+function step_tools_chips_html(tools) {
+  return (tools || []).map(t => step_item_chip_html(t.emoji || '🔧', I18N.td('tools', t.name), '', true)).join('');
 }
 
 // Liste de produits propre (icône + nom + quantité), réutilisée partout où on affiche des
@@ -4317,12 +4344,22 @@ function render_mini_recipes_grid(container_id, recipes) {
 
   container.innerHTML = recipes.map((r) => {
     const cover_image = r.cover_image || (r.images && r.images[0]) || "";
+    const flag = r.country_code ? country_flag_from_code(r.country_code) : null;
+    const status_badge = r.moderation_status === 'flagged'
+      ? `<span class="mini_card_status_badge flagged"><i class="fa-solid fa-flag"></i> ${escape_html(I18N.t('recipe_detail.status_flagged_badge'))}</span>`
+      : r.moderation_status === 'pending'
+        ? `<span class="mini_card_status_badge pending"><i class="fa-solid fa-hourglass-half"></i> ${escape_html(I18N.t('recipe_detail.status_pending_badge'))}</span>`
+        : '';
     return `
       <div class="mini_recipe_card" data-recipe-id="${r.id}">
-        <div class="mini_card_img" style="background-image: url('${escape_attr(cover_image)}')"></div>
+        <div class="mini_card_img" style="background-image: url('${escape_attr(cover_image)}')">${status_badge}</div>
         <div class="mini_card_info">
           <h4>${escape_html(r.title)}</h4>
-          <span class="mini_card_meta">${r.country ? escape_html(I18N.td('countries', r.country)) : escape_html(I18N.t('common.recipe'))} · ❤️ ${r.likes_count || 0}</span>
+          <span class="mini_card_country">${flag ? flag + ' ' : ''}${r.country ? escape_html(I18N.td('countries', r.country)) : escape_html(I18N.t('common.recipe'))}</span>
+          <div class="mini_card_stats_row">
+            <span><i class="fa-solid fa-heart"></i> ${r.likes_count || 0}</span>
+            <span><i class="fa-solid fa-eye"></i> ${r.views_count || 0}</span>
+          </div>
         </div>
       </div>
     `;
@@ -5096,11 +5133,8 @@ async function show_recipe_detail_page(recipe_id, opts) {
         ? `<video class="cooking_step_media" src="${escape_attr(step.video_url)}" controls></video>`
         : '';
 
-    const ing_html = (step.ingredients || []).map(ing => {
-      const scaled = ing.amount !== '' && ing.amount != null ? Math.round(Number(ing.amount) * ratio * 100) / 100 : '';
-      return `<span class="tag-chip">${scaled}${escape_html(unit_label(ing.unit))} ${escape_html(I18N.td('foods', ing.name || ''))}</span>`;
-    }).join('');
-    const tool_html = (step.tools || []).map(t => `<span class="tag-chip tool-tag-chip">${t.emoji || '🔧'} ${escape_html(I18N.td('tools', t.name))}</span>`).join('');
+    const ing_html = step_ingredients_chips_html(step.ingredients, ratio);
+    const tool_html = step_tools_chips_html(step.tools);
 
     document.getElementById('cooking_step_card').innerHTML = `
       <div class="cooking_step_type type-${type_key}"><i class="fa-solid ${type_info.icon}"></i> ${escape_html(I18N.td('step_types', type_key))}${step.oven_temp ? ' · ' + step.oven_temp + '°C' : ''}</div>
@@ -5139,11 +5173,8 @@ async function show_recipe_detail_page(recipe_id, opts) {
         : step.external_url
           ? `<a href="${escape_attr(step.external_url)}" target="_blank" rel="noopener" class="step_external_link"><i class="fa-solid fa-link"></i> ${escape_html(I18N.t('recipe_detail.external_media'))}</a>`
           : '';
-    const scaled_ings = (step.ingredients || []).map(ing => {
-      const scaled_amount = ing.amount !== '' && ing.amount != null ? Math.round(Number(ing.amount) * ratio * 100) / 100 : '';
-      return `<span class="tag-chip">${scaled_amount}${escape_html(unit_label(ing.unit))} ${escape_html(I18N.td('foods', ing.name || ''))}</span>`;
-    }).join('');
-    const tool_chips = (step.tools || []).map(t => `<span class="tag-chip tool-tag-chip">${t.emoji || '🔧'} ${escape_html(I18N.td('tools', t.name))}</span>`).join('');
+    const scaled_ings = step_ingredients_chips_html(step.ingredients, ratio);
+    const tool_chips = step_tools_chips_html(step.tools);
     return `<li class="type-${type_key}">
       <span class="step_type_badge type-${type_key}"><i class="fa-solid ${type_info.icon}"></i> ${escape_html(I18N.td('step_types', type_key))}${step.oven_temp ? ' · ' + step.oven_temp + '°C' : ''}</span>
       ${step.time_min ? `<span class="step_time_badge"><i class="fa-solid fa-stopwatch"></i> ${step.time_min} ${escape_html(I18N.t('common.minutes_short'))}</span>` : ''}
@@ -5352,7 +5383,7 @@ async function show_recipe_detail_page(recipe_id, opts) {
 
       <div class="recipe_footer_actions">
         <button id="like_recipe_btn" class="action-btn like-btn ${liked_recipe_ids.has(recipe.id) ? 'liked' : ''}" data-recipe-id="${escape_attr(recipe.id)}">
-          <i class="fa-solid fa-heart"></i> <span class="like-count">${recipe.likes_count || 0}</span> ${escape_html(I18N.t('recipe_detail.likes'))}
+          <i class="fa-solid fa-heart"></i> <span class="like-count">${recipe.likes_count || 0}</span>
         </button>
         <button type="button" id="log_meal_open_btn" class="action-btn"><i class="fa-solid fa-utensils"></i> ${escape_html(I18N.t('recipe_detail.log_meal_btn'))}</button>
         <p class="recipe_footer_actions_hint">${escape_html(I18N.t('recipe_detail.footer_hint'))}</p>

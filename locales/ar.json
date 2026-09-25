@@ -252,7 +252,7 @@
       "published_success": "تم نشر الوصفة! حصلت على +20 نقطة خبرة.",
       "change_photo": "تغيير الصورة",
       "checking_content": "جارٍ التحقق التلقائي من المحتوى...",
-      "checking_content_timer": "جارٍ التحقق التلقائي من المحتوى... ({seconds} ثانية)",
+      "checking_content_timer": "جارٍ التحقق التلقائي من المحتوى... ({{seconds}} ثانية)",
       "flagged_title": "الوصفة بانتظار المراجعة",
       "flagged_message": "تم حفظ وصفتك، لكن التحقق التلقائي رصد مشكلة محتملة. سيقوم أحد المسؤولين بمراجعتها قبل نشرها للعامة.",
       "details_group_label": "الحصص والصعوبة والبلد *"
@@ -419,7 +419,7 @@
       "account_created_confirm": "تم إنشاء الحساب! تحقق من بريدك الإلكتروني لتأكيد عنوانك، ثم سجّل الدخول.",
       "banned_title": "الحساب محظور",
       "banned_message": "تم حظر حسابك من قِبل مسؤول. تم تسجيل خروجك.",
-      "banned_message_reason": "تم حظر حسابك من قِبل مسؤول (السبب: {reason}). تم تسجيل خروجك."
+      "banned_message_reason": "تم حظر حسابك من قِبل مسؤول (السبب: {{reason}}). تم تسجيل خروجك."
     },
     "publish_success": {
       "title": "تم نشر الوصفة!",
@@ -511,7 +511,9 @@
       "log_meal_slot_label": "الوجبة",
       "log_meal_date_label": "التاريخ",
       "log_meal_confirm_btn": "إضافة إلى السجل",
-      "log_meal_success": "أُضيف إلى سجلك!"
+      "log_meal_success": "أُضيف إلى سجلك!",
+      "status_pending_badge": "قيد الانتظار",
+      "status_flagged_badge": "مُبلَّغ عنها"
     },
     "time": {
       "just_now": "الآن",
@@ -597,7 +599,7 @@
       "banned_msg": "تم حظر الحساب.",
       "unbanned_msg": "تم إلغاء حظر الحساب.",
       "delete_account_btn": "حذف الحساب",
-      "delete_account_confirm": "هل تريد حذف حساب {name} نهائيًا؟ سيتم حذف جميع وصفاته وتعليقاته وإعجاباته. لا يمكن التراجع عن هذا الإجراء.",
+      "delete_account_confirm": "هل تريد حذف حساب {{name}} نهائيًا؟ سيتم حذف جميع وصفاته وتعليقاته وإعجاباته. لا يمكن التراجع عن هذا الإجراء.",
       "account_deleted_msg": "تم حذف الحساب."
     }
   },

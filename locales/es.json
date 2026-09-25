@@ -252,7 +252,7 @@
       "published_success": "¡Receta publicada! +20 XP ganados.",
       "change_photo": "Cambiar la foto",
       "checking_content": "Verificando automáticamente el contenido...",
-      "checking_content_timer": "Verificando automáticamente el contenido... ({seconds}s)",
+      "checking_content_timer": "Verificando automáticamente el contenido... ({{seconds}}s)",
       "flagged_title": "Receta pendiente de revisión",
       "flagged_message": "Tu receta se guardó, pero la verificación automática detectó un posible problema. Un administrador la revisará antes de publicarla.",
       "details_group_label": "Porciones, dificultad y país *"
@@ -419,7 +419,7 @@
       "account_created_confirm": "¡Cuenta creada! Revisa tu correo para confirmar tu dirección y luego inicia sesión.",
       "banned_title": "Cuenta prohibida",
       "banned_message": "Tu cuenta ha sido prohibida por un administrador. Se ha cerrado tu sesión.",
-      "banned_message_reason": "Tu cuenta ha sido prohibida por un administrador (motivo: {reason}). Se ha cerrado tu sesión."
+      "banned_message_reason": "Tu cuenta ha sido prohibida por un administrador (motivo: {{reason}}). Se ha cerrado tu sesión."
     },
     "publish_success": {
       "title": "¡Receta publicada!",
@@ -511,7 +511,9 @@
       "log_meal_slot_label": "Comida",
       "log_meal_date_label": "Fecha",
       "log_meal_confirm_btn": "Añadir al diario",
-      "log_meal_success": "¡Añadido a tu diario!"
+      "log_meal_success": "¡Añadido a tu diario!",
+      "status_pending_badge": "Pendiente",
+      "status_flagged_badge": "Marcada"
     },
     "time": {
       "just_now": "ahora mismo",
@@ -597,7 +599,7 @@
       "banned_msg": "Cuenta prohibida.",
       "unbanned_msg": "Prohibición levantada.",
       "delete_account_btn": "Eliminar cuenta",
-      "delete_account_confirm": "¿Eliminar definitivamente la cuenta de {name}? Se eliminarán todas sus recetas, comentarios y likes. Esta acción no se puede deshacer.",
+      "delete_account_confirm": "¿Eliminar definitivamente la cuenta de {{name}}? Se eliminarán todas sus recetas, comentarios y likes. Esta acción no se puede deshacer.",
       "account_deleted_msg": "Cuenta eliminada."
     }
   },

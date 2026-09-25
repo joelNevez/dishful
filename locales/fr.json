@@ -252,7 +252,7 @@
       "published_success": "Recette publiée ! +20 XP gagnés.",
       "change_photo": "Changer la photo",
       "checking_content": "Vérification automatique du contenu...",
-      "checking_content_timer": "Vérification automatique du contenu... ({seconds}s)",
+      "checking_content_timer": "Vérification automatique du contenu... ({{seconds}}s)",
       "flagged_title": "Recette en attente de vérification",
       "flagged_message": "Ta recette a été enregistrée mais la vérification automatique a détecté un possible souci. Elle sera examinée par un administrateur avant d'être rendue publique.",
       "details_group_label": "Portions, difficulté & pays *"
@@ -419,7 +419,7 @@
       "account_created_confirm": "Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse, puis connecte-toi.",
       "banned_title": "Compte banni",
       "banned_message": "Ton compte a été banni par un administrateur. Tu as été déconnecté.",
-      "banned_message_reason": "Ton compte a été banni par un administrateur (raison : {reason}). Tu as été déconnecté."
+      "banned_message_reason": "Ton compte a été banni par un administrateur (raison : {{reason}}). Tu as été déconnecté."
     },
     "publish_success": {
       "title": "Recette publiée !",
@@ -511,7 +511,9 @@
       "log_meal_slot_label": "Repas",
       "log_meal_date_label": "Date",
       "log_meal_confirm_btn": "Ajouter au journal",
-      "log_meal_success": "Ajouté à ton journal !"
+      "log_meal_success": "Ajouté à ton journal !",
+      "status_pending_badge": "En attente",
+      "status_flagged_badge": "Signalée"
     },
     "time": {
       "just_now": "à l'instant",
@@ -597,7 +599,7 @@
       "banned_msg": "Compte banni.",
       "unbanned_msg": "Compte débanni.",
       "delete_account_btn": "Supprimer le compte",
-      "delete_account_confirm": "Supprimer définitivement le compte de {name} ? Toutes ses recettes, commentaires et likes seront supprimés. Cette action est irréversible.",
+      "delete_account_confirm": "Supprimer définitivement le compte de {{name}} ? Toutes ses recettes, commentaires et likes seront supprimés. Cette action est irréversible.",
       "account_deleted_msg": "Compte supprimé."
     }
   },

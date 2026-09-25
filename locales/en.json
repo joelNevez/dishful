@@ -252,7 +252,7 @@
       "published_success": "Recipe published! +20 XP earned.",
       "change_photo": "Change photo",
       "checking_content": "Automatically checking your content...",
-      "checking_content_timer": "Automatically checking your content... ({seconds}s)",
+      "checking_content_timer": "Automatically checking your content... ({{seconds}}s)",
       "flagged_title": "Recipe pending review",
       "flagged_message": "Your recipe was saved, but the automatic check flagged a possible issue. An administrator will review it before it goes public.",
       "details_group_label": "Servings, difficulty & country *"
@@ -419,7 +419,7 @@
       "account_created_confirm": "Account created! Check your inbox to confirm your address, then log in.",
       "banned_title": "Account banned",
       "banned_message": "Your account has been banned by an administrator. You've been signed out.",
-      "banned_message_reason": "Your account has been banned by an administrator (reason: {reason}). You've been signed out."
+      "banned_message_reason": "Your account has been banned by an administrator (reason: {{reason}}). You've been signed out."
     },
     "publish_success": {
       "title": "Recipe published!",
@@ -511,7 +511,9 @@
       "log_meal_slot_label": "Meal",
       "log_meal_date_label": "Date",
       "log_meal_confirm_btn": "Add to journal",
-      "log_meal_success": "Added to your journal!"
+      "log_meal_success": "Added to your journal!",
+      "status_pending_badge": "Pending",
+      "status_flagged_badge": "Flagged"
     },
     "time": {
       "just_now": "just now",
@@ -597,7 +599,7 @@
       "banned_msg": "Account banned.",
       "unbanned_msg": "Account unbanned.",
       "delete_account_btn": "Delete account",
-      "delete_account_confirm": "Permanently delete {name}'s account? All their recipes, comments and likes will be deleted. This cannot be undone.",
+      "delete_account_confirm": "Permanently delete {{name}}'s account? All their recipes, comments and likes will be deleted. This cannot be undone.",
       "account_deleted_msg": "Account deleted."
     }
   },
